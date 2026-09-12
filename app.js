@@ -143,7 +143,7 @@ const productsData = [
     { 
         id: 'p5', 
         title: 'LunarCraft Protective Laptop Sleeve', 
-        price: N/A, 
+        price: , 
         image: 'images/place-holder.jpg', 
         desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
