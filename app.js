@@ -143,7 +143,7 @@ const productsData = [
     { 
         id: 'p5', 
         title: 'LunarCraft Protective Laptop Sleeve', 
-        price: 17.52, 
+        price: N/A, 
         image: 'images/place-holder.jpg', 
         desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
@@ -158,24 +158,37 @@ function renderProducts() {
     for (var i = 0; i < productsData.length; i++) {
         var prod = productsData[i];
         
-        // Add special scaling class for the laptop sleeve (p4)
-        var imgClass = (prod.id === 'p4') ? 'scale-down' : '';
-        
-        html += '<div class="product-card">' +
-            '<div class="product-image-wrap">' +
-                '<img src="' + prod.image + '" alt="' + prod.title + '" class="' + imgClass + '">' +
-            '</div>' +
-            '<div class="product-info">' +
-                '<span class="badge">Official Gear</span>' +
-                '<h3 style="margin: 0.5rem 0 0.25rem 0;">' + prod.title + '</h3>' +
-                '<p style="color: #94a3b8; font-size: 0.9rem;">' + prod.desc + '</p>' +
-                '<div class="product-price" style="font-weight: bold; margin: 0.5rem 0;">$' + prod.price + '</div>' +
-                '<div class="card-actions" style="display: flex; gap: 0.5rem; margin-top: 1rem;">' +
-                    '<button class="btn btn-secondary" style="flex: 1;" onclick="addToCart(\'' + prod.id + '\')">Test Cart</button>' +
-                    '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">Buy Now</a>' +
+        if (prod.isDemo) {
+            // Render demo/portfolio promo card
+            html += '<div class="product-card demo-card">' +
+                '<div class="demo-icon">🚀</div>' +
+                '<div class="product-info">' +
+                    '<span class="badge badge-demo">Portfolio Demo</span>' +
+                    '<h3>' + prod.title + '</h3>' +
+                    '<p>' + prod.desc + '</p>' +
+                    '<div class="card-actions">' +
+                        '<button class="btn btn-primary" onclick="switchTab(\'book-service\')" style="width:100%;">Inquire About Builds</button>' +
+                    '</div>' +
                 '</div>' +
-            '</div>' +
-        '</div>';
+            '</div>';
+        } else {
+            // Render actual merchandise card
+            html += '<div class="product-card">' +
+                '<div class="product-image-wrap">' +
+                    '<img src="' + prod.image + '" alt="' + prod.title + '">' +
+                '</div>' +
+                '<div class="product-info">' +
+                    '<span class="badge">Official Gear</span>' +
+                    '<h3>' + prod.title + '</h3>' +
+                    '<p>' + prod.desc + '</p>' +
+                    '<div class="product-price">$' + prod.price + '</div>' +
+                    '<div class="card-actions">' +
+                        '<button class="btn btn-secondary" onclick="addToCart(\'' + prod.id + '\')">Test Cart</button>' +
+                        '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary">Buy Now</a>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }
     }
     container.innerHTML = html;
 }
