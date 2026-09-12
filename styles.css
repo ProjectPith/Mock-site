@@ -357,7 +357,7 @@ input:focus, select:focus {
     right: 1.5rem;
     background-color: var(--bg-surface);
     border: 1px solid var(--blue-primary);
-    padding: 0.85rem 1.25rem;
+    padding: 0.5rem 0.5rem;
     border-radius: 8px;
     display: flex;
     align-items: center;
