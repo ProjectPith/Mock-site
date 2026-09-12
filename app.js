@@ -46,7 +46,7 @@ function switchTab(tabId) {
         activeLink.classList.add('active');
     }
 
-    if (tabId === ('store') {
+    if (tabId === 'store') {
         renderProducts();
     }
 }
