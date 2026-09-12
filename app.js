@@ -43,7 +43,7 @@ function switchTab(tabId) {
 
     const activeLink = document.querySelector('.nav-link[onclick*="${tabId}"]');
     if (activeLink) {
-        activeLink.classList.add('active");
+        activeLink.classList.add('active');
     }
 
     if (tabId === ('store') {
