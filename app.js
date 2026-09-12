@@ -135,7 +135,7 @@ function renderProducts() {
     container.innerHTML = productsData.map(prod => `
         <div class="product-card">
             <div class="product-image-wrap" style="background: var(--bg-dark); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border);">
-                <img src="${prod.image}" alt="${prod.title}" style="width: 100%; height: 200px; object-fit: cover; display: block;" onerror="this.src='https://via.placeholder.com/300x200/181a20/93c5fd?text=LunarCraft+Merch'">
+                <img src="' + prod.image + '" alt="' + prod.title + '" style="width: 100%; height: 200px; object-fit: cover; display: block;"
             </div>
             <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
