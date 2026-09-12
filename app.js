@@ -26,14 +26,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function switchTab(tabId) {
-    // Hide all tabs
-    const tabs = document.querySelectorAll('.tab-content');
-    tabs.forEach(tab => tab.style.display = 'none');
+    // Hide all tab sections
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
 
-    // Show selected tab
+    // Remove active class from all nav buttons
+    document.querySelectorAll('.nav-link').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab section
     const selectedTab = document.getElementById(tabId + '-tab');
     if (selectedTab) {
         selectedTab.style.display = 'block';
+    }
+
+    // Highlight active nav button
+    const activeNavBtn = document.getElementById('nav-' + tabId);
+    if (activeNavBtn) {
+        activeNavBtn.classList.add('active');
     }
 }
 
