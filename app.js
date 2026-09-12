@@ -143,26 +143,31 @@ const productsData = [
 ];
 
 function renderProducts() {
-    const container = document.getElementById('products-grid');
-    container.innerHTML = productsData.map(prod => `
-        <div class="product-card">
-            <div class="product-image-wrap" style="background: var(--bg-dark); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border);">
-                <img src="' + prod.image + '" alt="' + prod.title + '" style="width: 100%; height: 200px; object-fit: cover; display: block;"
-            </div>
-            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <span class="badge" style="font-size:0.7rem; padding: 2px 6px;">Official Gear</span>
-                    <h3 style="margin-top:0.5rem; font-size: 1.1rem;">${prod.title}</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.5rem 0;">${prod.desc}</p>
-                    <div class="product-price" style="margin: 0.5rem 0;">$${prod.price}</div>
-                </div>
-                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                    <button class="btn btn-secondary" style="flex:1;" onclick="addToCart('${prod.id}')">Test Cart</button>
-                    <a href="${prod.buyUrl}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Buy Now</a>
-                </div>
-            </div>
-        </div>
-    `).join('');
+    var container = document.getElementById('products-grid');
+    if (!container || typeof productsData === 'undefined') return;
+    
+    var html = '';
+    for (var i = 0; i < productsData.length; i++) {
+        var prod = productsData[i];
+        
+        // Ensure every opening <div> tag has a matching closing </div> tag
+        html += '<div class="product-card">' +
+            '<div class="product-image-wrap">' +
+                '<img src="' + prod.image + '" alt="' + prod.title + '">' +
+            '</div>' +
+            '<div class="product-info">' +
+                '<span class="badge">Official Gear</span>' +
+                '<h3>' + prod.title + '</h3>' +
+                '<p>' + prod.desc + '</p>' +
+                '<div class="product-price">$' + prod.price + '</div>' +
+                '<div class="card-actions">' +
+                    '<button class="btn btn-secondary" onclick="addToCart(\'' + prod.id + '\')">Test Cart</button>' +
+                    '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary">Buy Now</a>' +
+                '</div>' +
+            '</div>' +
+        '</div>'; // Closes .product-card properly
+    }
+    container.innerHTML = html;
 }
 
 function addToCart(productId) {
