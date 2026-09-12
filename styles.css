@@ -353,8 +353,8 @@ input:focus, select:focus {
 
 .template-sale-banner {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    bottom: 0.5rem;
+    right: 0.5rem;
     background-color: var(--bg-surface);
     border: 1px solid var(--blue-primary);
     padding: 0.85rem 1.25rem;
