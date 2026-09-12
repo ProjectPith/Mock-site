@@ -222,21 +222,43 @@ body {
 }
 
 /* Store */
+/* Force a strict 2-column layout for a clean 2x2 grid */
 #products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
     width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 
-.product-card {
-    background: #181a20;
-    border: 1px solid #2a2d35;
-    border-radius: 8px;
-    padding: 1rem;
+/* Equal size image containers */
+.product-image-wrap {
+    width: 100%;
+    height: 260px;
+    background: #0f1015;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1rem;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Default image sizing (Enlarges mousepad, hoodie, mug) */
+.product-image-wrap img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+/* Shrinks the oversized laptop sleeve image so it fits like the rest */
+.product-image-wrap img.scale-down {
+    max-width: 65%;
+    max-height: 65%;
 }
 
 /* Forms */
