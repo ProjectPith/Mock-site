@@ -361,7 +361,7 @@ input:focus, select:focus {
     border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
     z-index: 999; /* Forces it to stay above everything else */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     font-size: 0.85rem;
