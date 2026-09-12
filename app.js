@@ -96,15 +96,61 @@ function handleBooking(e) {
 // ==========================================
 // E-COMMERCE & CART SYSTEM
 // ==========================================
+// Updated with your web dev merch lineup
+const productsData = [
+    { 
+        id: 'p1', 
+        title: 'LunarCraft Mouse Pad', 
+        price: 9.99, 
+        image: 'mouse-pad.jpg', 
+        desc: 'Rectangle foam mouse pad with rubber bottom. 1.58mm thick',
+        buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
+    },
+    { 
+        id: 'p2', 
+        title: 'LunarCraft Developer Hoodie', 
+        price: 55.56, 
+        image: 'hoodie.jpg', 
+        desc: '80% cotton. Medium heavy fabric. Regular fit.',
+        buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
+    },
+    { 
+        id: 'p3', 
+        title: 'LunarCraft Ceramic Mug', 
+        price: 12.99, 
+        image: 'mug.jpg', 
+        desc: '15oz dark ceramic mug. Lead and BPA free.',
+        buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
+    },
+    { 
+        id: 'p4', 
+        title: 'LunarCraft Protective Laptop Sleeve', 
+        price: 17.52, 
+        image: 'laptop-sleeve.jpg', 
+        desc: 'fleece interior. YKK 5 nylon zipper. Lightweight.',
+        buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
+    }
+];
+
 function renderProducts() {
     const container = document.getElementById('products-grid');
     container.innerHTML = productsData.map(prod => `
         <div class="product-card">
-            <div>
-                <h3>${prod.title}</h3>
-                <div class="product-price">$${prod.price}</div>
+            <div class="product-image-wrap" style="background: var(--bg-dark); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border);">
+                <img src="${prod.image}" alt="${prod.title}" style="width: 100%; height: 200px; object-fit: cover; display: block;" onerror="this.src='https://via.placeholder.com/300x200/181a20/93c5fd?text=LunarCraft+Merch'">
             </div>
-            <button class="btn btn-secondary btn-full" onclick="addToCart('${prod.id}')">Add to Cart</button>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <span class="badge" style="font-size:0.7rem; padding: 2px 6px;">Official Gear</span>
+                    <h3 style="margin-top:0.5rem; font-size: 1.1rem;">${prod.title}</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.5rem 0;">${prod.desc}</p>
+                    <div class="product-price" style="margin: 0.5rem 0;">$${prod.price}</div>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button class="btn btn-secondary" style="flex:1;" onclick="addToCart('${prod.id}')">Test Cart</button>
+                    <a href="${prod.buyUrl}" target="_blank" class="btn btn-primary" style="flex:1; text-align:center; text-decoration:none;">Buy Now</a>
+                </div>
+            </div>
         </div>
     `).join('');
 }
