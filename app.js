@@ -149,8 +149,6 @@ function renderProducts() {
     var html = '';
     for (var i = 0; i < productsData.length; i++) {
         var prod = productsData[i];
-        
-        // Ensure every opening <div> tag has a matching closing </div> tag
         html += '<div class="product-card">' +
             '<div class="product-image-wrap">' +
                 '<img src="' + prod.image + '" alt="' + prod.title + '">' +
@@ -165,7 +163,7 @@ function renderProducts() {
                     '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary">Buy Now</a>' +
                 '</div>' +
             '</div>' +
-        '</div>'; // Closes .product-card properly
+        '</div>';
     }
     container.innerHTML = html;
 }
