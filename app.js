@@ -149,18 +149,22 @@ function renderProducts() {
     var html = '';
     for (var i = 0; i < productsData.length; i++) {
         var prod = productsData[i];
+        
+        // Add special scaling class for the laptop sleeve (p4)
+        var imgClass = (prod.id === 'p4') ? 'scale-down' : '';
+        
         html += '<div class="product-card">' +
             '<div class="product-image-wrap">' +
-                '<img src="' + prod.image + '" alt="' + prod.title + '">' +
+                '<img src="' + prod.image + '" alt="' + prod.title + '" class="' + imgClass + '">' +
             '</div>' +
             '<div class="product-info">' +
                 '<span class="badge">Official Gear</span>' +
-                '<h3>' + prod.title + '</h3>' +
-                '<p>' + prod.desc + '</p>' +
-                '<div class="product-price">$' + prod.price + '</div>' +
-                '<div class="card-actions">' +
-                    '<button class="btn btn-secondary" onclick="addToCart(\'' + prod.id + '\')">Test Cart</button>' +
-                    '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary">Buy Now</a>' +
+                '<h3 style="margin: 0.5rem 0 0.25rem 0;">' + prod.title + '</h3>' +
+                '<p style="color: #94a3b8; font-size: 0.9rem;">' + prod.desc + '</p>' +
+                '<div class="product-price" style="font-weight: bold; margin: 0.5rem 0;">$' + prod.price + '</div>' +
+                '<div class="card-actions" style="display: flex; gap: 0.5rem; margin-top: 1rem;">' +
+                    '<button class="btn btn-secondary" style="flex: 1;" onclick="addToCart(\'' + prod.id + '\')">Test Cart</button>' +
+                    '<a href="' + prod.buyUrl + '" target="_blank" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">Buy Now</a>' +
                 '</div>' +
             '</div>' +
         '</div>';
