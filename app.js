@@ -33,18 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function switchTab(tabId) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-    });
+    // Hide all tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.style.display = 'none');
 
-    const selectedTab = document.getElementById(`${tabId}-tab`);
+    // Show selected tab
+    const selectedTab = document.getElementById(tabId + '-tab');
     if (selectedTab) {
         selectedTab.style.display = 'block';
-    }
-
-    if (tabId === 'store') {
-        renderProducts();
     }
 }
 
