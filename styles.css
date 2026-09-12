@@ -222,27 +222,36 @@ body {
 }
 
 /* Store */
-.products-grid {
+/* Master Grid Layout */
+#products-grid {
     display: grid;
-    grid-template-columns: (auto-fit, minmax(250px, 1fr));
-    border-radius: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1.5rem;
-    padding: 1.5rem;
+    padding: 1rem 0;
 }
 
+/* Individual Product Cards */
 .product-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
+    background: #181a20;
+    border: 1px solid #2a2d35;
+    border-radius: 8px;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.product-price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 1rem 0;
-    color: var(--blue-primary);
+.product-image-wrap img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
 
 /* Forms */
@@ -356,25 +365,16 @@ input:focus, select:focus {
     .cart-drawer { width: 100%; right: -100%; }
 }
 
-.template-sale-banner {
+/* If the promo banner is fixed at the bottom */
+.promo-banner {
     position: fixed;
-    bottom: 0.5rem;
-    right: 0.5rem;
-    background-color: var(--bg-surface);
-    border: 1px solid var(--blue-primary);
-    padding: 0.85rem 1.25rem;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    z-index: 999; /* Forces it to stay above everything else */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    font-size: 0.85rem;
-    color: var(--text-main);
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
 }
 
-.btn-sm {
-    padding: 0.4rem 0.85rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
+/* Push the page content (or cart tab) up so the banner never hides elements */
+body {
+    padding-bottom: 60px; /* Set to the height of your banner */
 }
