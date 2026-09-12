@@ -100,7 +100,7 @@ const productsData = [
         id: 'p1', 
         title: 'LunarCraft Mouse Pad', 
         price: 9.99, 
-        image: 'mouse-pad.jpg', 
+        image: 'images/mouse-pad.jpg', 
         desc: 'Rectangle foam mouse pad with rubber bottom. 1.58mm thick',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
     },
@@ -108,7 +108,7 @@ const productsData = [
         id: 'p2', 
         title: 'LunarCraft Developer Hoodie', 
         price: 55.56, 
-        image: 'hoodie.jpg', 
+        image: 'images/hoodie.jpg', 
         desc: '80% cotton. Medium heavy fabric. Regular fit.',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
     },
@@ -116,7 +116,7 @@ const productsData = [
         id: 'p3', 
         title: 'LunarCraft Ceramic Mug', 
         price: 12.99, 
-        image: 'mug.jpg', 
+        image: 'images/mug.jpg', 
         desc: '15oz dark ceramic mug. Lead and BPA free.',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
     },
@@ -124,7 +124,7 @@ const productsData = [
         id: 'p4', 
         title: 'LunarCraft Protective Laptop Sleeve', 
         price: 17.52, 
-        image: 'laptop-sleeve.jpg', 
+        image: 'images/laptop-sleeve.jpg', 
         desc: 'fleece interior. YKK 5 nylon zipper. Lightweight.',
         buyUrl: 'YOUR_PRINTIFY_OR_STRIPE_LINK' 
     }
