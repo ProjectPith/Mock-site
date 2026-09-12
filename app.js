@@ -33,16 +33,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-    
-    const targetTab = document.getElementById(`tab-${tabId}`);
-    if (targetTab) targetTab.classList.add('active');
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
 
-    if (tabId === 'account') {
-        renderAccountTab();
+    const selectedTab = document.getElementById(`${tabId}-tab`);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
+    }
+
+    if (tabId === 'store') {
+        renderProducts();
     }
 }
+
+// Call once on initial page load to ensure products render immediately
+document.addEventListener('DOMContentLoaded', () => {
+    renderProducts();
+});
 
 // ==========================================
 // SERVICES & BOOKING SYSTEM
