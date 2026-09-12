@@ -352,22 +352,24 @@ input:focus, select:focus {
 }
 
 .template-sale-banner {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--blue-primary);
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 200;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  font-size: 0.85rem;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--blue-primary);
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 999; /* Forces it to stay above everything else */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    font-size: 0.85rem;
+    color: var(--text-main);
 }
 
 .btn-sm {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
