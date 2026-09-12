@@ -7,13 +7,6 @@ const servicesData = [
     { id: 's3', title: 'Performance & Audit', price: 300, desc: 'Detailed Web Vitals analysis and UI/UX optimization report.' }
 ];
 
-const productsData = [
-    { id: 'p1', title: 'Minimal Dev Workspace Desk Mat', price: 45 },
-    { id: 'p2', title: 'Mechanical Keyboard (Dark Edition)', price: 160 },
-    { id: 'p3', title: 'UI Component Toolkit License', price: 89 },
-    { id: 'p4', title: 'Monochrome Monitor Lightbar', price: 75 }
-];
-
 let state = {
     cart: JSON.parse(localStorage.getItem('cart')) || [],
     currentUser: JSON.parse(localStorage.getItem('currentUser')) || null,
