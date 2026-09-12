@@ -353,15 +353,15 @@ input:focus, select:focus {
 
 .template-sale-banner {
     position: fixed;
-    bottom: 0.5rem;
-    right: 0.5rem;
+    bottom: 1.5rem;
+    right: 1.5rem;
     background-color: var(--bg-surface);
     border: 1px solid var(--blue-primary);
     padding: 0.85rem 1.25rem;
     border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     z-index: 999; /* Forces it to stay above everything else */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     font-size: 0.85rem;
