@@ -11,25 +11,7 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <header class="navbar">
-        <div class="logo" onclick="switchTab('home')">LunarCraft<span class="accent-dot">.</span></div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="#" class="nav-link active" onclick="switchTab('home')">Home</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('services')">Book Service</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('store')">Store</a></li>
-            </ul>
-        </nav>
-        <div class="nav-actions">
-            <button class="cart-btn" onclick="toggleCart()">
-                Cart <span id="cart-count">0</span>
-            </button>
-            <div id="auth-nav-container">
-                <!-- Injected via JavaScript (Login button or Account info) -->
-            </div>
-        </div>
-    </header>
+    <div id="nav-placeholder"></div>
 
     <!-- Slide-over Shopping Cart Drawer -->
     <div id="cart-drawer" class="cart-drawer">
@@ -209,6 +191,6 @@
         <span>Like this layout? Get a custom version for your business.</span>
         <a href="mailto:hkmartin08@gmail.com?subject=Inquiry" class="btn btn-primary btn-sm">Inquire Now</a>
     </div>
-    <script src="app.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
