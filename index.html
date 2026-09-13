@@ -10,29 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <div id="nav-placeholder"></div>
-
-    <!-- Slide-over Shopping Cart Drawer -->
-    <div id="cart-drawer" class="cart-drawer">
-        <div class="cart-header">
-            <h3>Your Cart</h3>
-            <button class="close-btn" onclick="toggleCart()">&times;</button>
-        </div>
-        <div id="cart-items" class="cart-items">
-            <!-- Dynamically populated -->
-        </div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cart-total-price">$0.00</span>
-            </div>
-            <button class="btn btn-primary btn-full" onclick="openCheckout()">Proceed to Checkout</button>
-        </div>
-    </div>
-    <div id="cart-overlay" class="overlay" onclick="toggleCart()"></div>
-
-    <!-- MAIN VIEW CONTAINER -->
     <main class="main-content">
 
         <!-- TAB 1: HOME -->
@@ -65,44 +43,7 @@
                 </div>
             </div>
         </section>
-
-        <!-- TAB 2: BOOKING / SERVICES -->
-        <section id="services-tab" class="tab-content">
-            <div class="section-header">
-                <h2>Schedule a Service</h2>
-                <p>Select a consultation service, choose your time slot, and reserve instantly.</p>
-            </div>
-            <div class="booking-layout">
-                <div class="services-list" id="services-list">
-                    <!-- Dynamic rendering -->
-                </div>
-                <div class="booking-form-card">
-                    <h3>Appointment Setup</h3>
-                    <form id="booking-form" onsubmit="handleBooking(event)">
-                        <div class="form-group">
-                            <label>Selected Service</label>
-                            <input type="text" id="selected-service-display" readonly value="Select a service from the left">
-                        </div>
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="booking-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Preferred Time</label>
-                            <select id="booking-time" required>
-                                <option value="">Select time slot</option>
-                                <option value="09:00 AM">09:00 AM</option>
-                                <option value="11:30 AM">11:30 AM</option>
-                                <option value="02:00 PM">02:00 PM</option>
-                                <option value="04:30 PM">04:30 PM</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
+        
         <!-- TAB 3: STORE -->
         <section id="store-tab" class="tab-content">
             <h2>Official LunarCraft Merch</h2>
