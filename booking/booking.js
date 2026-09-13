@@ -1,5 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
   setupPhoneBooking();
+
+  // Initialize Cal.com UI theme
+  Cal("ui", {
+    "theme": "dark",
+    "styles": {
+      "branding": {
+        "brandColor": "#ffffff"
+      }
+    },
+    "hideEventTypeDetails": false,
+    "layout": "month"
+  });
+
+  // Bind the Cal.com popup modal directly to the date input field
+  Cal("elementClick", {
+    elementOrSelector: "#booking-date",
+    calLink: "hannah-martin-h12p3m/15min"
+  });
 });
 
 // Available slots for automated scheduler
