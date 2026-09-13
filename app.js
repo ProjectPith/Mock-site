@@ -1,6 +1,6 @@
 // ==========================================
 // MOCK DATA & STATE MANAGEMENT
-// ==========================================
+// ========================================== 
 const servicesData = [
     { id: 's1', title: 'Architecture Review', price: 150, desc: '90-min session reviewing system layout and frontend specs.' },
     { id: 's2', title: 'Full Web Build Package', price: 1200, desc: 'Turnkey development of responsive enterprise sites.' },
