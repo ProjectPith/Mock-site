@@ -106,35 +106,55 @@
   </main>
 
   <!-- ESTIMATE CALCULATOR MODAL -->
-  <div id="calc-modal" class="cart-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85);">
-    <div style="background: var(--card-bg); border: 1px solid var(--card-border); width: 90%; max-width: 500px; padding: 2rem; border-radius: 12px; position: relative;">
-      <h3 style="margin-bottom: 1rem;">Estimate Calculator</h3>
+  <div id="calc-modal" class="cart-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); position: fixed; inset: 0; z-index: 1000;">
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); width: 90%; max-width: 520px; padding: 2rem; border-radius: 12px; position: relative;">
       
-      <label style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem;">Site Architecture</label>
-      <select id="calc-type" onchange="calculateEstimate()" style="width: 100%; padding: 0.6rem; background: var(--bg-color); color: #fff; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 1rem;">
-        <option value="500">Static / Single Page Site ($500 base)</option>
-        <option value="1200">Dynamic Multi-Module Site ($1,200 base)</option>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Interactive Price Estimator</h3>
+        <button style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;" onclick="closeModal('calc-modal')">&times;</button>
+      </div>
+
+      <label style="display:block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">1. Select Architecture</label>
+      <select id="calc-type" onchange="handleArchitectureChange()" style="width: 100%; padding: 0.75rem; background: var(--bg-color); color: #fff; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 1.5rem;">
+        <option value="static">Static Site (Pure HTML/CSS — $400 base)</option>
+        <option value="non-static">Non-Static / Dynamic (JavaScript & Features — $800 base)</option>
       </select>
 
-      <label style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem;">Add-On Features</label>
-      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-        <label><input type="checkbox" class="calc-addon" value="200" onchange="calculateEstimate()"> CMS / Blog Setup (+$200)</label>
-        <label><input type="checkbox" class="calc-addon" value="350" onchange="calculateEstimate()"> E-commerce Store & Cart (+$350)</label>
-        <label><input type="checkbox" class="calc-addon" value="150" onchange="calculateEstimate()"> Booking & Scheduling System (+$150)</label>
+      <div id="addon-section" style="opacity: 0.4; pointer-events: none; transition: opacity 0.2s ease; margin-bottom: 1.5rem;">
+        <label style="display:block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">2. Select Add-On Features (JS Required)</label>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; background: var(--bg-color); padding: 1rem; border-radius: 6px; border: 1px solid var(--card-border);">
+          <label style="font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" class="calc-addon" value="250" onchange="calculateEstimate()"> Interactive Booking & Scheduling (+$250)
+          </label>
+          <label style="font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" class="calc-addon" value="350" onchange="calculateEstimate()"> E-commerce Store & Cart Module (+$350)
+          </label>
+          <label style="font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" class="calc-addon" value="200" onchange="calculateEstimate()"> User Portal & Account Dashboard (+$200)
+          </label>
+          <label style="font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" class="calc-addon" value="150" onchange="calculateEstimate()"> Automated Intake Form (+$150)
+          </label>
+        </div>
       </div>
 
-      <div style="font-size: 1.25rem; font-weight: 700; text-align: right; margin-bottom: 1.5rem;">
-        Estimated Base: <span id="calc-total" style="color: var(--accent-red);">$500</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--card-border); margin-bottom: 1.5rem;">
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Estimated Base:</span>
+        <span id="calc-total" style="color: var(--accent-red); font-size: 1.5rem; font-weight: 800;">$400</span>
       </div>
 
-      <button class="btn btn-secondary" onclick="closeModal('calc-modal')" style="width: 100%;">Close Estimator</button>
+      <button class="btn btn-primary" onclick="closeModal('calc-modal')" style="width: 100%;">Done</button>
     </div>
   </div>
 
   <!-- BASE CONTRACT PREVIEW MODAL -->
-  <div id="contract-modal" class="cart-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85);">
+  <div id="contract-modal" class="cart-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); position: fixed; inset: 0; z-index: 1000;">
     <div style="background: var(--card-bg); border: 1px solid var(--card-border); width: 90%; max-width: 600px; padding: 2rem; border-radius: 12px; max-height: 80vh; overflow-y: auto;">
-      <h3>Standard Web Build Contract (Preview)</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Standard Web Build Contract</h3>
+        <button style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;" onclick="closeModal('contract-modal')">&times;</button>
+      </div>
+      
       <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Final rates, upkeep costs, and maintenance terms are filled in upon agreement.</p>
       
       <div style="background: var(--bg-color); padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: #a1a1aa; line-height: 1.5; margin-bottom: 1.5rem;">
@@ -144,7 +164,7 @@
         CLIENT: [ Client Name / Business ]<br><br>
         1. SCOPE OF WORK: Turnkey deployment of modular website architecture.<br>
         2. UPFRONT BUILD COST: $[ _____ ] (Payment plan options available)<br>
-        3. MONTHLY MAINTENANCE & UPKEEP: $[ _____ ] / month (Includes Cloudflare hosting management, security updates, and content tweaks).<br>
+        3. MONTHLY MAINTENANCE & UPKEEP: $[ _____ ] / month (Includes hosting management, security updates, and content maintenance).<br>
         4. DEPOSIT: 50% deposit required prior to project kickoff.<br>
         -------------------------------------------
       </div>
@@ -153,7 +173,7 @@
     </div>
   </div>
 
-  <!-- Global Scripts -->
+  <!-- Global & Page Scripts -->
   <script src="../global.js"></script>
   <script src="../nav/nav.js"></script>
   <script src="booking.js"></script>
