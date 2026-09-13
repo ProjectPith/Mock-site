@@ -3,29 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brand-Place-Holder | Home</title>
-  <link rel="stylesheet" href="/global.css">
-  <link rel="stylesheet" href="/nav/nav.css">
+  <title>LunarCraft | Custom Web Architecture</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="nav/nav.css">
 </head>
 <body>
-
   <div id="nav-placeholder"></div>
 
-  <!-- Landing Hero Section -->
+  <!-- Main Content Container -->
   <main class="container">
-    <div style="text-align: center; padding: 4rem 1rem;">
-      <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Modular Web Architecture</h1>
-      <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem auto;">
-        Custom site templates engineered for performance, clean scalability, and easy client deployments.
+    
+    <!-- Hero Section -->
+    <section style="text-align: center; padding: 4rem 1rem 3rem 1rem;">
+      <span class="badge badge-demo" style="margin-bottom: 1rem;">Enterprise Starter Kit</span>
+      <h1 style="font-size: 2.75rem; font-weight: 800; margin-bottom: 1rem; tracking: -0.02em;">
+        Modular Web Architecture
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1.15rem; max-width: 640px; margin: 0 auto 2rem auto;">
+        Custom site templates engineered for lightning-fast performance, clean scalability, and rapid client deployments.
       </p>
-      <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="/booking/booking.html" class="btn btn-primary">Book Consultation</a>
-        <a href="/store/store.html" class="btn btn-secondary">Explore Store</a>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="booking/booking.html" class="btn btn-primary">Book Consultation</a>
+        <a href="store/store.html" class="btn btn-secondary">Explore Gear & Store</a>
       </div>
-    </div>
+    </section>
+
+    <!-- Core Features Grid -->
+    <section style="padding: 2rem 0; border-top: 1px solid var(--card-border);">
+      <h2 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">Modular System Capabilities</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Feature 1 -->
+        <div class="card">
+          <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">⚡</div>
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Zero-Collision Architecture</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Isolated feature modules ensure script executions and styles never leak across pages or crash page loads.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="card">
+          <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">📅</div>
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Live Estimator & Intake</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Integrated service selector, dynamic pricing calculations, and instant consultation scheduling.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="card">
+          <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">🛒</div>
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Decoupled Store & Cart</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Persistent e-commerce drawer state with local storage support for merchandise and client add-ons.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Call to Action Banner -->
+    <section class="card" style="margin: 3rem 0; text-align: center; padding: 3rem 1.5rem; background: linear-gradient(180deg, var(--card-bg) 0%, rgba(139, 38, 38, 0.15) 100%);">
+      <h2 style="font-size: 1.75rem; margin-bottom: 0.75rem;">Ready to Build Your Project?</h2>
+      <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem auto; font-size: 0.95rem;">
+        Get a custom web build tailored for your brand with full modular control and optimal Vitals performance.
+      </p>
+      <a href="booking/booking.html" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">Start an Estimate</a>
+    </section>
+
   </main>
 
-  <script src="/global.js"></script>
-  <script src="/nav/nav.js"></script>
+  <script src="global.js"></script>
+  <script src="nav/nav.js"></script>
 </body>
 </html>
