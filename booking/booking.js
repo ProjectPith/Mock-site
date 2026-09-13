@@ -1,4 +1,4 @@
-// Cal.com Loader Engine
+// Cal.com Loader Initialization
 (function (C, A, L) { 
   let p = function (a, ar) { a.q.push(ar); }; 
   let l = C.Cal = C.Cal || function () { 
@@ -23,8 +23,8 @@
   }; 
 })(window, "https://app.cal.com/embed/embed.js", "Cal");
 
-// Page Event Listeners & Cal Setup
-document.addEventListener("DOMContentLoaded", () => {
+function initBookingPage() {
+  // 1. Setup Cal.com
   if (window.Cal) {
     Cal("init", { origin: "https://cal.com" });
     
@@ -33,13 +33,25 @@ document.addEventListener("DOMContentLoaded", () => {
       "hideEventTypeDetails": false,
       "layout": "month"
     });
+
+    Cal("elementClick", {
+      elementOrSelector: "#book-call-btn",
+      calLink: "hannah-martin-h12p3m/15min"
+    });
   }
 
-  // Interactive Price Estimator Hook
+  // 2. Setup Price Estimator Button
   const estimatorBtn = document.getElementById("open-estimator-btn");
   if (estimatorBtn) {
     estimatorBtn.addEventListener("click", () => {
-      // Estimator modal logic
+      alert("Estimator modal clicked!"); // Test alert to verify connection
     });
   }
-});
+}
+
+// Fire immediately if DOM is ready, otherwise wait for event
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initBookingPage);
+} else {
+  initBookingPage();
+}
