@@ -1,0 +1,24 @@
+/* ==========================================
+   ACCOUNT PORTAL STYLES
+   ========================================== */
+.account-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.account-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.history-item {
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  background-color: var(--bg-color);
+}
