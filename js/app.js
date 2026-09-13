@@ -164,7 +164,7 @@ function renderProducts() {
                     '<h3>' + prod.title + '</h3>' +
                     '<p>' + prod.desc + '</p>' +
                     '<div class="card-actions">' +
-                        '<button class="btn btn-primary" onclick="switchTab(\'services\')" style="width:100%;">Inquire About Builds</button>' +
+                        '<a href="booking.html" class="btn btn-primary" style="width:100%; text-align:center; text-decoration:none;">Inquire About Builds</a>' +
                     '</div>' +
                 '</div>' +
             '</div>';
