@@ -1,97 +1,45 @@
-document.addEventListener("DOMContentLoaded", () => {
-  setupPhoneBooking();
+// Cal.com Loader Engine
+(function (C, A, L) { 
+  let p = function (a, ar) { a.q.push(ar); }; 
+  let l = C.Cal = C.Cal || function () { 
+    let cal = l; 
+    let ar = arguments; 
+    if (!cal.q) { cal.q = []; } 
+    if (typeof ar[0] === "string") { 
+      if (ar[0] === "init") { 
+        let api = function () { p(api, arguments); }; 
+        let c = ar[1]; 
+        api.q = api.q || []; 
+        if (typeof c === "string") { 
+          cal.ns = cal.ns || {}; 
+          cal.ns[c] = cal.ns[c] || api; 
+          p(cal.ns[c], ar); 
+          p(cal, ["initNamespace", c]); 
+        } else { p(cal, ar); } 
+        return; 
+      } 
+      p(cal, ar); 
+    } 
+  }; 
+})(window, "https://app.cal.com/embed/embed.js", "Cal");
 
-  // Initialize Cal.com UI theme
+// Page Event Listeners & Cal Setup
+document.addEventListener("DOMContentLoaded", () => {
   if (window.Cal) {
+    Cal("init", { origin: "https://cal.com" });
+    
     Cal("ui", {
       "theme": "dark",
       "hideEventTypeDetails": false,
       "layout": "month"
     });
   }
-});
 
-// Available slots for automated scheduler
-const availableTimes = ["09:00 AM", "10:30 AM", "01:00 PM", "02:30 PM", "04:00 PM"];
-
-function setupPhoneBooking() {
-  const form = document.getElementById('phone-booking-form');
-  const dateInput = document.getElementById('booking-date');
-  const timeSelect = document.getElementById('booking-time');
-  const submitBtn = document.getElementById('schedule-btn');
-
-  if (!form || !dateInput || !timeSelect) return;
-
-  // Restrict date selector to today or future dates
-  dateInput.min = new Date().toISOString().split('T')[0];
-
-  dateInput.addEventListener('change', () => {
-    if (!dateInput.value) return;
-    timeSelect.disabled = false;
-    timeSelect.innerHTML = '<option value="">Select an available time...</option>' + 
-      availableTimes.map(t => `<option value="${t}">${t}</option>`).join('');
-  });
-
-  timeSelect.addEventListener('change', () => {
-    if (timeSelect.value) submitBtn.disabled = false;
-  });
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('client-email').value;
-    const date = dateInput.value;
-    const time = timeSelect.value;
-
-    alert(`Success! Consultation set for ${date} at ${time}.\n\nConfirmation email sent to ${email}.`);
-  });
-}
-
-/* ESTIMATOR CALCULATOR LOGIC */
-const BASE_PRICES = {
-  'static': 400,
-  'non-static': 800
-};
-
-function openCalculatorModal() {
-  document.getElementById('calc-modal').style.display = 'flex';
-  handleArchitectureChange();
-}
-
-function handleArchitectureChange() {
-  const typeSelect = document.getElementById('calc-type');
-  const addonSection = document.getElementById('addon-section');
-  const checkboxes = document.querySelectorAll('.calc-addon');
-
-  if (typeSelect.value === 'static') {
-    addonSection.style.opacity = '0.4';
-    addonSection.style.pointerEvents = 'none';
-    checkboxes.forEach(cb => cb.checked = false);
-  } else {
-    addonSection.style.opacity = '1';
-    addonSection.style.pointerEvents = 'auto';
-  }
-
-  calculateEstimate();
-}
-
-function calculateEstimate() {
-  const typeSelect = document.getElementById('calc-type').value;
-  let total = BASE_PRICES[typeSelect] || BASE_PRICES['static'];
-
-  if (typeSelect === 'non-static') {
-    document.querySelectorAll('.calc-addon:checked').forEach(cb => {
-      total += parseInt(cb.value, 10);
+  // Interactive Price Estimator Hook
+  const estimatorBtn = document.getElementById("open-estimator-btn");
+  if (estimatorBtn) {
+    estimatorBtn.addEventListener("click", () => {
+      // Estimator modal logic
     });
   }
-
-  document.getElementById('calc-total').innerText = `$${total.toLocaleString()}`;
-}
-
-/* CONTRACT & GENERIC MODAL LOGIC */
-function openContractModal() {
-  document.getElementById('contract-modal').style.display = 'flex';
-}
-
-function closeModal(modalId) {
-  document.getElementById(modalId).style.display = 'none';
-}
+});
