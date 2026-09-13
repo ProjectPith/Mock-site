@@ -56,6 +56,10 @@ function switchTab(tabId) {
 // ==========================================
 function renderServices() {
     const container = document.getElementById('services-list');
+    
+    // Safety check: Exit quietly if the services element isn't on this page
+    if (!container || typeof servicesData === 'undefined') return;
+
     container.innerHTML = servicesData.map(service => `
         <div class="service-card ${state.selectedService?.id === service.id ? 'selected' : ''}" 
              onclick="selectService('${service.id}')">
