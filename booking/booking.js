@@ -23,33 +23,33 @@
   }; 
 })(window, "https://app.cal.com/embed/embed.js", "Cal");
 
+// Global Cal Initialization
+Cal("init", { origin: "https://cal.com" });
+
+Cal("ui", {
+  "theme": "dark",
+  "styles": { "branding": { "brandColor": "#238636" } },
+  "hideEventTypeDetails": false,
+  "layout": "month"
+});
+
+// Explicitly bind click listener
+Cal("elementClick", {
+  elementOrSelector: "#book-call-btn",
+  calLink: "hannah-martin-h12p3m/15min"
+});
+
+// Page Interaction Handlers
 function initBookingPage() {
-  // 1. Setup Cal.com
-  if (window.Cal) {
-    Cal("init", { origin: "https://cal.com" });
-    
-    Cal("ui", {
-      "theme": "dark",
-      "hideEventTypeDetails": false,
-      "layout": "month"
-    });
-
-    Cal("elementClick", {
-      elementOrSelector: "#book-call-btn",
-      calLink: "hannah-martin-h12p3m/15min"
-    });
-  }
-
-  // 2. Setup Price Estimator Button
   const estimatorBtn = document.getElementById("open-estimator-btn");
   if (estimatorBtn) {
     estimatorBtn.addEventListener("click", () => {
-      alert("Estimator modal clicked!"); // Test alert to verify connection
+      // Replace test alert with your actual modal opening function/logic here
+      console.log("Estimator clicked");
     });
   }
 }
 
-// Fire immediately if DOM is ready, otherwise wait for event
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initBookingPage);
 } else {
