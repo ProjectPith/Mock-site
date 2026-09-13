@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <a href="/index.html" class="nav-brand">Brand-Place-Holder</a>
       
       <nav class="nav-links">
-        <a href="/index.html">Home</a>
+        <a href="/index/index.html">Home</a>
         <a href="/booking/booking.html">Booking & Estimator</a>
         <a href="/store/store.html">Store</a>
       </nav>
