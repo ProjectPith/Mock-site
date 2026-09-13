@@ -3,55 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brand-Place-Holder | Booking & Estimator</title>
-  <link rel="stylesheet" href="/global.css">
-  <link rel="stylesheet" href="/nav/nav.css">
+  <title>LunarCraft | Automated Scheduling & Estimates</title>
+
+  <!-- Global Base Styles -->
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="../nav/nav.css">
+
+  <!-- Feature-Specific Style -->
   <link rel="stylesheet" href="booking.css">
 </head>
 <body>
+
+  <!-- Dynamic Navigation Bar Placeholder -->
   <div id="nav-placeholder"></div>
 
   <!-- Booking Main Content -->
-  <main class="booking-container">
-    <div class="booking-header">
-      <h1>Bookings & Project Estimator</h1>
-      <p style="color: var(--text-muted);">Select a service to schedule your session or get an estimate.</p>
+  <main class="booking-container" style="max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem;">
+    <div class="booking-header" style="text-align: center; margin-bottom: 2.5rem;">
+      <h1 style="font-size: 2.25rem; margin-bottom: 0.5rem;">Automated Booking & Estimator</h1>
+      <p style="color: var(--text-muted);">Select a service package below to unlock real-time date and time slots.</p>
     </div>
 
-    <div class="booking-grid">
+    <div class="booking-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+      
       <!-- Service Selection Column -->
       <div class="service-list">
-        <h3>Available Services</h3>
+        <h3 style="margin-bottom: 1rem;">1. Select Package</h3>
         <div id="services-list"></div>
       </div>
 
-      <!-- Reservation Form Column -->
-      <div class="booking-form-card">
-        <h3>Schedule Session</h3>
-        <br>
+      <!-- Reservation & Scheduling Form Column -->
+      <div class="booking-form-card" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 2rem; border-radius: 8px; height: fit-content;">
+        <h3 style="margin-bottom: 1.5rem;">2. Choose Date & Time</h3>
+        
         <form id="booking-form">
-          <div class="form-group">
-            <label for="selected-service-display">Selected Package</label>
-            <input type="text" id="selected-service-display" value="Select a service from the left" readonly>
+          
+          <!-- Hidden field to hold selected service ID -->
+          <input type="hidden" id="selected-service-id" required>
+
+          <!-- Selected Service Indicator Badge -->
+          <div id="service-selection-status" style="padding: 0.75rem 1rem; border-radius: 6px; background: rgba(139, 38, 38, 0.15); border: 1px solid var(--accent-red); margin-bottom: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+            👈 Click a service on the left to begin
           </div>
 
-          <div class="form-group">
-            <label for="booking-date">Target Date</label>
-            <input type="date" id="booking-date" required>
+          <!-- Split Date & Dynamic Time Controls -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            
+            <div class="form-group">
+              <label for="booking-date" style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">Select Date</label>
+              <input type="date" id="booking-date" required style="width: 100%; padding: 0.75rem; background: var(--bg-color); border: 1px solid var(--card-border); color: #fff; border-radius: 6px;" disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="booking-time" style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">Available Slots</label>
+              <select id="booking-time" required style="width: 100%; padding: 0.75rem; background: var(--bg-color); border: 1px solid var(--card-border); color: #fff; border-radius: 6px;" disabled>
+                <option value="">Pick date first...</option>
+              </select>
+            </div>
+
           </div>
 
-          <div class="form-group">
-            <label for="booking-time">Preferred Time</label>
-            <input type="time" id="booking-time" required>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Confirm Reservation</button>
+          <button type="submit" id="submit-booking-btn" class="btn btn-primary" style="width: 100%; padding: 0.85rem;" disabled>
+            Confirm Reservation
+          </button>
         </form>
       </div>
+
     </div>
   </main>
-  <script src="/global.js"></script>
-  <script src="/nav/nav.js"></script>
+
+  <!-- Global & Component Scripts -->
+  <script src="../global.js"></script>
+  <script src="../nav/nav.js"></script>
+
+  <!-- Feature-Specific Script -->
   <script src="booking.js"></script>
 </body>
 </html>
