@@ -1,52 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LunarCraft | Digital Agency & Solutions</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand-Place-Holder | Booking & Estimator</title>
+
+  <!-- Global Base Styles -->
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/nav/nav.css">
+
+  <!-- Feature-Specific Style -->
+  <link rel="stylesheet" href="booking.css">
 </head>
 <body>
-    <div id="nav-placeholder"></div>
-    <section id="services-tab" class="tab-content">
-        <div class="section-header">
-            <h2>Schedule a Service</h2>
-            <p>Select a consultation service, choose your time slot, and reserve instantly.</p>
-        </div>
-        <div class="booking-layout">
-            <div class="services-list" id="services-list">
-                <!-- Dynamic rendering -->
-            </div>
-            <div class="booking-form-card">
-                <h3>Appointment Setup</h3>
-                <form id="booking-form" onsubmit="handleBooking(event)">
-                    <div class="form-group">
-                        <label>Selected Service</label>
-                        <input type="text" id="selected-service-display" readonly value="Select a service from the left">
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="booking-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Preferred Time</label>
-                        <select id="booking-time" required>
-                            <option value="">Select time slot</option>
-                            <option value="09:00 AM">09:00 AM</option>
-                            <option value="11:30 AM">11:30 AM</option>
-                            <option value="02:00 PM">02:00 PM</option>
-                            <option value="04:30 PM">04:30 PM</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
-                </form>
-            </div>
-        </div>
-    </section>
-    <script scr="js/nav.js"></script>
-    <script scr="js/app.js"></script>
+
+  <!-- Dynamic Navigation Bar Placeholder -->
+  <div id="nav-placeholder"></div>
+
+  <!-- Booking Main Content -->
+  <main class="booking-container">
+    <div class="booking-header">
+      <h1>Bookings & Project Estimator</h1>
+      <p style="color: var(--text-muted);">Select a service to schedule your session or get an estimate.</p>
+    </div>
+
+    <div class="booking-grid">
+      <!-- Service Selection Column -->
+      <div class="service-list">
+        <h3>Available Services</h3>
+        <div id="services-list"></div>
+      </div>
+
+      <!-- Reservation Form Column -->
+      <div class="booking-form-card">
+        <h3>Schedule Session</h3>
+        <br>
+        <form id="booking-form">
+          <div class="form-group">
+            <label for="selected-service-display">Selected Package</label>
+            <input type="text" id="selected-service-display" value="Select a service from the left" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="booking-date">Target Date</label>
+            <input type="date" id="booking-date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="booking-time">Preferred Time</label>
+            <input type="time" id="booking-time" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Confirm Reservation</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Global & Component Scripts -->
+  <script src="/js/global.js"></script>
+  <script src="/nav/nav.js"></script>
+
+  <!-- Feature-Specific Script -->
+  <script src="booking.js"></script>
 </body>
 </html>
