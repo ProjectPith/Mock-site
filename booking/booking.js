@@ -11,13 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-  // Bind the Cal.com popup modal directly to the date input field
-  Cal("elementClick", {
-    elementOrSelector: "#booking-date",
-    calLink: "hannah-martin-h12p3m/15min"
-  });
-});
-
 // Available slots for automated scheduler
 const availableTimes = ["09:00 AM", "10:30 AM", "01:00 PM", "02:30 PM", "04:00 PM"];
 
