@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking & Services | Lunarcraft</title>
   <link rel="stylesheet" href="/global.css">
-  <link rel="stylesheet" href="booking.css">
-  <link rel="stylesheet" href="/nav/nav.css">
+  <link rel="stylesheet" href="/booking/booking.css">
+
+  <!-- Official Cal.com Script -->
+  <script src="https://app.cal.com/embed/embed.js" async></script>
 </head>
 <body>
 
-  <div id="nav-placeholder"></div>
-  
   <main class="booking-container">
     
     <!-- Hero CTA Card -->
@@ -20,15 +20,16 @@
         <h2>📞 Book a Custom Build Consultation</h2>
         <p>Schedule a free 15-minute call to discuss scope, timeline, and custom features.</p>
       </div>
+      <!-- Cal.com handles this button natively via data-cal-link -->
       <button 
-        id="book-call-btn" 
         class="btn-schedule"
-        data-cal-link="hannah-martin-h12p3m/15min">
+        data-cal-link="hannah-martin-h12p3m/15min" 
+        data-cal-config='{"layout":"month","theme":"dark"}'>
         Schedule Call →
       </button>
     </div>
 
-    <!-- Full-Width Options List -->
+    <!-- Options List -->
     <div class="options-grid">
       
       <div class="option-card border-red">
@@ -46,11 +47,7 @@
       <div class="option-card border-yellow">
         <h3>🧮 Interactive Price Estimator</h3>
         <p>Calculate instant base quotes for static landing pages or modular dynamic sites with custom feature add-ons.</p>
-        <button 
-          id="open-estimator-btn" 
-          class="card-btn text-yellow">
-          Open Estimator →
-        </button>
+        <button id="open-estimator-btn" class="card-btn text-yellow">Open Estimator →</button>
       </div>
 
       <div class="option-card border-gray">
@@ -63,8 +60,7 @@
 
   </main>
 
-  <scrtipt src="/global.js"></sctipt>
-  <script src="booking.js"></script>
-    <script src="/nav/nav.js"></script>
+  <script src="/global.js"></script>
+  <script src="/booking/booking.js"></script>
 </body>
 </html>
