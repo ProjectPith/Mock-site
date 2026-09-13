@@ -1,4 +1,4 @@
-// 1. Cal.com Loader Snippet
+// Cal.com Official Embed Snippet
 (function (C, A, L) { 
   let p = function (a, ar) { a.q.push(ar); }; 
   let l = C.Cal = C.Cal || function () { 
@@ -23,51 +23,43 @@
   }; 
 })(window, "https://app.cal.com/embed/embed.js", "Cal");
 
-// 2. Main Page Setup
+Cal("init", { origin: "https://cal.com" });
+
 function initBookingPage() {
-  // Initialize Cal API safely inside DOM ready execution
-  if (typeof window.Cal === "function") {
-    Cal("init", { origin: "https://cal.com" });
-    
-    Cal("ui", {
-      "theme": "dark",
-      "hideEventTypeDetails": false,
-      "layout": "month"
-    });
-
-    Cal("elementClick", {
-      elementOrSelector: "#book-call-btn",
-      calLink: "hannah-martin-h12p3m/15min"
-    });
-  }
-
-  // Fallback direct click handler for Schedule Call button
+  // Bind Schedule Call Button Directly
   const callBtn = document.getElementById("book-call-btn");
   if (callBtn) {
-    callBtn.addEventListener("click", (e) => {
-      if (window.Cal && typeof window.Cal === "function") {
-        // Manually trigger modal if data-attributes didn't catch it
-        Cal("modal", {
-          calLink: "hannah-martin-h12p3m/15min",
-          config: { layout: "month" }
-        });
-      }
+    callBtn.addEventListener("click", () => {
+      Cal("modal", {
+        calLink: "hannah-martin-h12p3m/15min",
+        config: { layout: "month", theme: "dark" }
+      });
     });
   }
 
-  // Price Estimator Button Handler
+  // Bind Estimator Button
   const estimatorBtn = document.getElementById("open-estimator-btn");
   if (estimatorBtn) {
     estimatorBtn.addEventListener("click", () => {
-      console.log("Estimator button clicked successfully!");
-      // Insert your estimator modal trigger here
+      // Trigger your estimator action here
     });
   }
 }
 
-// Ensure execution triggers regardless of load state
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initBookingPage);
 } else {
   initBookingPage();
+}
+
+  // Price Estimator Button Handler
+const estimatorBtn = document.getElementById("open-estimator-btn");
+if (estimatorBtn) {
+  estimatorBtn.addEventListener("click", () => {
+    // If you have a modal element on the page:
+    const estimatorModal = document.getElementById("estimator-modal");
+    if (estimatorModal) {
+      estimatorModal.classList.add("is-active");
+    }
+  });
 }
