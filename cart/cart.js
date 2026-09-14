@@ -21,16 +21,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartOverlay = document.getElementById("cart-overlay");
   const closeBtn = document.getElementById("close-cart-overlay");
 
-  // 2. Event delegation listener for ANY cart button clicked on the page
+  // 2. Global Event Delegation: Intercept clicks anywhere on the document
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#cart-btn")) {
+    // Check if the clicked element (or its parent) matches #cart-btn
+    const cartButton = e.target.closest("#cart-btn");
+    if (cartButton) {
       e.preventDefault();
       cartOverlay.classList.remove("hidden");
-      document.body.style.overflow = "hidden"; // Lock background scroll
+      document.body.style.overflow = "hidden";
     }
   });
 
-  // 3. Close Overlay Controls
+  // 3. Close Overlay Handlers
   function closeCart() {
     cartOverlay.classList.add("hidden");
     document.body.style.overflow = "";
