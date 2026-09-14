@@ -19,6 +19,7 @@
   }
 
   // 2. Automatically pull in Cart and Account CSS + JS files
+  loadAsses("https://js.stripe.com/v3/", "js");
   loadAsset("/cart/cart.css", "css");
   loadAsset("/cart/cart.js", "js");
   loadAsset("/account/account.css", "css");
