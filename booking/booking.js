@@ -77,13 +77,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalPriceEl = document.getElementById("estimator-total-price");
 
   const BASE_PRICES = {
-    static: 500,
-    dynamic: 1200
+    static: 150,
+    dynamic: 300
   };
 
   function calculateEstimate() {
     const selectedType = siteTypeSelect.value;
-    let total = BASE_PRICES[selectedType] || 500;
+    let total = BASE_PRICES[selectedType] || 150;
 
     if (selectedType === "dynamic") {
       dynamicAddonsGroup.classList.remove("hidden");
