@@ -1,51 +1,52 @@
 document.addEventListener("DOMContentLoaded", () => {
-  renderAccountTab();
-});
+  // 1. Inject Account Workspace Overlay into body
+  const accountHTML = `
+    <div id="account-overlay" class="account-overlay-backdrop hidden">
+      <aside class="account-overlay-panel">
+        <div class="account-overlay-header">
+          <h3>Client Workspace Sign In</h3>
+          <button id="close-account-overlay" class="account-close-btn">✕</button>
+        </div>
+        <div class="account-overlay-body">
+          <form onsubmit="event.preventDefault();">
+            <div class="account-form-group">
+              <label for="client-email">Client Email</label>
+              <input type="email" id="client-email" class="account-input" placeholder="client@company.com" required>
+            </div>
+            <div class="account-form-group">
+              <label for="client-pass">Password / Project Passcode</label>
+              <input type="password" id="client-pass" class="account-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 0.5rem;">Access Workspace</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", accountHTML);
 
-function renderAccountTab() {
-  const view = document.getElementById('account-view');
-  if (!view) return;
+  const accountOverlay = document.getElementById("account-overlay");
+  const closeBtn = document.getElementById("close-account-overlay");
 
-  if (!state.currentUser) {
-    view.innerHTML = `
-      <div style="text-align: center; margin-top: 3rem;">
-        <h2>Account Access Required</h2>
-        <p style="color: var(--text-muted); margin: 1rem 0;">Please log in or register to view your dashboard, past orders, and bookings.</p>
-        <button class="btn btn-primary" onclick="openAuthModal()">Sign In / Register</button>
-      </div>
-    `;
-    return;
+  // 2. Global listener catching clicks on the navbar sign-in button
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#account-btn")) {
+      e.preventDefault();
+      accountOverlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden"; // Lock background scroll
+    }
+  });
+
+  // 3. Close Controls
+  function closeAccount() {
+    accountOverlay.classList.add("hidden");
+    document.body.style.overflow = "";
   }
 
-  view.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2>User Portal</h2>
-      <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
-    </div>
-    <div class="account-card">
-      <h3>Profile Details</h3>
-      <p style="margin-top: 0.5rem;"><strong>Name:</strong> ${state.currentUser.name}</p>
-      <p><strong>Email:</strong> ${state.currentUser.email}</p>
-    </div>
-
-    <h3 style="margin-bottom: 0.5rem;">Service Bookings</h3>
-    ${state.bookings.length === 0 ? '<p style="color:var(--text-muted); margin-bottom: 2rem;">No active bookings.</p>' : 
-      state.bookings.map(b => `
-        <div class="history-item">
-          <strong>${b.service}</strong> — ${b.date} at ${b.time}
-          <div style="color:var(--accent-red); font-size: 0.85rem; margin-top: 4px;">Status: ${b.status} ($${b.price})</div>
-        </div>
-      `).join('')}
-
-    <h3 style="margin-bottom: 0.5rem; margin-top: 2rem;">Order History</h3>
-    ${state.orders.length === 0 ? '<p style="color:var(--text-muted);">No orders placed yet.</p>' : 
-      state.orders.map(o => `
-        <div class="history-item">
-          <strong>Order #${o.id}</strong> — Total: $${o.total.toFixed(2)} (${o.date})
-          <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
-            ${o.items.map(i => `${i.title} (x${i.qty})`).join(', ')}
-          </div>
-        </div>
-      `).join('')}
-  `;
-}
+  if (closeBtn) closeBtn.addEventListener("click", closeAccount);
+  if (accountOverlay) {
+    accountOverlay.addEventListener("click", (e) => {
+      if (e.target === accountOverlay) closeAccount();
+    });
+  }
+});
