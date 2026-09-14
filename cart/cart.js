@@ -137,7 +137,7 @@
 
         try {
           const response = await fetch("/api/create-checkout-session", {
-            method: "POST",
+            method: "GET",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ items: window.cart })
           });
