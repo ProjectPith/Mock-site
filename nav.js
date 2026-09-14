@@ -34,7 +34,7 @@
       <header class="site-header">
         <div class="header-container">
           <div class="brand-logo">
-            <a href="/index.html">Lunarcraft</a>
+            <a href="/index.html">LunarCraft</a>
           </div>
           <nav class="nav-links">
             <a href="/index.html" class="nav-item">Home</a>
