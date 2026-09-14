@@ -80,7 +80,7 @@ function renderProducts() {
             <p>${prod.desc}</p>
             <div class="product-price">$${prod.price}</div>
             <div class="card-actions">
-              <button class="btn btn-secondary" onclick="addToCart('${product.id}')">Test Cart</button>
+              <button class="btn btn-secondary" onclick="addToCart('${prod.id}')">Test Cart</button>
               <a href="${prod.buyUrl}" target="_blank" class="btn btn-primary">Buy Now</a>
             </div>
           </div>
