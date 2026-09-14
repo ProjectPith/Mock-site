@@ -1,49 +1,45 @@
-// ==========================================
-// CART & AUTHENTICATION OVERLAYS
-// ==========================================
-function updateCartUI() {
-  const totalCount = state.cart.reduce((sum, item) => sum + item.qty, 0);
-  const cartCountEl = document.getElementById('cart-count');
-  if (cartCountEl) cartCountEl.innerText = totalCount;
-
-  const cartContainer = document.getElementById('cart-items');
-  if (cartContainer) {
-    if (state.cart.length === 0) {
-      cartContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">Cart is empty.</p>`;
-    } else {
-      cartContainer.innerHTML = state.cart.map(item => `
-        <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-          <div>
-            <strong>${item.title}</strong><br>
-            <small style="color: var(--text-muted);">$${item.price} × ${item.qty}</small>
-          </div>
-          <button class="close-btn" onclick="removeFromCart('${item.id}')">&times;</button>
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. Inject Cart Drawer Overlay into body
+  const cartHTML = `
+    <div id="cart-overlay" class="cart-overlay-backdrop hidden">
+      <aside class="cart-overlay-panel">
+        <div class="cart-overlay-header">
+          <h3>Your Order Cart</h3>
+          <button id="close-cart-overlay" class="cart-close-btn">✕</button>
         </div>
-      `).join('');
+        <div class="cart-overlay-body">
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Your cart is currently empty.</p>
+        </div>
+        <div class="cart-overlay-footer">
+          <button class="nav-btn" style="width: 100%; justify-content: center;">Proceed to Checkout →</button>
+        </div>
+      </aside>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", cartHTML);
+
+  const cartOverlay = document.getElementById("cart-overlay");
+  const closeBtn = document.getElementById("close-cart-overlay");
+
+  // 2. Event delegation listener for ANY cart button clicked on the page
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#cart-btn")) {
+      e.preventDefault();
+      cartOverlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden"; // Lock background scroll
     }
+  });
+
+  // 3. Close Overlay Controls
+  function closeCart() {
+    cartOverlay.classList.add("hidden");
+    document.body.style.overflow = "";
   }
 
-  const totalPrice = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const cartTotalEl = document.getElementById('cart-total-price');
-  if (cartTotalEl) cartTotalEl.innerText = `$${totalPrice.toFixed(2)}`;
-}
-
-function removeFromCart(id) {
-  state.cart = state.cart.filter(item => item.id !== id);
-  saveCart();
-  updateCartUI();
-}
-
-function toggleCart(forceOpen = false) {
-  const drawer = document.getElementById('cart-drawer');
-  const overlay = document.getElementById('cart-overlay');
-  if (!drawer || !overlay) return;
-
-  if (forceOpen || !drawer.classList.contains('open')) {
-    drawer.classList.add('open');
-    overlay.classList.add('open');
-  } else {
-    drawer.classList.remove('open');
-    overlay.classList.remove('open');
+  if (closeBtn) closeBtn.addEventListener("click", closeCart);
+  if (cartOverlay) {
+    cartOverlay.addEventListener("click", (e) => {
+      if (e.target === cartOverlay) closeCart();
+    });
   }
-}
+});
