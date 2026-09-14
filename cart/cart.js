@@ -131,7 +131,7 @@
         }
 
         // Initialize Stripe directly with your Publishable Key
-        const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY_HERE');
+        const stripe = Stripe('pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV');
 
         async function handleCheckout() {
         // Build line items array directly from your active cart array
