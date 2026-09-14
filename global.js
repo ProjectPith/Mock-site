@@ -56,3 +56,44 @@ function logout() {
   updateAuthNav();
   window.location.href = '../index.html';
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  
+  // Account Drawer Triggers
+  const accountTrigger = document.getElementById("account-btn") || 
+                         document.querySelector(".sign-in-btn") || 
+                         document.querySelector("a[href*='account']");
+                         
+  const accountBackdrop = document.getElementById("account-drawer-backdrop");
+  const closeAccountBtn = document.getElementById("close-account-drawer");
+
+  function openAccount() {
+    if (accountBackdrop) {
+      accountBackdrop.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function closeAccount() {
+    if (accountBackdrop) {
+      accountBackdrop.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+  }
+
+  if (accountTrigger) {
+    accountTrigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      openAccount();
+    });
+  }
+
+  if (closeAccountBtn) closeAccountBtn.addEventListener("click", closeAccount);
+
+  if (accountBackdrop) {
+    accountBackdrop.addEventListener("click", (e) => {
+      if (e.target === accountBackdrop) closeAccount();
+    });
+  }
+
+});
