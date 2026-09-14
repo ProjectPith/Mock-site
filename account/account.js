@@ -28,16 +28,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountOverlay = document.getElementById("account-overlay");
   const closeBtn = document.getElementById("close-account-overlay");
 
-  // 2. Global listener catching clicks on the navbar sign-in button
+  // 2. Global Event Delegation: Intercept clicks anywhere on the document
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#account-btn")) {
+    // Check if the clicked element (or its parent) matches #account-btn
+    const accountButton = e.target.closest("#account-btn");
+    if (accountButton) {
       e.preventDefault();
       accountOverlay.classList.remove("hidden");
-      document.body.style.overflow = "hidden"; // Lock background scroll
+      document.body.style.overflow = "hidden";
     }
   });
 
-  // 3. Close Controls
+  // 3. Close Overlay Handlers
   function closeAccount() {
     accountOverlay.classList.add("hidden");
     document.body.style.overflow = "";
