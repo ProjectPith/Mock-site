@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  // 1. Create Modal Container for Cal.com
+  // --- 1. Cal.com Overlay Modal ---
   const modalOverlay = document.createElement("div");
   modalOverlay.id = "cal-custom-modal";
   modalOverlay.style.cssText = `
@@ -53,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
   modalOverlay.appendChild(modalContent);
   document.body.appendChild(modalOverlay);
 
-  // 2. Open / Close Modal Logic
   const callBtn = document.getElementById("book-call-btn");
   if (callBtn) {
     callBtn.addEventListener("click", (e) => {
@@ -62,17 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  closeBtn.addEventListener("click", () => {
-    modalOverlay.style.display = "none";
-  });
-
+  closeBtn.addEventListener("click", () => { modalOverlay.style.display = "none"; });
   modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) {
-      modalOverlay.style.display = "none";
-    }
+    if (e.target === modalOverlay) modalOverlay.style.display = "none";
   });
 
-  // 3. Price Estimator Handler
+  // --- 2. Interactive Price Estimator Modal ---
   const openEstimatorBtn = document.getElementById("open-estimator-btn");
   const closeEstimatorBtn = document.getElementById("close-estimator-modal");
   const estimatorModal = document.getElementById("estimator-modal");
@@ -102,7 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
       dynamicAddonsGroup.classList.add("hidden");
     }
 
-    totalPriceEl.textContent = `$${total.toLocaleString()}`;
+    if (totalPriceEl) {
+      totalPriceEl.textContent = `$${total.toLocaleString()}`;
+    }
   }
 
   if (openEstimatorBtn && estimatorModal) {
@@ -117,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close modal when clicking outside content box
   if (estimatorModal) {
     estimatorModal.addEventListener("click", (e) => {
       if (e.target === estimatorModal) {
@@ -133,3 +128,5 @@ document.addEventListener("DOMContentLoaded", () => {
   addonCheckboxes.forEach(checkbox => {
     checkbox.addEventListener("change", calculateEstimate);
   });
+
+});
