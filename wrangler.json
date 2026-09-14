@@ -1,0 +1,8 @@
+{
+  "name": "lunarcraft",
+  "main": "index.js",
+  "assets": {
+    "directory": "./",
+    "run_worker_first": true
+  }
+}
