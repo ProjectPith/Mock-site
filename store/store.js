@@ -92,29 +92,29 @@ function renderProducts() {
 }
 
 function addToCart(productId) {
-  // Find the exact item object in your array by its ID
+  // 1. Find the full product object from your products array using the ID
   const product = products.find(p => p.id === productId);
 
   if (!product) {
-    console.error(`Product with ID "${productId}" not found.`);
+    console.error(`Product with ID "${productId}" was not found in the products array.`);
     return;
   }
 
-  // Check if item already exists in window.cart
-  const existingItem = window.cart.find(item => item.id === product.id || item.title === product.title);
+  // 2. Check if the item is already in the cart
+  const existingItem = window.cart.find(item => item.id === product.id);
 
   if (existingItem) {
     existingItem.quantity = (existingItem.quantity || 1) + 1;
   } else {
     window.cart.push({
       id: product.id,
-      title: product.title,
-      price: product.price,
+      title: product.title,  // Pulls 'LunarCraft Developer Hoodie'
+      price: product.price,  // Pulls 55.56
       quantity: 1
     });
   }
 
-  // Save to localStorage and re-render overlay
+  // 3. Save to localStorage and update the drawer UI
   if (typeof window.saveCart === "function") {
     window.saveCart();
   }
