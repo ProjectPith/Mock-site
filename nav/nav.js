@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   navContainer.innerHTML = `
     <header class="navbar">
-      <a href="/index.html" class="nav-brand">Brand-Place-Holder</a>
+      <a href="/index.html" class="nav-brand">LunarCraft</a>
       
       <nav class="nav-links">
         <a href="/index/index.html">Home</a>
