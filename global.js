@@ -12,58 +12,79 @@ const state = {
 // ==========================================
 // GLOBAL INITIALIZATION
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-  updateCartBadge();
-  updateAuthNav();
-});
-
-// Sync cart quantity badge across header elements
-function updateCartBadge() {
-  const cartCountEl = document.getElementById('cart-count');
-  if (cartCountEl) {
-    const totalCount = state.cart.reduce((sum, item) => sum + item.qty, 0);
-    cartCountEl.innerText = totalCount;
-  }
-}
-
-// Persist cart to local storage and refresh count
-function saveCart() {
-  localStorage.setItem('cart', JSON.stringify(state.cart));
-  updateCartBadge();
-}
-
-// Global Auth Display Helper
-function updateAuthNav() {
-  const container = document.getElementById('auth-nav-container');
-  if (!container) return;
-
-  if (state.currentUser) {
-    container.innerHTML = `
-      <a href="../account/account.html" class="btn btn-secondary">
-        Account (${state.currentUser.name})
-      </a>
-    `;
-  } else {
-    container.innerHTML = `
-      <button class="btn btn-primary" onclick="openAuthModal()">Sign In</button>
-    `;
-  }
-}
-
-function logout() {
-  state.currentUser = null;
-  localStorage.removeItem('currentUser');
-  updateAuthNav();
-  window.location.href = '../index.html';
-}
-
 document.addEventListener("DOMContentLoaded", () => {
+
+  // 1. Inject Global Header & Navigation
+  const headerContainer = document.getElementById("site-header-container") || document.body;
   
-  // Account Drawer Triggers
-  const accountTrigger = document.getElementById("account-btn") || 
-                         document.querySelector(".sign-in-btn") || 
-                         document.querySelector("a[href*='account']");
-                         
+  const navHTML = `
+    <header class="site-header">
+      <div class="brand-logo">
+        <a href="/">Brand-Place-Holder</a>
+      </div>
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-item">Home</a>
+        <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
+        <a href="/store/store.html" class="nav-item">Store</a>
+        <button id="cart-btn" class="nav-btn">Cart <span class="cart-badge">2</span></button>
+        <button id="account-btn" class="nav-btn sign-in-btn">Sign In</button>
+      </nav>
+    </header>
+
+    <!-- Account Slide-Over Drawer -->
+    <div id="account-drawer-backdrop" class="drawer-backdrop hidden">
+      <aside id="account-drawer" class="account-drawer">
+        <div class="drawer-header">
+          <h3>Account & Plugins</h3>
+          <button id="close-account-drawer" class="close-btn" aria-label="Close Account">✕</button>
+        </div>
+        <div class="drawer-body">
+          <section class="account-section">
+            <h4>Profile & Setup</h4>
+            <p class="section-desc">Manage workspace settings and active site plugins.</p>
+            
+            <form id="account-setup-form" onsubmit="event.preventDefault();">
+              <div class="form-group">
+                <label for="acc-name">Display Name</label>
+                <input type="text" id="acc-name" class="form-input" placeholder="e.g. Alex Rivera">
+              </div>
+
+              <div class="form-group">
+                <label for="acc-email">Email Address</label>
+                <input type="email" id="acc-email" class="form-input" placeholder="alex@domain.com">
+              </div>
+
+              <div class="plugins-section">
+                <label class="group-label">Active Account Plugins</label>
+                
+                <label class="toggle-control">
+                  <input type="checkbox" id="plugin-cal" checked>
+                  <span class="toggle-label">Cal.com Booking Sync</span>
+                </label>
+
+                <label class="toggle-control">
+                  <input type="checkbox" id="plugin-stripe">
+                  <span class="toggle-label">Stripe Client Billing Portal</span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn-save-account">Save Account Settings</button>
+            </form>
+          </section>
+        </div>
+      </aside>
+    </div>
+  `;
+
+  // Prepend to top of <body> if no dedicated header container exists
+  if (headerContainer === document.body) {
+    document.body.insertAdjacentHTML("afterbegin", navHTML);
+  } else {
+    headerContainer.innerHTML = navHTML;
+  }
+
+  // 2. Bind Drawer Triggers AFTER HTML is inserted into DOM
+  const accountBtn = document.getElementById("account-btn");
   const accountBackdrop = document.getElementById("account-drawer-backdrop");
   const closeAccountBtn = document.getElementById("close-account-drawer");
 
@@ -81,8 +102,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (accountTrigger) {
-    accountTrigger.addEventListener("click", (e) => {
+  if (accountBtn) {
+    accountBtn.addEventListener("click", (e) => {
       e.preventDefault();
       openAccount();
     });
