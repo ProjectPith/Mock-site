@@ -73,11 +73,63 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 3. Price Estimator Handler
-  const estimatorBtn = document.getElementById("open-estimator-btn");
-  if (estimatorBtn) {
-    estimatorBtn.addEventListener("click", () => {
-      console.log("Estimator button clicked!");
+  const openEstimatorBtn = document.getElementById("open-estimator-btn");
+  const closeEstimatorBtn = document.getElementById("close-estimator-modal");
+  const estimatorModal = document.getElementById("estimator-modal");
+  
+  const siteTypeSelect = document.getElementById("site-type");
+  const dynamicAddonsGroup = document.getElementById("dynamic-addons");
+  const addonCheckboxes = document.querySelectorAll(".addon-option");
+  const totalPriceEl = document.getElementById("estimator-total-price");
+
+  const BASE_PRICES = {
+    static: 500,
+    dynamic: 1200
+  };
+
+  function calculateEstimate() {
+    const selectedType = siteTypeSelect.value;
+    let total = BASE_PRICES[selectedType] || 500;
+
+    if (selectedType === "dynamic") {
+      dynamicAddonsGroup.classList.remove("hidden");
+      addonCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          total += parseInt(checkbox.value, 10) || 0;
+        }
+      });
+    } else {
+      dynamicAddonsGroup.classList.add("hidden");
+    }
+
+    totalPriceEl.textContent = `$${total.toLocaleString()}`;
+  }
+
+  if (openEstimatorBtn && estimatorModal) {
+    openEstimatorBtn.addEventListener("click", () => {
+      estimatorModal.classList.remove("hidden");
     });
   }
 
-});
+  if (closeEstimatorBtn && estimatorModal) {
+    closeEstimatorBtn.addEventListener("click", () => {
+      estimatorModal.classList.add("hidden");
+    });
+  }
+
+  // Close modal when clicking outside content box
+  if (estimatorModal) {
+    estimatorModal.addEventListener("click", (e) => {
+      if (e.target === estimatorModal) {
+        estimatorModal.classList.add("hidden");
+      }
+    });
+  }
+
+  if (siteTypeSelect) {
+    siteTypeSelect.addEventListener("change", calculateEstimate);
+  }
+
+  addonCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener("change", calculateEstimate);
+  });
