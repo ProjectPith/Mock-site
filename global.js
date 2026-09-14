@@ -14,106 +14,140 @@ const state = {
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1. Inject Global Header & Navigation
+  // 1. Inject Global Header & Both Utility Drawers (Cart & Account)
   const headerContainer = document.getElementById("site-header-container") || document.body;
   
-  const navHTML = `
+  const globalUI = `
     <header class="site-header">
       <div class="brand-logo">
-        <a href="/">Brand-Place-Holder</a>
+        <a href="/index.html">Lunarcraft</a>
       </div>
       <nav class="nav-links">
         <a href="/index.html" class="nav-item">Home</a>
         <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
         <a href="/store/store.html" class="nav-item">Store</a>
-        <button id="cart-btn" class="nav-btn">Cart <span class="cart-badge">2</span></button>
-        <button id="account-btn" class="nav-btn sign-in-btn">Sign In</button>
+        <button id="cart-btn" class="nav-btn btn-cart">
+          Cart <span class="cart-badge" id="cart-count">2</span>
+        </button>
+        <button id="account-btn" class="nav-btn btn-signin">Sign In</button>
       </nav>
     </header>
 
-    <!-- Account Slide-Over Drawer -->
-    <div id="account-drawer-backdrop" class="drawer-backdrop hidden">
-      <aside id="account-drawer" class="account-drawer">
+    <!-- Slide-Over Cart Drawer -->
+    <div id="cart-drawer-backdrop" class="drawer-backdrop hidden">
+      <aside id="cart-drawer" class="ui-drawer">
         <div class="drawer-header">
-          <h3>Account & Plugins</h3>
-          <button id="close-account-drawer" class="close-btn" aria-label="Close Account">✕</button>
+          <h3>Your Order Cart</h3>
+          <button id="close-cart-drawer" class="close-btn">✕</button>
+        </div>
+        <div class="drawer-body">
+          <div id="cart-items-container">
+            <div class="cart-item">
+              <div>
+                <strong>LunarCraft Developer Hoodie</strong>
+                <p class="item-price">$55.56</p>
+              </div>
+              <button class="remove-item-btn">Remove</button>
+            </div>
+            <div class="cart-item">
+              <div>
+                <strong>LunarCraft Ceramic Mug</strong>
+                <p class="item-price">$12.99</p>
+              </div>
+              <button class="remove-item-btn">Remove</button>
+            </div>
+          </div>
+          <div class="cart-summary">
+            <div class="summary-row">
+              <span>Subtotal:</span>
+              <strong id="cart-subtotal">$68.55</strong>
+            </div>
+            <button class="btn-primary w-100">Proceed to Checkout →</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Client Account & Showcase Drawer -->
+    <div id="account-drawer-backdrop" class="drawer-backdrop hidden">
+      <aside id="account-drawer" class="ui-drawer">
+        <div class="drawer-header">
+          <h3>Client Portal & Workspace</h3>
+          <button id="close-account-drawer" class="close-btn">✕</button>
         </div>
         <div class="drawer-body">
           <section class="account-section">
-            <h4>Profile & Setup</h4>
-            <p class="section-desc">Manage workspace settings and active site plugins.</p>
+            <h4>Client Authentication</h4>
+            <p class="section-desc">Sign in to access custom build estimates, saved spec forms, and contract drafts.</p>
             
-            <form id="account-setup-form" onsubmit="event.preventDefault();">
+            <form id="client-login-form" onsubmit="event.preventDefault();">
               <div class="form-group">
-                <label for="acc-name">Display Name</label>
-                <input type="text" id="acc-name" class="form-input" placeholder="e.g. Alex Rivera">
+                <label for="client-email">Client Email</label>
+                <input type="email" id="client-email" class="form-input" placeholder="client@company.com" required>
               </div>
 
               <div class="form-group">
-                <label for="acc-email">Email Address</label>
-                <input type="email" id="acc-email" class="form-input" placeholder="alex@domain.com">
+                <label for="client-pass">Password / Project Code</label>
+                <input type="password" id="client-pass" class="form-input" placeholder="••••••••" required>
               </div>
 
-              <div class="plugins-section">
-                <label class="group-label">Active Account Plugins</label>
-                
-                <label class="toggle-control">
-                  <input type="checkbox" id="plugin-cal" checked>
-                  <span class="toggle-label">Cal.com Booking Sync</span>
-                </label>
-
-                <label class="toggle-control">
-                  <input type="checkbox" id="plugin-stripe">
-                  <span class="toggle-label">Stripe Client Billing Portal</span>
-                </label>
-              </div>
-
-              <button type="submit" class="btn-save-account">Save Account Settings</button>
+              <button type="submit" class="btn-primary w-100">Sign In to Workspace</button>
             </form>
+
+            <div class="divider"><span>OR</span></div>
+
+            <div class="showcase-box">
+              <h4>📋 Project Spec Intake</h4>
+              <p>Looking for a custom site architecture build? Submit your specifications directly through our intake portal.</p>
+              <a href="/intake/intake.html" class="btn-secondary w-100 text-center">Start Spec Build →</a>
+            </div>
           </section>
         </div>
       </aside>
     </div>
   `;
 
-  // Prepend to top of <body> if no dedicated header container exists
   if (headerContainer === document.body) {
-    document.body.insertAdjacentHTML("afterbegin", navHTML);
+    document.body.insertAdjacentHTML("afterbegin", globalUI);
   } else {
-    headerContainer.innerHTML = navHTML;
+    headerContainer.innerHTML = globalUI;
   }
 
-  // 2. Bind Drawer Triggers AFTER HTML is inserted into DOM
-  const accountBtn = document.getElementById("account-btn");
-  const accountBackdrop = document.getElementById("account-drawer-backdrop");
-  const closeAccountBtn = document.getElementById("close-account-drawer");
-
-  function openAccount() {
-    if (accountBackdrop) {
-      accountBackdrop.classList.remove("hidden");
+  // 2. Drawer Control Helpers
+  function toggleDrawer(backdropEl, forceOpen) {
+    if (!backdropEl) return;
+    if (forceOpen) {
+      backdropEl.classList.remove("hidden");
       document.body.style.overflow = "hidden";
-    }
-  }
-
-  function closeAccount() {
-    if (accountBackdrop) {
-      accountBackdrop.classList.add("hidden");
+    } else {
+      backdropEl.classList.add("hidden");
       document.body.style.overflow = "";
     }
   }
 
-  if (accountBtn) {
-    accountBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      openAccount();
+  // Account Drawer Triggers
+  const accountBtn = document.getElementById("account-btn");
+  const accountBackdrop = document.getElementById("account-drawer-backdrop");
+  const closeAccountBtn = document.getElementById("close-account-drawer");
+
+  if (accountBtn) accountBtn.addEventListener("click", () => toggleDrawer(accountBackdrop, true));
+  if (closeAccountBtn) closeAccountBtn.addEventListener("click", () => toggleDrawer(accountBackdrop, false));
+  if (accountBackdrop) {
+    accountBackdrop.addEventListener("click", (e) => {
+      if (e.target === accountBackdrop) toggleDrawer(accountBackdrop, false);
     });
   }
 
-  if (closeAccountBtn) closeAccountBtn.addEventListener("click", closeAccount);
+  // Cart Drawer Triggers
+  const cartBtn = document.getElementById("cart-btn");
+  const cartBackdrop = document.getElementById("cart-drawer-backdrop");
+  const closeCartBtn = document.getElementById("close-cart-drawer");
 
-  if (accountBackdrop) {
-    accountBackdrop.addEventListener("click", (e) => {
-      if (e.target === accountBackdrop) closeAccount();
+  if (cartBtn) cartBtn.addEventListener("click", () => toggleDrawer(cartBackdrop, true));
+  if (closeCartBtn) closeCartBtn.addEventListener("click", () => toggleDrawer(cartBackdrop, false));
+  if (cartBackdrop) {
+    cartBackdrop.addEventListener("click", (e) => {
+      if (e.target === cartBackdrop) toggleDrawer(cartBackdrop, false);
     });
   }
 
