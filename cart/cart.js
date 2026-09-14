@@ -75,6 +75,11 @@ function initCartOverlay() {
 }
 
 function openCartDrawer() {
+  // Always fetch latest cart array from storage before rendering
+  cart = (typeof state !== 'undefined' && state.cart) 
+    ? state.cart 
+    : (JSON.parse(localStorage.getItem('cart')) || []);
+
   renderCartItems();
   const overlay = document.getElementById('cart-drawer-overlay');
   if (overlay) overlay.classList.remove('hidden');
@@ -101,15 +106,21 @@ function renderCartItems() {
     return;
   }
 
-  listContainer.innerHTML = cart.map((item, index) => `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);">
-      <div>
-        <div style="color: var(--text-main); font-weight: 500;">${item.name}</div>
-        <div style="color: var(--text-muted); font-size: 0.85rem;">$${(item.price).toFixed(2)} × ${item.quantity || 1}</div>
+  listContainer.innerHTML = cart.map((item, index) => {
+    // FIX: Fallback for title/name property mismatch between store.js and cart.js
+    const itemTitle = item.title || item.name || 'Item';
+    const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price || 0);
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+          <div style="color: var(--text-main); font-weight: 500;">${itemTitle}</div>
+          <div style="color: var(--text-muted); font-size: 0.85rem;">$${itemPrice.toFixed(2)} × ${item.quantity || 1}</div>
+        </div>
+        <button onclick="removeFromCart(${index})" style="background:none; border:none; color: var(--text-muted); cursor:pointer;">&times;</button>
       </div>
-      <button onclick="removeFromCart(${index})" style="background:none; border:none; color: var(--text-muted); cursor:pointer;">&times;</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 window.removeFromCart = function(index) {
@@ -174,7 +185,11 @@ async function handleCheckout(event) {
 function updateCartUI() {
   const cartCountEl = document.getElementById('cart-count');
   if (cartCountEl) {
-    const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    // Re-read storage so cart-count updates accurately
+    const currentCart = (typeof state !== 'undefined' && state.cart) 
+      ? state.cart 
+      : (JSON.parse(localStorage.getItem('cart')) || []);
+    const totalItems = currentCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     cartCountEl.textContent = totalItems;
   }
 }
