@@ -130,7 +130,7 @@
           return;
         }
 
-        const stripe = Stripe("pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe");
+        const stripe = Stripe("pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV");
 
         cartOverlay.classList.add("hidden");
         stripeModal.classList.remove("hidden");
