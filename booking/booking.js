@@ -1,4 +1,4 @@
-// 1. Loader Snippet (Runs automatically at file load)
+// 1. Loader Snippet
 (function (C, A, L) { 
   let p = function (a, ar) { a.q.push(ar); }; 
   let l = C.Cal = C.Cal || function () { 
@@ -25,31 +25,38 @@
 
 Cal("init", { origin: "https://cal.com" });
 
-// 2. Click Handler (Fires modal when button is pressed)
 document.addEventListener("DOMContentLoaded", () => {
-  
-  Cal("ui", {
-    "theme": "dark",
-    "hideEventTypeDetails": false,
-    "layout": "month"
-  });
+  console.log("--> Step 1: DOMContentLoaded fired");
 
   const callBtn = document.getElementById("book-call-btn");
+  
   if (callBtn) {
+    console.log("--> Step 2: Found #book-call-btn element successfully");
+    
     callBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      Cal("modal", {
-        calLink: "hannah-martin-h12p3m/15min",
-        config: { layout: "month", theme: "dark" }
-      });
+      console.log("--> Step 3: Button clicked! Attempting to fire Cal modal...");
+      console.log("--> Check window.Cal type:", typeof window.Cal);
+      
+      try {
+        Cal("modal", {
+          calLink: "hannah-martin-h12p3m/15min",
+          config: { layout: "month", theme: "dark" }
+        });
+        console.log("--> Step 4: Cal('modal') command sent without JS errors.");
+      } catch (err) {
+        console.error("--> Step 4 FAILED with error:", err);
+      }
     });
+  } else {
+    console.error("--> Step 2 FAILED: Could not find element with id='book-call-btn'");
   }
 
+  // Estimator test handler
   const estimatorBtn = document.getElementById("open-estimator-btn");
   if (estimatorBtn) {
     estimatorBtn.addEventListener("click", () => {
-      alert("Estimator Modal Logic Connected!");
+      console.log("Estimator button clicked!");
     });
   }
-
 });
