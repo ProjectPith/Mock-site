@@ -8,47 +8,51 @@
   };
 
   window.renderCartUI = function () {
-    const badge = document.getElementById("cart-count");
-    const cartBody = document.querySelector(".cart-overlay-body");
+  const badge = document.getElementById("cart-count");
+  const cartBody = document.querySelector(".cart-overlay-body");
 
-    // Total item count update
-    const totalCount = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    if (badge) badge.innerText = totalCount;
+  const totalCount = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  if (badge) badge.innerText = totalCount;
 
-    if (!cartBody) return;
+  if (!cartBody) return;
 
-    if (window.cart.length === 0) {
-      cartBody.innerHTML = `<p style="color: var(--text-muted, #919bA1); font-size: 0.9rem;">Your cart is currently empty.</p>`;
-      return;
-    }
+  if (window.cart.length === 0) {
+    cartBody.innerHTML = `<p style="color: var(--text-muted, #919bA1); font-size: 0.9rem;">Your cart is currently empty.</p>`;
+    return;
+  }
 
-    // Render item rows
-    let html = `<ul style="list-style: none; padding: 0; margin: 0;">`;
-    let subtotal = 0;
+  let html = `<ul style="list-style: none; padding: 0; margin: 0;">`;
+  let subtotal = 0;
 
-    window.cart.forEach((item, index) => {
-      const itemTotal = (item.price * (item.quantity || 1));
-      subtotal += itemTotal;
-      html += `
-        <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle, #373e47); padding-bottom: 0.5rem;">
-          <div>
-            <strong style="color: var(--text-main, #e6edf3); font-size: 0.95rem;">${item.title}</strong>
-            <div style="color: var(--text-muted, #919bA1); font-size: 0.85rem;">$${item.price.toFixed(2)} x ${item.quantity || 1}</div>
-          </div>
-          <button onclick="window.removeFromCart(${index})" style="background: none; border: none; color: #f85149; cursor: pointer;">✕</button>
-        </li>
-      `;
-    });
-    html += `</ul>`;
+  window.cart.forEach((item, index) => {
+    // Parse price safely, fallback to 0 if NaN
+    const rawPrice = parseFloat(item.price);
+    const validPrice = isNaN(rawPrice) ? 0 : rawPrice;
+    const itemTotal = validPrice * (item.quantity || 1);
+    
+    subtotal += itemTotal;
+
     html += `
-      <div style="margin-top: 1rem; font-weight: bold; color: var(--text-main, #e6edf3); display: flex; justify-content: space-between;">
-        <span>Total:</span>
-        <span style="color: var(--sky-blue, #88c0d0);">$${subtotal.toFixed(2)}</span>
-      </div>
+      <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle, #373e47); padding-bottom: 0.5rem;">
+        <div>
+          <strong style="color: var(--text-main, #e6edf3); font-size: 0.95rem;">${item.title || 'Product'}</strong>
+          <div style="color: var(--text-muted, #919bA1); font-size: 0.85rem;">$${validPrice.toFixed(2)} x ${item.quantity || 1}</div>
+        </div>
+        <button onclick="window.removeFromCart(${index})" style="background: none; border: none; color: #f85149; cursor: pointer;">✕</button>
+      </li>
     `;
+  });
 
-    cartBody.innerHTML = html;
-  };
+  html += `</ul>`;
+  html += `
+    <div style="margin-top: 1rem; font-weight: bold; color: var(--text-main, #e6edf3); display: flex; justify-content: space-between;">
+      <span>Total:</span>
+      <span style="color: var(--sky-blue, #88c0d0);">$${subtotal.toFixed(2)}</span>
+    </div>
+  `;
+
+  cartBody.innerHTML = html;
+};
 
   window.removeFromCart = function (index) {
     window.cart.splice(index, 1);
