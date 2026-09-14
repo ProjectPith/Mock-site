@@ -7,35 +7,6 @@
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="/booking/booking.css">
   <link rel="stylesheet+ href="/nav/nav.css">
-
-  <!-- Safe Cal.com Global Initialization Snippet -->
-  <script type="text/javascript">
-    (function (C, A, L) { 
-      let p = function (a, ar) { a.q.push(ar); }; 
-      let l = C.Cal = C.Cal || function () { 
-        let cal = l; 
-        let ar = arguments; 
-        if (!cal.q) { cal.q = []; } 
-        if (typeof ar[0] === "string") { 
-          if (ar[0] === "init") { 
-            let api = function () { p(api, arguments); }; 
-            let c = ar[1]; 
-            api.q = api.q || []; 
-            if (typeof c === "string") { 
-              cal.ns = cal.ns || {}; 
-              cal.ns[c] = cal.ns[c] || api; 
-              p(cal.ns[c], ar); 
-              p(cal, ["initNamespace", c]); 
-            } else { p(cal, ar); } 
-            return; 
-          } 
-          p(cal, ar); 
-        } 
-      }; 
-    })(window, "https://app.cal.com/embed/embed.js", "Cal");
-    
-    Cal("init", { origin: "https://cal.com" });
-  </script>
 </head>
 <body>
 
@@ -49,11 +20,7 @@
         <h2>📞 Book a Custom Build Consultation</h2>
         <p>Schedule a free 15-minute call to discuss scope, timeline, and custom features.</p>
       </div>
-      <button 
-        id="book-call-btn" 
-        class="btn-schedule"
-        data-cal-link="hannah-martin-h12p3m/15min" 
-        data-cal-config='{"layout":"month","theme":"dark"}'>
+      <button id="book-call-btn" class="btn-schedule">
         Schedule Call →
       </button>
     </div>
