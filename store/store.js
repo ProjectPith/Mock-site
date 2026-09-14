@@ -91,13 +91,20 @@ function renderProducts() {
   container.innerHTML = html;
 }
 
-function addToCart(title, price) {
-  const existingItem = window.cart.find(item => item.title === title);
+function addToCart(title, rawPrice) {
+  // Convert raw price to string, strip any '$' signs, and parse as a float
+  const cleanedPrice = parseFloat(String(rawPrice).replace(/[^0-9.]/g, ""));
+  
+  // Guard against missing/invalid prices
+  const itemPrice = isNaN(cleanedPrice) ? 0 : cleanedPrice;
+  const itemTitle = title || "Unknown Product";
+
+  const existingItem = window.cart.find(item => item.title === itemTitle);
   
   if (existingItem) {
     existingItem.quantity = (existingItem.quantity || 1) + 1;
   } else {
-    window.cart.push({ title: title, price: parseFloat(price), quantity: 1 });
+    window.cart.push({ title: itemTitle, price: itemPrice, quantity: 1 });
   }
 
   if (typeof window.saveCart === "function") {
