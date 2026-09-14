@@ -1,35 +1,70 @@
-export async function onRequest(context) {
+export async function onRequestPost(context) {
   const { request, env } = context;
 
-  // Handle preflight OPTIONS requests if needed
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    const body = await request.json();
+    const origin = request.headers.get('origin') || 'https://lunarcraft.hkmartin08.workers.dev';
+
+    // 1. Build line items array for Stripe API from your cart
+    const lineItemsParams = new URLSearchParams({
+      'ui_mode': 'embedded',
+      'mode': 'payment',
+      'return_url': `${origin}/return.html?session_id={CHECKOUT_SESSION_ID}`,
+    });
+
+    body.items.forEach((item, index) => {
+      lineItemsParams.append(`line_items[${index}][price_data][currency]`, 'usd');
+      lineItemsParams.append(`line_items[${index}][price_data][product_data][name]`, item.name);
+      lineItemsParams.append(`line_items[${index}][price_data][unit_amount]`, Math.round(item.price * 100));
+      lineItemsParams.append(`line_items[${index}][quantity]`, item.quantity || 1);
+    });
+
+    // 2. Direct HTTP call to Stripe API (No Node package dependencies required)
+    const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
+      body: lineItemsParams.toString(),
+    });
+
+    const session = await stripeResponse.json();
+
+    if (session.error) {
+      return new Response(JSON.stringify({ error: session.error.message }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    // 3. Return clientSecret to cart.js
+    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
+      status: 200,
+      headers: corsHeaders,
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: corsHeaders,
     });
   }
-
-  // Handle the POST request from cart.js
-  if (request.method === 'POST') {
-    try {
-      const body = await request.json();
-      // ... generate your Stripe session using env.STRIPE_SECRET_KEY ...
-
-      return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), { status: 500 });
-    }
-  }
-
-  return new Response('Method Not Allowed', { status: 405 });
 }
 
-// Explicit export for POST-only handlers
-export async function onRequestPost(context) {
-  return onRequest(context);
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
