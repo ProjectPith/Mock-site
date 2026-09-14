@@ -130,7 +130,7 @@
           return;
         }
 
-        const stripe = Stripe("pk_test_YOUR_STRIPE_PUBLISHABLE_KEY");
+        const stripe = Stripe("pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe");
 
         cartOverlay.classList.add("hidden");
         stripeModal.classList.remove("hidden");
