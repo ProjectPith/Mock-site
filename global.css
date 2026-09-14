@@ -123,7 +123,7 @@ a {
   display: flex;
 }
 
-/* --- Global Header & Nav --- */
+/* --- Global Nav & Branding Aesthetics --- */
 .site-header {
   display: flex;
   justify-content: space-between;
@@ -133,13 +133,63 @@ a {
   border-bottom: 1px solid #30363d;
 }
 
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
+.brand-logo a {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-decoration: none;
 }
 
-/* --- Slide-Over Drawer (Desktop Right-Flyout / Mobile Fullscreen) --- */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-item {
+  color: #8b949e;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.15s;
+}
+
+.nav-item:hover { color: #ffffff; }
+
+.nav-btn {
+  background: #21262d;
+  color: #f0f6fc;
+  border: 1px solid #30363d;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.15s;
+}
+
+.nav-btn:hover { background: #30363d; }
+
+.cart-badge {
+  background: #da3633;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+}
+
+.btn-signin {
+  background: #238636;
+  border-color: rgba(240,246,252,0.1);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.btn-signin:hover { background: #2ea043; }
+
+/* --- Drawers (Cart & Account) --- */
 .drawer-backdrop {
   position: fixed;
   top: 0;
@@ -151,11 +201,9 @@ a {
   z-index: 99999;
 }
 
-.drawer-backdrop.hidden {
-  display: none !important;
-}
+.drawer-backdrop.hidden { display: none !important; }
 
-.account-drawer {
+.ui-drawer {
   position: absolute;
   top: 0;
   right: 0;
@@ -183,17 +231,110 @@ a {
   align-items: center;
 }
 
-.drawer-body {
-  padding: 1.5rem;
-  overflow-y: auto;
-  flex: 1;
+.drawer-header h3 { margin: 0; color: #f0f6fc; font-size: 1.1rem; }
+
+.close-btn { background: transparent; border: none; color: #8b949e; font-size: 1.2rem; cursor: pointer; }
+.close-btn:hover { color: #ffffff; }
+
+.drawer-body { padding: 1.5rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; }
+
+/* Cart Specific Items */
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #21262d;
+  color: #f0f6fc;
 }
 
-/* Mobile Takeover Breakpoint */
+.item-price { color: #8b949e; margin: 0.2rem 0 0 0; font-size: 0.85rem; }
+
+.remove-item-btn {
+  background: transparent;
+  border: none;
+  color: #f85149;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.cart-summary {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #30363d;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  color: #f0f6fc;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+/* Account & Forms */
+.account-section h4 { color: #ffffff; margin: 0 0 0.25rem 0; }
+.section-desc { color: #8b949e; font-size: 0.85rem; margin-bottom: 1.25rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; color: #f0f6fc; font-size: 0.85rem; margin-bottom: 0.4rem; }
+.form-input {
+  width: 100%;
+  padding: 0.65rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #f0f6fc;
+  box-sizing: border-box;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #8b949e;
+  font-size: 0.75rem;
+  margin: 1.5rem 0;
+}
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #30363d; }
+.divider span { padding: 0 0.5rem; }
+
+.showcase-box {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.showcase-box h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; color: #f0f6fc; }
+.showcase-box p { color: #8b949e; font-size: 0.8rem; margin: 0 0 1rem 0; }
+
+.btn-primary {
+  background: #238636;
+  color: #ffffff;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #2ea043; }
+
+.btn-secondary {
+  display: inline-block;
+  background: #21262d;
+  color: #f0f6fc;
+  border: 1px solid #30363d;
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.btn-secondary:hover { background: #30363d; }
+
+.w-100 { width: 100%; }
+.text-center { text-align: center; }
+
+/* Mobile Takeover */
 @media (max-width: 640px) {
-  .account-drawer {
-    width: 100vw;
-    height: 100vh;
-    border-left: none;
-  }
+  .ui-drawer { width: 100vw; height: 100vh; border-left: none; }
 }
