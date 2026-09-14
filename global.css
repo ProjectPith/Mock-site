@@ -122,3 +122,78 @@ a {
 .modal.open {
   display: flex;
 }
+
+/* --- Global Header & Nav --- */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #0d1117;
+  border-bottom: 1px solid #30363d;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* --- Slide-Over Drawer (Desktop Right-Flyout / Mobile Fullscreen) --- */
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+}
+
+.drawer-backdrop.hidden {
+  display: none !important;
+}
+
+.account-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 100%;
+  height: 100%;
+  background: #161b22;
+  border-left: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Mobile Takeover Breakpoint */
+@media (max-width: 640px) {
+  .account-drawer {
+    width: 100vw;
+    height: 100vh;
+    border-left: none;
+  }
+}
