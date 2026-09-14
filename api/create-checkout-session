@@ -1,34 +1,35 @@
-import Stripe from 'stripe';
+export async function onRequest(context) {
+  const { request, env } = context;
 
-export async function onRequestPost(context) {
-  // Access key stored securely in Cloudflare Environment Variables
-  const stripe = new Stripe(context.env.STRIPE_SECRET_KEY);
-
-  try {
-    const { items } = await context.request.json();
-
-    // Map your cart items to Stripe Line Items
-    const lineItems = items.map(item => ({
-      price_data: {
-        currency: 'usd',
-        product_data: { name: item.title },
-        unit_amount: Math.round(item.price * 100), // convert dollars to cents
+  // Handle preflight OPTIONS requests if needed
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       },
-      quantity: item.quantity || 1,
-    }));
-
-    // Create Embedded Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
-      line_items: lineItems,
-      mode: 'payment',
-      return_url: `${new URL(context.request.url).origin}/store/success.html?session_id={CHECKOUT_SESSION_ID}`,
     });
-
-    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
+
+  // Handle the POST request from cart.js
+  if (request.method === 'POST') {
+    try {
+      const body = await request.json();
+      // ... generate your Stripe session using env.STRIPE_SECRET_KEY ...
+
+      return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    }
+  }
+
+  return new Response('Method Not Allowed', { status: 405 });
+}
+
+// Explicit export for POST-only handlers
+export async function onRequestPost(context) {
+  return onRequest(context);
 }
