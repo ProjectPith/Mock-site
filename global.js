@@ -14,7 +14,7 @@ const state = {
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1. Inject Global Header & Both Utility Drawers (Cart & Account)
+  // 1. Inject Global Header & Utility Drawers
   const headerContainer = document.getElementById("site-header-container") || document.body;
   
   const globalUI = `
@@ -26,16 +26,16 @@ document.addEventListener("DOMContentLoaded", () => {
         <a href="/index.html" class="nav-item">Home</a>
         <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
         <a href="/store/store.html" class="nav-item">Store</a>
-        <button id="cart-btn" class="nav-btn btn-cart">
+        <button id="cart-btn" class="nav-btn">
           Cart <span class="cart-badge" id="cart-count">2</span>
         </button>
-        <button id="account-btn" class="nav-btn btn-signin">Sign In</button>
+        <button id="account-btn" class="nav-btn">Sign In</button>
       </nav>
     </header>
 
-    <!-- Slide-Over Cart Drawer -->
+    <!-- Cart Drawer Overlay -->
     <div id="cart-drawer-backdrop" class="drawer-backdrop hidden">
-      <aside id="cart-drawer" class="ui-drawer">
+      <aside id="cart-drawer" class="drawer-panel">
         <div class="drawer-header">
           <h3>Your Order Cart</h3>
           <button id="close-cart-drawer" class="close-btn">✕</button>
@@ -62,15 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
               <span>Subtotal:</span>
               <strong id="cart-subtotal">$68.55</strong>
             </div>
-            <button class="btn-primary w-100">Proceed to Checkout →</button>
+            <button class="card-btn">Proceed to Checkout →</button>
           </div>
         </div>
       </aside>
     </div>
 
-    <!-- Client Account & Showcase Drawer -->
+    <!-- Client Account / Portal Drawer Overlay -->
     <div id="account-drawer-backdrop" class="drawer-backdrop hidden">
-      <aside id="account-drawer" class="ui-drawer">
+      <aside id="account-drawer" class="drawer-panel">
         <div class="drawer-header">
           <h3>Client Portal & Workspace</h3>
           <button id="close-account-drawer" class="close-btn">✕</button>
@@ -83,23 +83,23 @@ document.addEventListener("DOMContentLoaded", () => {
             <form id="client-login-form" onsubmit="event.preventDefault();">
               <div class="form-group">
                 <label for="client-email">Client Email</label>
-                <input type="email" id="client-email" class="form-input" placeholder="client@company.com" required>
+                <input type="email" id="client-email" class="form-control" placeholder="client@company.com" required>
               </div>
 
               <div class="form-group">
                 <label for="client-pass">Password / Project Code</label>
-                <input type="password" id="client-pass" class="form-input" placeholder="••••••••" required>
+                <input type="password" id="client-pass" class="form-control" placeholder="••••••••" required>
               </div>
 
-              <button type="submit" class="btn-primary w-100">Sign In to Workspace</button>
+              <button type="submit" class="card-btn">Sign In to Workspace</button>
             </form>
 
-            <div class="divider"><span>OR</span></div>
+            <div class="drawer-divider"></div>
 
-            <div class="showcase-box">
+            <div class="option-card">
               <h4>📋 Project Spec Intake</h4>
               <p>Looking for a custom site architecture build? Submit your specifications directly through our intake portal.</p>
-              <a href="/intake/intake.html" class="btn-secondary w-100 text-center">Start Spec Build →</a>
+              <a href="/intake/intake.html" class="card-link">Start Spec Build →</a>
             </div>
           </section>
         </div>
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     headerContainer.innerHTML = globalUI;
   }
 
-  // 2. Drawer Control Helpers
+  // 2. Event Listener Bindings
   function toggleDrawer(backdropEl, forceOpen) {
     if (!backdropEl) return;
     if (forceOpen) {
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Account Drawer Triggers
+  // Account Drawer
   const accountBtn = document.getElementById("account-btn");
   const accountBackdrop = document.getElementById("account-drawer-backdrop");
   const closeAccountBtn = document.getElementById("close-account-drawer");
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cart Drawer Triggers
+  // Cart Drawer
   const cartBtn = document.getElementById("cart-btn");
   const cartBackdrop = document.getElementById("cart-drawer-backdrop");
   const closeCartBtn = document.getElementById("close-cart-drawer");
