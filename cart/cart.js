@@ -194,3 +194,10 @@
     initCart();
   }
 })();
+
+// Add this at the very top of /components/cart/cart.js
+if (!document.querySelector('script[src="https://js.stripe.com/v3/"]')) {
+  const stripeScript = document.createElement("script");
+  stripeScript.src = "https://js.stripe.com/v3/";
+  document.head.appendChild(stripeScript);
+}
