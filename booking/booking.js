@@ -53,13 +53,15 @@ if (document.readyState === "loading") {
 }
 
   // Price Estimator Button Handler
-const estimatorBtn = document.getElementById("open-estimator-btn");
-if (estimatorBtn) {
-  estimatorBtn.addEventListener("click", () => {
-    // If you have a modal element on the page:
-    const estimatorModal = document.getElementById("estimator-modal");
-    if (estimatorModal) {
-      estimatorModal.classList.add("is-active");
-    }
-  });
-}
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Price Estimator Button Handler
+  const estimatorBtn = document.getElementById("open-estimator-btn");
+  if (estimatorBtn) {
+    estimatorBtn.addEventListener("click", () => {
+      // Put your actual estimator modal trigger code here
+      alert("Estimator Modal Logic Connected!");
+    });
+  }
+
+});
