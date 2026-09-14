@@ -136,10 +136,10 @@
         stripeModal.classList.remove("hidden");
 
         try {
-          const response = await fetch("/api/create-checkout-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: window.cart })
+          const response = await fetch('/.netlify/functions/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cart })
           });
 
           const { clientSecret } = await response.json();
