@@ -1,18 +1,25 @@
 exports.handler = async (event) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json',
+  };
+
   // 1. Handle preflight OPTIONS request
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
+      headers,
     };
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return { 
+      statusCode: 405, 
+      headers,
+      body: JSON.stringify({ error: 'Method Not Allowed' }) 
+    };
   }
 
   try {
@@ -27,13 +34,17 @@ exports.handler = async (event) => {
     });
 
     (body.items || []).forEach((item, index) => {
+      // FIX: Check item.title first to match store.js product objects
+      const productName = item.title || item.name || 'LunarCraft Product';
+      const unitAmount = Math.round((item.price || 0) * 100);
+
       params.append(`line_items[${index}][price_data][currency]`, 'usd');
-      params.append(`line_items[${index}][price_data][product_data][name]`, item.title);
-      params.append(`line_items[${index}][price_data][unit_amount]`, Math.round(item.price * 100));
+      params.append(`line_items[${index}][price_data][product_data][name]`, productName);
+      params.append(`line_items[${index}][price_data][unit_amount]`, unitAmount);
       params.append(`line_items[${index}][quantity]`, item.quantity || 1);
     });
 
-    // 3. Native fetch call to Stripe
+    // 3. Call Stripe API directly
     const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
@@ -48,29 +59,20 @@ exports.handler = async (event) => {
     if (session.error) {
       return {
         statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers,
         body: JSON.stringify({ error: session.error.message }),
       };
     }
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
       body: JSON.stringify({ clientSecret: session.client_secret }),
     };
   } catch (err) {
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
       body: JSON.stringify({ error: err.message }),
     };
   }
