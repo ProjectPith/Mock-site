@@ -1,4 +1,4 @@
-(function () {
+    (function () {
   // 1. Load Stripe JS dynamically
   if (!document.querySelector('script[src="https://js.stripe.com/v3/"]')) {
     const stripeScript = document.createElement("script");
@@ -130,23 +130,31 @@
           return;
         }
 
-        const stripe = Stripe("pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV");
+        // Initialize Stripe directly with your Publishable Key
+        const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY_HERE');
 
-        cartOverlay.classList.add("hidden");
-        stripeModal.classList.remove("hidden");
+        async function handleCheckout() {
+        // Build line items array directly from your active cart array
+          const lineItems = cart.map(item => ({
+            price_data: {
+            currency: 'usd',
+            product_data: { name: item.name },
+            unit_amount: Math.round(item.price * 100),
+          },
+          quantity: item.quantity || 1,
+        }));
 
-        try {
-          const response = await fetch('/.netlify/functions/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: cart })
-          });
+        // Redirect directly to Stripe's hosted checkout page
+        const { error } = await stripe.redirectToCheckout({
+          lineItems: lineItems,
+          mode: 'payment',
+          successUrl: `${window.location.origin}/return.html?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: window.location.href,
+         });
 
-          const { clientSecret } = await response.json();
-          const checkout = await stripe.initEmbeddedCheckout({ clientSecret });
-          checkout.mount("#checkout");
-        } catch (err) {
-          console.error("Checkout Session Error:", err);
+          if (error) {
+            console.error('Stripe Checkout Error:', error.message);
+          }
         }
       }
     });
