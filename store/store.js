@@ -1,7 +1,7 @@
 // ==========================================
 // STORE DATA & MODULE LOGIC
 // ==========================================
-const productsData = [
+const products = [
   { 
     id: 'p1', 
     title: 'LunarCraft Mouse Pad', 
@@ -91,22 +91,30 @@ function renderProducts() {
   container.innerHTML = html;
 }
 
-function addToCart(title, rawPrice) {
-  // Convert raw price to string, strip any '$' signs, and parse as a float
-  const cleanedPrice = parseFloat(String(rawPrice).replace(/[^0-9.]/g, ""));
-  
-  // Guard against missing/invalid prices
-  const itemPrice = isNaN(cleanedPrice) ? 0 : cleanedPrice;
-  const itemTitle = title || "Unknown Product";
+function addToCart(productId) {
+  // Find the exact item object in your array by its ID
+  const product = products.find(p => p.id === productId);
 
-  const existingItem = window.cart.find(item => item.title === itemTitle);
-  
+  if (!product) {
+    console.error(`Product with ID "${productId}" not found.`);
+    return;
+  }
+
+  // Check if item already exists in window.cart
+  const existingItem = window.cart.find(item => item.id === product.id || item.title === product.title);
+
   if (existingItem) {
     existingItem.quantity = (existingItem.quantity || 1) + 1;
   } else {
-    window.cart.push({ title: itemTitle, price: itemPrice, quantity: 1 });
+    window.cart.push({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      quantity: 1
+    });
   }
 
+  // Save to localStorage and re-render overlay
   if (typeof window.saveCart === "function") {
     window.saveCart();
   }
