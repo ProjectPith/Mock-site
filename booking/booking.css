@@ -185,10 +185,12 @@
 
 .addons-group {
   margin-top: 1rem;
-  background: #0d1117;
-  border: 1px solid #30363d;
+  background: var(--bg-main, #181c20);
+  border: 1px solid var(--border-subtle, #373e47);
   border-radius: 6px;
   padding: 1rem;
+  max-height: 220px;     /* Keeps the container from overflowing the modal */
+  overflow-y: auto;      /* Enables smooth scrolling if items exceed max height */
 }
 
 .addons-group.hidden {
