@@ -28,12 +28,13 @@ body {
 
 /* --- Navigation Bar Layout --- */
 .site-header {
+  position: sticky; /* Keeps it pinned to the top as you scroll */
+  top: 0;
+  left: 0;
   width: 100%;
+  z-index: 1000; /* Keeps it on top of all page elements */
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
 }
 
 .header-container {
