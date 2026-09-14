@@ -91,31 +91,42 @@ function renderProducts() {
   container.innerHTML = html;
 }
 
+// Inside store.js
 function addToCart(productId) {
-  // 1. Find the full product object from your products array using the ID
-  const product = products.find(p => p.id === productId);
-
-  if (!product) {
-    console.error(`Product with ID "${productId}" was not found in the products array.`);
+  // Replace 'products' below with whatever variable name holds your array in store.js
+  if (typeof products === 'undefined' || !Array.isArray(products)) {
+    console.error('Products array is not loaded yet.');
     return;
   }
 
-  // 2. Check if the item is already in the cart
-  const existingItem = window.cart.find(item => item.id === product.id);
+  // Find item by ID
+  const product = products.find(p => p.id === productId || p.id === String(productId));
 
-  if (existingItem) {
-    existingItem.quantity = (existingItem.quantity || 1) + 1;
+  if (!product) {
+    console.error(`Product ${productId} not found.`);
+    return;
+  }
+
+  // Get active cart array from global state or localStorage
+  let cart = (typeof state !== 'undefined' && state.cart) 
+    ? state.cart 
+    : (JSON.parse(localStorage.getItem('cart')) || []);
+
+  const existingIndex = cart.findIndex(item => item.id === product.id);
+
+  if (existingIndex > -1) {
+    cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + 1;
   } else {
-    window.cart.push({
-      id: product.id,
-      title: product.title,  // Pulls 'LunarCraft Developer Hoodie'
-      price: product.price,  // Pulls 55.56
-      quantity: 1
-    });
+    cart.push({ ...product, quantity: 1 });
   }
 
-  // 3. Save to localStorage and update the drawer UI
-  if (typeof window.saveCart === "function") {
-    window.saveCart();
+  // Update localStorage and global state
+  localStorage.setItem('cart', JSON.stringify(cart));
+  if (typeof state !== 'undefined') {
+    state.cart = cart;
   }
+
+  // Refresh cart badge and open cart drawer
+  if (typeof updateCartUI === 'function') updateCartUI();
+  if (typeof openCartDrawer === 'function') openCartDrawer();
 }
