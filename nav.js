@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const navContainer = document.getElementById("site-header-container") || document.body;
+  // 1. Look for your specific placeholder container
+  const navContainer = document.getElementById("site-header-container") || 
+                       document.getElementById("nav-placeholder") || 
+                       document.body;
 
   const navHTML = `
     <header class="site-header">
@@ -22,13 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
     </header>
   `;
 
+  // 2. Inject cleanly into target placeholder
   if (navContainer === document.body) {
     document.body.insertAdjacentHTML("afterbegin", navHTML);
   } else {
     navContainer.innerHTML = navHTML;
   }
 
-  // Event handlers for header buttons
+  // 3. Bind navigation drawer events
   const cartBtn = document.getElementById("cart-btn");
   const accountBtn = document.getElementById("account-btn");
   const cartDrawer = document.getElementById("cart-drawer-backdrop");
