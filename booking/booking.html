@@ -6,11 +6,8 @@
   <title>Booking & Services | Lunarcraft</title>
   <link rel="stylesheet" href="/global.css">
   <link rel="stylesheet" href="/booking/booking.css">
-  <link rel="stylesheet" href="/nav/nav.css">
 </head>
 <body>
-
-  <div id="nav-placeholder"></div>
 
   <main class="booking-container">
     
@@ -25,7 +22,7 @@
       </button>
     </div>
 
-    <!-- Options List -->
+    <!-- Options Grid -->
     <div class="options-grid">
       
       <div class="option-card border-red">
@@ -40,54 +37,11 @@
         <a href="mailto:your-email@domain.com" class="card-link text-blue">Email About Payment Plans →</a>
       </div>
 
-      <!-- Interactive Price Estimator Modal -->
-      <div id="estimator-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-          <button id="close-estimator-modal" class="modal-close">✕</button>
-      
-          <h2>🧮 Instant Price Estimator</h2>
-          <p class="modal-subtitle">Configure your build requirements to view an instant base estimate.</p>
-
-          <div class="form-group">
-            <label for="site-type">Select Architecture Base:</label>
-            <select id="site-type" class="form-control">
-              <option value="static" selected>Static Landing Page (Single Page)</option>
-              <option value="dynamic">Modular / Dynamic Site (Multi-Page Component System)</option>
-            </select>
-          </div>
-
-          <!-- Conditional Add-Ons (Revealed when Dynamic is selected) -->
-          <div id="dynamic-addons" class="addons-group hidden">
-            <label class="section-label">Select Dynamic Add-Ons:</label>
-          
-            <label class="checkbox-label">
-              <input type="checkbox" class="addon-option" value="350">
-              <span>Custom Booking / Appointment Integration (+$350)</span>
-            </label>
-
-            <label class="checkbox-label">
-              <input type="checkbox" class="addon-option" value="400">
-              <span>Interactive Store / Product Catalog UI (+$400)</span>
-            </label>
-
-            <label class="checkbox-label">
-              <input type="checkbox" class="addon-option" value="250">
-              <span>Intake Quote Form & Instant Calculation Engine (+$250)</span>
-            </label>
-
-            <label class="checkbox-label">
-              <input type="checkbox" class="addon-option" value="200">
-              <span>Client Agreement & Downloadable Spec Contract Setup (+$200)</span>
-            </label>
-          </div>
-
-          <div class="estimator-footer">
-            <div class="total-display">
-              <span>Estimated Base Quote:</span>
-              <strong id="estimator-total-price">$500</strong>
-            </div>
-          </div>
-        </div>
+      <!-- Restored Estimator Card -->
+      <div class="option-card border-yellow">
+        <h3>🧮 Interactive Price Estimator</h3>
+        <p>Calculate instant base quotes for static landing pages or modular dynamic sites with custom feature add-ons.</p>
+        <button id="open-estimator-btn" class="card-btn text-yellow">Open Estimator →</button>
       </div>
 
       <div class="option-card border-gray">
@@ -100,8 +54,57 @@
 
   </main>
 
+  <!-- Interactive Price Estimator Modal -->
+  <div id="estimator-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button id="close-estimator-modal" class="modal-close">✕</button>
+      
+      <h2>🧮 Instant Price Estimator</h2>
+      <p class="modal-subtitle">Configure your build requirements to view an instant base estimate.</p>
+
+      <div class="form-group">
+        <label for="site-type">Select Architecture Base:</label>
+        <select id="site-type" class="form-control">
+          <option value="static" selected>Static Landing Page (Single Page)</option>
+          <option value="dynamic">Modular / Dynamic Site (Multi-Page Component System)</option>
+        </select>
+      </div>
+
+      <!-- Conditional Add-Ons (Revealed when Dynamic is selected) -->
+      <div id="dynamic-addons" class="addons-group hidden">
+        <label class="section-label">Select Dynamic Add-Ons:</label>
+        
+        <label class="checkbox-label">
+          <input type="checkbox" class="addon-option" value="350">
+          <span>Custom Booking / Appointment Integration (+$350)</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" class="addon-option" value="400">
+          <span>Interactive Store / Product Catalog UI (+$400)</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" class="addon-option" value="250">
+          <span>Intake Quote Form & Instant Calculation Engine (+$250)</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" class="addon-option" value="200">
+          <span>Client Agreement & Downloadable Spec Contract Setup (+$200)</span>
+        </label>
+      </div>
+
+      <div class="estimator-footer">
+        <div class="total-display">
+          <span>Estimated Base Quote:</span>
+          <strong id="estimator-total-price">$500</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="/global.js"></script>
   <script src="/booking/booking.js"></script>
-  <script src="/nav/nav.js"></script>
 </body>
 </html>
