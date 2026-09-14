@@ -1,4 +1,4 @@
-// 1. Cal.com Loader Snippet
+// 1. Loader Snippet (Runs automatically at file load)
 (function (C, A, L) { 
   let p = function (a, ar) { a.q.push(ar); }; 
   let l = C.Cal = C.Cal || function () { 
@@ -25,23 +25,19 @@
 
 Cal("init", { origin: "https://cal.com" });
 
-// 2. DOM Ready Logic
+// 2. Click Handler (Fires modal when button is pressed)
 document.addEventListener("DOMContentLoaded", () => {
-
-  // Set default modal theme
+  
   Cal("ui", {
     "theme": "dark",
     "hideEventTypeDetails": false,
     "layout": "month"
   });
 
-  // Direct Click Handler for Schedule Call Button
   const callBtn = document.getElementById("book-call-btn");
   if (callBtn) {
     callBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      
-      // Explicitly open modal on click
       Cal("modal", {
         calLink: "hannah-martin-h12p3m/15min",
         config: { layout: "month", theme: "dark" }
@@ -49,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Price Estimator Button Handler
   const estimatorBtn = document.getElementById("open-estimator-btn");
   if (estimatorBtn) {
     estimatorBtn.addEventListener("click", () => {
