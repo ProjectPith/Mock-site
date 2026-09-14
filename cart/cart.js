@@ -2,41 +2,52 @@
 // CART & STRIPE EMBEDDED CHECKOUT CONTROLLER
 // ==========================================
 
-// Global Cart State (Sync with global state or localStorage)
+// Global Cart State
 let cart = (typeof state !== 'undefined' && state.cart) 
   ? state.cart 
   : (JSON.parse(localStorage.getItem('cart')) || []);
 
-// Initialize Stripe JS SDK
 const stripeKey = 'pk_live_YOUR_PUBLISHABLE_KEY_HERE'; 
 let stripeInstance = null;
 
-if (window.Stripe) {
-  stripeInstance = Stripe(stripeKey);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
+// Self-initializing function to ensure overlay HTML exists immediately
+function setupCartEnvironment() {
+  if (window.Stripe) {
+    stripeInstance = Stripe(stripeKey);
+  }
+  
   initCartOverlay();
   updateCartUI();
+}
 
-  // Delegation: Handle clicks on dynamically inserted nav buttons
-  document.addEventListener('click', (e) => {
-    // Open cart drawer when clicking #cart-btn in nav.js
-    if (e.target.closest('#cart-btn')) {
-      openCartDrawer();
-    }
-    // Close cart drawer
-    if (e.target.closest('#cart-close-btn') || e.target.classList.contains('cart-overlay-backdrop')) {
-      closeCartDrawer();
-    }
-    // Checkout trigger button inside overlay
-    if (e.target.closest('#checkout-btn')) {
-      handleCheckout(e);
-    }
-  });
+// Run setup if DOM is already loaded, otherwise wait for load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupCartEnvironment);
+} else {
+  setupCartEnvironment();
+}
+
+// Global Event Delegation (Intercepts clicks on dynamically rendered nav elements)
+document.addEventListener('click', (e) => {
+  // Open Cart Drawer
+  if (e.target.closest('#cart-btn')) {
+    e.preventDefault();
+    openCartDrawer();
+  }
+  
+  // Close Cart Drawer
+  if (e.target.closest('#cart-close-btn') || e.target.classList.contains('cart-overlay-backdrop')) {
+    e.preventDefault();
+    closeCartDrawer();
+  }
+  
+  // Trigger Checkout inside Drawer
+  if (e.target.closest('#checkout-btn')) {
+    handleCheckout(e);
+  }
 });
 
-// Create and inject your cart drawer panel matching cart.css
+// Create and inject the drawer panel into <body>
 function initCartOverlay() {
   if (document.getElementById('cart-drawer-overlay')) return;
 
@@ -48,7 +59,6 @@ function initCartOverlay() {
           <button id="cart-close-btn" class="cart-close-btn">&times;</button>
         </div>
         <div class="cart-overlay-body" id="cart-overlay-body">
-          <!-- Dynamically populated cart items or Stripe Checkout -->
           <div id="cart-items-list"></div>
           <div id="checkout-container"></div>
         </div>
@@ -75,7 +85,6 @@ function closeCartDrawer() {
   if (overlay) overlay.classList.add('hidden');
 }
 
-// Render cart items inside the drawer
 function renderCartItems() {
   const listContainer = document.getElementById('cart-items-list');
   const checkoutContainer = document.getElementById('checkout-container');
@@ -83,12 +92,11 @@ function renderCartItems() {
 
   if (!listContainer) return;
 
-  // Reset view to normal cart list
   if (checkoutContainer) checkoutContainer.innerHTML = '';
   if (footer) footer.style.display = 'block';
 
   if (!cart || cart.length === 0) {
-    listContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Your cart is empty.</p>';
+    listContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">Your cart is empty.</p>';
     if (footer) footer.style.display = 'none';
     return;
   }
@@ -112,10 +120,8 @@ window.removeFromCart = function(index) {
   renderCartItems();
 };
 
-// Checkout API call to Netlify function
 async function handleCheckout(event) {
   if (event) event.preventDefault();
-
   if (!cart || cart.length === 0) return;
 
   const checkoutBtn = document.getElementById('checkout-btn');
@@ -140,14 +146,12 @@ async function handleCheckout(event) {
     }
 
     const { clientSecret } = await response.json();
-
     if (!clientSecret) throw new Error('No clientSecret returned from server.');
 
     if (!stripeInstance && window.Stripe) {
       stripeInstance = Stripe(stripeKey);
     }
 
-    // Hide item list and footer, mount Stripe directly into drawer
     if (listContainer) listContainer.innerHTML = '';
     if (footer) footer.style.display = 'none';
 
