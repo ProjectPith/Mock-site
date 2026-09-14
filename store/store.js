@@ -91,16 +91,16 @@ function renderProducts() {
   container.innerHTML = html;
 }
 
-function addToCart(productId) {
-  const item = productsData.find(p => p.id === productId);
-  if (!item) return;
-
-  const existing = state.cart.find(ci => ci.id === productId);
-  if (existing) {
-    existing.qty += 1;
+function addToCart(title, price) {
+  const existingItem = window.cart.find(item => item.title === title);
+  
+  if (existingItem) {
+    existingItem.quantity = (existingItem.quantity || 1) + 1;
   } else {
-    state.cart.push({ ...item, qty: 1 });
+    window.cart.push({ title: title, price: parseFloat(price), quantity: 1 });
   }
 
-  saveCart();
+  if (typeof window.saveCart === "function") {
+    window.saveCart();
+  }
 }
