@@ -7,7 +7,7 @@ let cart = (typeof state !== 'undefined' && state.cart)
   ? state.cart 
   : (JSON.parse(localStorage.getItem('cart')) || []);
 
-const stripeKey = 'pk_live_YOUR_PUBLISHABLE_KEY_HERE'; 
+const stripeKey = 'pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV'; 
 let stripeInstance = null;
 
 // Self-initializing setup
@@ -143,7 +143,7 @@ async function handleCheckout(event) {
 
   try {
     // Cloudflare Pages Function Endpoint Route
-    const response = await fetch('/create-checkout-session', {
+    const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: cart }),
