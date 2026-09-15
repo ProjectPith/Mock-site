@@ -142,7 +142,6 @@ async function handleCheckout(event) {
   }
 
   try {
-    // Cloudflare Pages Function Endpoint Route
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
