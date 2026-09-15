@@ -10,7 +10,7 @@ let cart = (typeof state !== 'undefined' && state.cart)
 const stripeKey = 'pk_live_YOUR_PUBLISHABLE_KEY_HERE'; 
 let stripeInstance = null;
 
-// Self-initializing function to ensure overlay HTML exists immediately
+// Self-initializing setup
 function setupCartEnvironment() {
   if (window.Stripe) {
     stripeInstance = Stripe(stripeKey);
@@ -20,14 +20,13 @@ function setupCartEnvironment() {
   updateCartUI();
 }
 
-// Run setup if DOM is already loaded, otherwise wait for load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupCartEnvironment);
 } else {
   setupCartEnvironment();
 }
 
-// Global Event Delegation (Intercepts clicks on dynamically rendered nav elements)
+// Global Event Delegation for Dynamic Elements
 document.addEventListener('click', (e) => {
   // Open Cart Drawer
   if (e.target.closest('#cart-btn')) {
@@ -41,13 +40,13 @@ document.addEventListener('click', (e) => {
     closeCartDrawer();
   }
   
-  // Trigger Checkout inside Drawer
+  // Trigger Checkout
   if (e.target.closest('#checkout-btn')) {
     handleCheckout(e);
   }
 });
 
-// Create and inject the drawer panel into <body>
+// Inject Drawer HTML
 function initCartOverlay() {
   if (document.getElementById('cart-drawer-overlay')) return;
 
@@ -75,7 +74,6 @@ function initCartOverlay() {
 }
 
 function openCartDrawer() {
-  // Always fetch latest cart array from storage before rendering
   cart = (typeof state !== 'undefined' && state.cart) 
     ? state.cart 
     : (JSON.parse(localStorage.getItem('cart')) || []);
@@ -107,7 +105,6 @@ function renderCartItems() {
   }
 
   listContainer.innerHTML = cart.map((item, index) => {
-    // FIX: Fallback for title/name property mismatch between store.js and cart.js
     const itemTitle = item.title || item.name || 'Item';
     const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price || 0);
 
@@ -145,8 +142,13 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('/create-checkout-session', { ... })
-  
+    // Cloudflare Pages Function Endpoint Route
+    const response = await fetch('/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: cart }),
+    });
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Server returned ${response.status}`);
@@ -181,7 +183,6 @@ async function handleCheckout(event) {
 function updateCartUI() {
   const cartCountEl = document.getElementById('cart-count');
   if (cartCountEl) {
-    // Re-read storage so cart-count updates accurately
     const currentCart = (typeof state !== 'undefined' && state.cart) 
       ? state.cart 
       : (JSON.parse(localStorage.getItem('cart')) || []);
