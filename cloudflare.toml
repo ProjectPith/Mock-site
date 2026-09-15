@@ -1,0 +1,8 @@
+name = "lunarcraft"
+compatibility_date = "2026-09-14"
+
+[site]
+bucket = "."
+
+[build]
+command = ""
