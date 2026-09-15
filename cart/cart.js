@@ -145,11 +145,7 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cart }),
-    });
+    const response = await fetch('/create-checkout-session', { ... })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
