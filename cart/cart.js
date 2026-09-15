@@ -145,7 +145,7 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('/create-checkout-session', { ... })
+    const response = await fetch('/create-checkout-session', " ... ")
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
