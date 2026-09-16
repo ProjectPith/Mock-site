@@ -1,9 +1,9 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const path = url.pathname.toLowerCase().replace(/\/$/, ''); // Normalizes URL path
 
-    // 1. Intercept the checkout endpoint
-    if (url.pathname === 'create-checkout-session') {
+    if (path === '/api/create-checkout-session') {
       const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -11,7 +11,6 @@ export default {
         'Content-Type': 'application/json',
       };
 
-      // Handle CORS preflight
       if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
       }
@@ -61,7 +60,6 @@ export default {
       return new Response('Method Not Allowed', { status: 405 });
     }
 
-    // 2. Fall back to serving your static site (index.html, CSS, JS)
     return env.ASSETS.fetch(request);
   }
 };
