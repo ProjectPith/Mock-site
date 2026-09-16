@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
 
     // 1. Intercept the checkout endpoint
-    if (url.pathname.toLowerCase () === '/api/create-checkout-session') {
+    if (url.pathname === 'create-checkout-session') {
       const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
