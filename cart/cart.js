@@ -142,7 +142,7 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('create-checkout-session.js', {
+    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: cart }),
