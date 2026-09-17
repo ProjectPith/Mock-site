@@ -142,7 +142,7 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
+    const response = await fetch('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json' ,
