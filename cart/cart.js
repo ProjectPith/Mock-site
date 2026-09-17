@@ -144,7 +144,10 @@ async function handleCheckout(event) {
   try {
     const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json' ,
+        'Authorization': 'Bearer sb_publishable_qxPlpUS8ASxZlglMk1zOWQ_8w8JO2Y9'
+      },
       body: JSON.stringify({ items: cart }),
     });
 
