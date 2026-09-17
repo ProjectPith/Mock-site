@@ -146,7 +146,7 @@ async function handleCheckout(event) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json' ,
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0'
+        'Authorization': 'Bearer sb_publishable_qxPlpUS8ASxZlglMk1zOWQ_8w8JO2Y9'
       },
       body: JSON.stringify({ items: cart }),
     });
