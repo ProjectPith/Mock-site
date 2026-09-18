@@ -43,7 +43,6 @@
             <a href="/index.html">LunarCraft</a>
           </div>
 
-          <!-- Desktop Links -->
           <nav class="nav-links desktop-only">
             <a href="/index.html" class="nav-item">Home</a>
             <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
@@ -59,7 +58,7 @@
 
             <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account" type="button">
               <span class="icon-symbol">👤</span>
-              <span class="account-text-wrapper"><span class="btn-text-label">Sign In</span></span>
+              <span class="btn-text-label">Sign In</span>
             </button>
 
             <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu" type="button">
@@ -69,7 +68,6 @@
         </div>
       </header>
 
-      <!-- Side Drawer Navigation -->
       <div id="nav-drawer-overlay" class="drawer-overlay"></div>
       <aside id="nav-side-drawer" class="nav-side-drawer">
         <div class="drawer-header">
@@ -86,7 +84,31 @@
 
     navContainer.innerHTML = navHTML;
 
-    // Side Panel Toggle Handling
+    // --- PROTECT ACCOUNT BUTTON STRUCTURE ---
+    const accountBtn = document.getElementById("account-btn");
+    if (accountBtn) {
+      const lockAccountMarkup = () => {
+        // If account.js stripped the icon-symbol, put it back while preserving dynamic text
+        if (!accountBtn.querySelector(".icon-symbol")) {
+          const currentText = accountBtn.textContent.trim();
+          accountBtn.innerHTML = `
+            <span class="icon-symbol">👤</span>
+            <span class="btn-text-label">${currentText || "Account"}</span>
+          `;
+        }
+      };
+
+      // Watch for dynamic DOM text updates from account.js
+      const observer = new MutationObserver(() => {
+        observer.disconnect(); // Pause observer to prevent recursive loops
+        lockAccountMarkup();
+        observer.observe(accountBtn, { childList: true, subtree: true });
+      });
+
+      observer.observe(accountBtn, { childList: true, subtree: true });
+    }
+
+    // --- DRAWER TOGGLE HANDLERS ---
     const hamburgerBtn = document.getElementById("hamburger-btn");
     const closeBtn = document.getElementById("close-nav-drawer");
     const drawer = document.getElementById("nav-side-drawer");
