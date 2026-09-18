@@ -7,7 +7,7 @@ let cart = (typeof state !== 'undefined' && state.cart)
   ? state.cart 
   : (JSON.parse(localStorage.getItem('cart')) || []);
 
-const stripeKey = 'pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV'; 
+const stripeKey = 'pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe'; 
 let stripeInstance = null;
 
 // Self-initializing setup
