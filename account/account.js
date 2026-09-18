@@ -33,7 +33,7 @@
     }
   }
 
-async function updateAccountPanelUI(user = null) {
+  async function updateAccountPanelUI(user = null) {
     const bodyContainer = document.querySelector(".account-overlay-body");
     const panelTitle = document.getElementById("account-panel-title");
     const navAccountBtn = document.getElementById("account-btn");
@@ -53,15 +53,15 @@ async function updateAccountPanelUI(user = null) {
 
       const userEmail = (user.email || "").toLowerCase();
       const promotedAdmins = getPromotedAdmins();
-      
+  
       let userRole = "client";
       if (user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail)) {
         userRole = "admin";
       }
 
       const isAdmin = userRole === "admin";
-      // Get display name: fallback to email if name is missing
-      const displayName = user.user_metadata?.full_name || user.email;
+      const currentFullName = user.user_metadata?.full_name || '';
+      const displayName = currentFullName || user.email;
 
       bodyContainer.innerHTML = `
         <div class="account-user-card">
@@ -71,7 +71,24 @@ async function updateAccountPanelUI(user = null) {
             ${userRole}
           </span>
         </div>
-        <div class="account-tab-stack">
+
+        <!-- Edit Profile Form (Hidden by default) -->
+        <div id="account-settings-view" style="display: none; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="account-form-group">
+            <label for="edit-full-name">Full Name</label>
+            <input type="text" id="edit-full-name" class="account-input" value="${currentFullName}" placeholder="Enter your full name">
+          </div>
+          <button id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; justify-content: center;">
+            Save Changes
+          </button>
+          <button id="cancel-profile-btn" class="nav-btn" style="justify-content: center; opacity: 0.7;">
+            Cancel
+          </button>
+        </div>
+
+        <!-- Navigation Stack -->
+        <div id="account-menu-stack" class="account-tab-stack">
+          <button id="account-settings-btn" class="nav-btn">👤 Account Details</button>
           ${isAdmin ? `
             <button class="nav-btn" style="border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
             <button class="nav-btn">📦 Printify Orders Queue</button>
@@ -84,8 +101,8 @@ async function updateAccountPanelUI(user = null) {
             <div class="account-promotion-box">
                 <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
                 <div class="account-promotion-row">
-                    <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
-                    <button id="promote-btn" type="button" class="account-promote-btn" title="Promote to Admin">✓</button>
+                  <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
+                  <button id="promote-btn" type="button" class="account-promote-btn" title="Promote to Admin">✓</button>
                 </div>
             </div>
           ` : `
@@ -102,6 +119,43 @@ async function updateAccountPanelUI(user = null) {
           Sign Out
         </button>
       `;
+
+      // Toggle View Listeners
+      const menuStack = document.getElementById("account-menu-stack");
+      const settingsView = document.getElementById("account-settings-view");
+
+      document.getElementById("account-settings-btn")?.addEventListener("click", () => {
+        menuStack.style.display = "none";
+        settingsView.style.display = "flex";
+      });
+
+      document.getElementById("cancel-profile-btn")?.addEventListener("click", () => {
+        settingsView.style.display = "none";
+        menuStack.style.display = "flex";
+      });
+
+      // Save Name via Supabase User Metadata
+      document.getElementById("save-profile-btn")?.addEventListener("click", async () => {
+        const newName = document.getElementById("edit-full-name")?.value.trim();
+        if (!newName) return alert("Please enter a valid name.");
+
+        const saveBtn = document.getElementById("save-profile-btn");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        const { data: updatedData, error } = await supabase.auth.updateUser({
+          data: { full_name: newName }
+        });
+
+        if (error) {
+          alert(`Update failed: ${error.message}`);
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Changes";
+        } else {
+          alert("Account information updated!");
+          await updateAccountPanelUI(updatedData.user);
+        }
+      });
 
       // Logout Event Listener
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
@@ -122,10 +176,11 @@ async function updateAccountPanelUI(user = null) {
 
           alert(`User ${targetEmail} elevated to Admin!`);
           document.getElementById("promote-user-email").value = "";
-          
+      
           promoteBtn.disabled = false;
           promoteBtn.textContent = "✓";
       });
+    }
 
     // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
     } else {
