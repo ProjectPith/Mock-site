@@ -103,53 +103,31 @@
 
       // Role Promotion Handler via Email
       document.getElementById("promote-btn")?.addEventListener("click", async () => {
-        const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
-        if (!targetEmail) return alert("Please enter a user email address.");
+          const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
+          if (!targetEmail) return alert("Please enter a user email address.");
 
-        const promoteBtn = document.getElementById("promote-btn");
-        promoteBtn.disabled = true;
-        promoteBtn.textContent = "…";
+          const promoteBtn = document.getElementById("promote-btn");
+          promoteBtn.disabled = true;
+          promoteBtn.textContent = "…";
 
-        // Query profiles or search user by email directly
-        const { data: profiles, error: findError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", targetEmail) // Ensure email column is synced or lookup via RPC
-          .maybeSingle();
-
-        if (findError || !profiles) {
-          // Direct RPC / fallback option: query profile directly by ID if email isn't in profiles table yet
-          const { error: upsertErr } = await supabase
-            .from("profiles")
-            .upsert({ email: targetEmail, role: "admin" }, { onConflict: "email" });
-
-          if (upsertErr) {
-            alert(`Could not elevate user: ${upsertErr.message}`);
-          } else {
-            alert(`User ${targetEmail} set to Admin!`);
-            document.getElementById("promote-user-email").value = "";
-          }
-        } else {
-          const { error: updateErr } = await supabase
+          // Directly update the role for the existing account matching that email
+          const { data, error: updateErr } = await supabase
             .from("profiles")
             .update({ role: "admin" })
-            .eq("id", profiles.id);
+            .eq("email", targetEmail)
+            .select();
 
           if (updateErr) {
             alert(`Failed to elevate role: ${updateErr.message}`);
+          } else if (!data || data.length === 0) {
+            alert(`No existing account found with email: ${targetEmail}`);
           } else {
             alert(`User ${targetEmail} elevated to Admin!`);
             document.getElementById("promote-user-email").value = "";
           }
-        }
-
-        promoteBtn.disabled = false;
-        promoteBtn.textContent = "✓";
+          promoteBtn.disabled = false;
+          promoteBtn.textContent = "✓";
       });
-      
-    } else {
-      if (panelTitle) panelTitle.textContent = "Client Workspace Access";
-      if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
       bodyContainer.innerHTML = `
         <div class="account-tab-toggle">
