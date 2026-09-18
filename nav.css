@@ -183,3 +183,51 @@
     position: relative;
   }
 }
+
+/* Base Icon Symbol sizing */
+.icon-symbol {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Hide Hamburger on Desktop by Default */
+.site-header .hamburger-btn {
+  display: none !important;
+}
+
+/* --- MOBILE BREAKPOINT OVERRIDES --- */
+@media (max-width: 600px) {
+  /* Hide text labels entirely on mobile */
+  .site-header .btn-text-label {
+    display: none !important;
+  }
+
+  /* Force display of the Hamburger button on small screens */
+  .site-header .hamburger-btn {
+    display: inline-flex !important;
+  }
+
+  /* Compact square sizing for mobile buttons */
+  .site-header .icon-nav-btn {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    position: relative !important;
+  }
+
+  /* Absolute pin position for the cart badge */
+  .site-header .cart-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    margin: 0 !important;
+    padding: 2px 5px !important;
+    font-size: 0.65rem !important;
+    line-height: 1 !important;
+    border-radius: 10px !important;
+  }
+}
