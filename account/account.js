@@ -1,4 +1,4 @@
-    (function () {
+(function () {
   let isSignUpMode = false;
   let supabaseClient = null;
 
@@ -8,7 +8,7 @@
   function getSupabase() {
     if (!supabaseClient && window.supabase) {
       const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
-      const SUPABASE_ANON_KEY = "";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
     return supabaseClient;
@@ -27,6 +27,7 @@
       user = data?.session?.user || null;
     }
 
+    // IF USER IS LOGGED IN
     if (user) {
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
@@ -96,12 +97,13 @@
         </button>
       `;
 
+      // Logout Event Listener
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
       });
 
-      // Role Promotion Handler via Email
+      // Role Promotion Listener (Updates existing accounts directly)
       document.getElementById("promote-btn")?.addEventListener("click", async () => {
           const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
           if (!targetEmail) return alert("Please enter a user email address.");
@@ -110,7 +112,6 @@
           promoteBtn.disabled = true;
           promoteBtn.textContent = "…";
 
-          // Directly update the role for the existing account matching that email
           const { data, error: updateErr } = await supabase
             .from("profiles")
             .update({ role: "admin" })
@@ -128,6 +129,11 @@
           promoteBtn.disabled = false;
           promoteBtn.textContent = "✓";
       });
+
+    // IF USER IS LOGGED OUT
+    } else {
+      if (panelTitle) panelTitle.textContent = "Client Workspace Access";
+      if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
       bodyContainer.innerHTML = `
         <div class="account-tab-toggle">
@@ -221,8 +227,6 @@
             submitBtn.disabled = false;
             submitBtn.textContent = "Access Workspace";
           } else {
-            document.getElementById("account-overlay")?.classList.add("hidden");
-            document.body.style.overflow = "";
             await updateAccountPanelUI(data.user);
           }
         }
