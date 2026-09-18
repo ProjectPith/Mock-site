@@ -142,11 +142,11 @@ async function handleCheckout(event) {
   }
 
   try {
-    const response = await fetch('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0', {
+    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json' ,
-        'Authorization': 'Bearer sb_publishable_qxPlpUS8ASxZlglMk1zOWQ_8w8JO2Y9'
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0'
       },
       body: JSON.stringify({ items: cart }),
     });
