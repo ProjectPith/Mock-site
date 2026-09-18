@@ -1,15 +1,15 @@
+/* --- HERO SECTION --- */
 .hero-wrapper {
   position: relative;
   border-radius: 12px;
   margin-top: 1rem;
+  margin-bottom: 2rem;
   overflow: hidden;
-  
-  /* Thinner banner height */
   min-height: 340px; 
   display: flex;
   align-items: center;
 
-  /* Image aligned to the right, dark overlay fading over the left */
+  /* Image aligned to right with gradient overlay */
   background-image: 
     linear-gradient(90deg, #0d0f12 35%, rgba(13, 15, 18, 0.4) 100%),
     url('images/BlueMoon.png');
@@ -17,13 +17,128 @@
   background-size: cover;
   background-repeat: no-repeat;
   
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--card-border, #2d333b);
   padding: 3rem 2.5rem;
 }
 
-/* Left-align text content inside the hero */
 .hero-content {
   max-width: 580px;
   text-align: left;
   z-index: 2;
+}
+
+.hero-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.hero-description {
+  color: var(--text-muted, #919ba1);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-hero-secondary {
+  padding: 0.75rem 1.75rem;
+  background: rgba(22, 25, 32, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* --- FEATURES GRID SECTION --- */
+.capabilities-section {
+  padding: 3rem 0;
+  border-top: 1px solid var(--card-border, #2d333b);
+}
+
+.capabilities-title {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-size: 1.5rem;
+}
+
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-card-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.feature-card-desc {
+  color: var(--text-muted, #919ba1);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* --- CTA BANNER --- */
+.cta-banner {
+  margin: 3rem 0;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: linear-gradient(180deg, var(--card-bg, #1c2128) 0%, rgba(139, 38, 38, 0.15) 100%);
+}
+
+.cta-title {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cta-desc {
+  color: var(--text-muted, #919ba1);
+  max-width: 500px;
+  margin: 0 auto 1.5rem auto;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* --- MOBILE RESPONSIVE OVERRIDES --- */
+@media (max-width: 768px) {
+  .hero-wrapper {
+    padding: 2rem 1.5rem;
+    min-height: auto;
+    /* Shifts gradient mask to cover image better on mobile portrait */
+    background-image: 
+      linear-gradient(180deg, rgba(13, 15, 18, 0.85) 0%, #0d0f12 100%),
+      url('images/BlueMoon.png');
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .capabilities-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .cta-banner {
+    padding: 2.5rem 1.25rem;
+  }
 }
