@@ -1,62 +1,59 @@
-/* Account Slide-Out Panel Backdrop */
+/* Account Overlay Backdrop */
 .account-overlay-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex;
   justify-content: flex-end;
   opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
-/* Hidden State */
 .account-overlay-backdrop.hidden {
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
 }
 
-/* Right-side Drawer Panel */
+/* Slide-out Panel Base (Desktop) */
 .account-overlay-panel {
-  width: 100%;
-  max-width: 400px;
+  width: 380px;
+  max-width: 100%;
   height: 100%;
-  background-color: #161b22; /* Slate dark background */
-  color: #f0f6fc;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+  background-color: #0d1117;
+  border-left: 1px solid #30363d;
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
   box-sizing: border-box;
+  overflow-y: auto;
   transform: translateX(0);
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .account-overlay-backdrop.hidden .account-overlay-panel {
   transform: translateX(100%);
 }
 
-/* Header Elements */
+/* Header & Close Button */
 .account-overlay-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: space-between;
+  border-bottom: 1px solid #30363d;
   padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .account-overlay-header h3 {
   margin: 0;
+  color: #f0f6fc;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #87ceeb; /* Sky blue header text */
 }
 
 .account-close-btn {
@@ -66,24 +63,93 @@
   font-size: 1.25rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  transition: color 0.2s;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
 }
 
 .account-close-btn:hover {
-  color: #ffffff;
+  color: #f0f6fc;
+  background-color: #21262d;
 }
 
-/* Form Styles */
+/* Dynamic Body & Form Layout */
 .account-overlay-body {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  flex-grow: 1;
+}
+
+.account-user-card {
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.account-subtext {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #8b949e;
+  letter-spacing: 0.05em;
+}
+
+.account-user-name {
+  margin: 0.25rem 0 0 0;
+  color: #f0f6fc;
+  font-size: 1.1rem;
+  word-break: break-word;
+}
+
+.account-role-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.account-role-badge.admin {
+  background-color: #238636;
+}
+
+.account-role-badge.client {
+  background-color: #1f6beb;
+}
+
+/* Nav Tab Stack */
+.account-tab-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.account-tab-stack .nav-btn {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 44px; /* Touch-friendly hit target */
+  box-sizing: border-box;
+}
+
+/* Form Styles */
+.account-tab-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.account-tab-toggle button {
+  flex: 1;
+  justify-content: center;
+  min-height: 40px;
 }
 
 .account-form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
 }
 
 .account-form-group label {
@@ -92,17 +158,56 @@
 }
 
 .account-input {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #0d1117;
+  background-color: #161b22;
   border: 1px solid #30363d;
-  border-radius: 6px;
   color: #f0f6fc;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
   font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .account-input:focus {
-  outline: none;
-  border-color: #87ceeb;
+  border-color: #58a6ff;
+}
+
+.account-promotion-box {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #30363d;
+}
+
+.account-promotion-row {
+  display: flex;
+  gap: 6px;
+}
+
+.account-logout-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-color: #f85149 !important;
+  color: #f85149 !important;
+  min-height: 44px;
+}
+
+/* --- MOBILE SPECIFIC STYLING --- */
+@media (max-width: 600px) {
+  .account-overlay-panel {
+    width: 100vw; /* Take full screen width on mobile */
+    padding: 1.25rem;
+  }
+
+  .account-promotion-row {
+    flex-direction: column; /* Stack input & button on phone screens */
+  }
+
+  .account-promotion-row button {
+    width: 100%;
+    justify-content: center;
+  }
 }
