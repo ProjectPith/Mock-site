@@ -21,7 +21,7 @@
     if (!bodyContainer) return;
 
     const supabase = getSupabase();
-
+  
     if (!user && supabase) {
       const { data } = await supabase.auth.getSession();
       user = data?.session?.user || null;
@@ -34,7 +34,7 @@
       let userRole = "client";
       let fullName = user.user_metadata?.full_name || "";
 
-      // Hardcoded Admin Check
+      // Hardcoded Primary Admin Override
       if (user.id === PRIMARY_ADMIN_UID) {
         userRole = "admin";
       } else if (supabase) {
@@ -58,50 +58,59 @@
 
       bodyContainer.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <!-- User Info Header -->
           <div style="border-bottom: 1px solid #30363d; padding-bottom: 1rem;">
             <p style="margin: 0; font-size: 0.8rem; color: #8b949e;">LOGGED IN AS</p>
             <h4 style="margin: 0.25rem 0 0 0; color: #f0f6fc; font-size: 1.1rem;">${fullName || user.email}</h4>
-            <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
+              <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
               ${userRole}
             </span>
           </div>
 
+          <!-- Navigation Tabs -->
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             ${isAdmin ? `
+              <!-- DEVELOPER / ADMIN TABS -->
               <button class="nav-btn" style="width: 100%; justify-content: flex-start; border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders Queue</button>
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Search Vault</button>
-              
-              <!-- ADMIN USER MANAGEMENT TOOL -->
-              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #30363d;">
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💳 Client Invoicing</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🗓️ Maintenance Schedule</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Vault & Search</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Global Communications</button>
+
+              <!-- Admin User Promotion Tool -->
+              <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #30363d;">
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.8rem; color: #8b949e;">QUICK ROLE PROMOTION</p>
                 <div style="display: flex; gap: 6px;">
-                  <input type="text" id="promote-user-id" class="account-input" placeholder="User UID or Email" style="font-size: 0.8rem; padding: 6px;">
+                  <input type="text" id="promote-user-id" class="account-input" placeholder="User UID" style="font-size: 0.8rem; padding: 6px;">
                   <button id="promote-btn" class="nav-btn" style="font-size: 0.8rem; padding: 6px 12px; white-space: nowrap;">Make Admin</button>
                 </div>
               </div>
             ` : `
+              <!-- CLIENT TABS -->
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Order History</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Messages</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🚀 Project History & Status</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💳 Billing & Payments</button>
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📝 Maintenance Forms</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contracts</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 My Contracts</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Communications</button>
             `}
           </div>
 
-          <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1.5rem; border-color: #f85149; color: #f85149;">
+          <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1rem; border-color: #f85149; color: #f85149;">
             Sign Out
           </button>
         </div>
       `;
 
-      // Logout Event
+      // Logout Handler
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
       });
 
-      // Role Promotion Handler
+      // Promotion Tool Handler
       document.getElementById("promote-btn")?.addEventListener("click", async () => {
         const targetId = document.getElementById("promote-user-id")?.value?.trim();
         if (!targetId) return alert("Please enter a User UID.");
@@ -119,6 +128,7 @@
       });
 
     } else {
+      // Unauthenticated State
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
