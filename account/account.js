@@ -14,6 +14,25 @@
     return supabaseClient;
   }
 
+  // Get local list of promoted admin emails
+  function getPromotedAdmins() {
+    try {
+      return JSON.parse(localStorage.getItem("promoted_admins") || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  // Add an email to local admin list
+  function addPromotedAdmin(email) {
+    const list = getPromotedAdmins();
+    const cleanEmail = email.toLowerCase().trim();
+    if (!list.includes(cleanEmail)) {
+      list.push(cleanEmail);
+      localStorage.setItem("promoted_admins", JSON.stringify(list));
+    }
+  }
+
   async function updateAccountPanelUI(user = null) {
     const bodyContainer = document.querySelector(".account-overlay-body");
     const panelTitle = document.getElementById("account-panel-title");
@@ -32,29 +51,17 @@
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
 
+      const userEmail = (user.email || "").toLowerCase();
+      const promotedAdmins = getPromotedAdmins();
+      
+      // Determine Role: Primary UID OR locally promoted email
       let userRole = "client";
-      let fullName = user.user_metadata?.full_name || "";
-
-      if (user.id === PRIMARY_ADMIN_UID) {
+      if (user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail)) {
         userRole = "admin";
-      } else if (supabase) {
-        try {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, full_name")
-            .eq("id", user.id)
-            .maybeSingle();
-
-          if (profile) {
-            if (profile.role) userRole = profile.role;
-            if (profile.full_name) fullName = profile.full_name;
-          }
-        } catch (err) {
-          console.warn("Could not fetch profile role:", err);
-        }
       }
 
       const isAdmin = userRole === "admin";
+      const fullName = user.user_metadata?.full_name || "";
 
       bodyContainer.innerHTML = `
         <div class="account-user-card">
@@ -103,8 +110,8 @@
         location.reload();
       });
 
-      // Role Promotion Listener (Updates existing accounts directly)
-      document.getElementById("promote-btn")?.addEventListener("click", async () => {
+      // Role Promotion Button Handler
+      document.getElementById("promote-btn")?.addEventListener("click", () => {
           const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
           if (!targetEmail) return alert("Please enter a user email address.");
 
@@ -112,20 +119,12 @@
           promoteBtn.disabled = true;
           promoteBtn.textContent = "…";
 
-          const { data, error: updateErr } = await supabase
-            .from("profiles")
-            .update({ role: "admin" })
-            .eq("email", targetEmail)
-            .select();
+          // Store email in local admin permissions
+          addPromotedAdmin(targetEmail);
 
-          if (updateErr) {
-            alert(`Failed to elevate role: ${updateErr.message}`);
-          } else if (!data || data.length === 0) {
-            alert(`No existing account found with email: ${targetEmail}`);
-          } else {
-            alert(`User ${targetEmail} elevated to Admin!`);
-            document.getElementById("promote-user-email").value = "";
-          }
+          alert(`User ${targetEmail} elevated to Admin!`);
+          document.getElementById("promote-user-email").value = "";
+          
           promoteBtn.disabled = false;
           promoteBtn.textContent = "✓";
       });
