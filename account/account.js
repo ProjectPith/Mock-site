@@ -2,6 +2,9 @@
   let isSignUpMode = false;
   let supabaseClient = null;
 
+  // 1. HARDCODED PRIMARY ADMIN UID (Bypasses table fallbacks)
+  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d"; 
+
   function getSupabase() {
     if (!supabaseClient && window.supabase) {
       const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -28,32 +31,29 @@
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
 
-      let userRole = "client"; // Explicitly defined baseline
+      let userRole = "client";
       let fullName = user.user_metadata?.full_name || "";
 
-      if (supabase) {
+      // Hardcoded Admin Check
+      if (user.id === PRIMARY_ADMIN_UID) {
+        userRole = "admin";
+      } else if (supabase) {
         try {
-          const { data: profile, error } = await supabase
-         .from("profiles")
-            .select("*")
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role, full_name")
             .eq("id", user.id)
             .maybeSingle();
 
-          if (error) {
-            console.warn("Error fetching profile:", error.message);
-          }
-
           if (profile) {
-            // Handles both "role" and potential typo "roll"
-            const matchedRole = profile.role || profile.roll;
-            if (matchedRole) userRole = String(matchedRole).toLowerCase().trim();
+            if (profile.role) userRole = profile.role;
             if (profile.full_name) fullName = profile.full_name;
           }
         } catch (err) {
-          console.warn("Could not fetch profile role, defaulting to client:", err);
+          console.warn("Could not fetch profile role:", err);
         }
       }
-      
+
       const isAdmin = userRole === "admin";
 
       bodyContainer.innerHTML = `
@@ -72,6 +72,15 @@
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders</button>
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Search Vault</button>
+              
+              <!-- ADMIN USER MANAGEMENT TOOL -->
+              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #30363d;">
+                <p style="margin: 0 0 0.5rem 0; font-size: 0.8rem; color: #8b949e;">QUICK ROLE PROMOTION</p>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="promote-user-id" class="account-input" placeholder="User UID or Email" style="font-size: 0.8rem; padding: 6px;">
+                  <button id="promote-btn" class="nav-btn" style="font-size: 0.8rem; padding: 6px 12px; white-space: nowrap;">Make Admin</button>
+                </div>
+              </div>
             ` : `
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Order History</button>
               <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Messages</button>
@@ -80,15 +89,33 @@
             `}
           </div>
 
-          <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 2rem; border-color: #f85149; color: #f85149;">
+          <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1.5rem; border-color: #f85149; color: #f85149;">
             Sign Out
           </button>
         </div>
       `;
 
+      // Logout Event
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
+      });
+
+      // Role Promotion Handler
+      document.getElementById("promote-btn")?.addEventListener("click", async () => {
+        const targetId = document.getElementById("promote-user-id")?.value?.trim();
+        if (!targetId) return alert("Please enter a User UID.");
+
+        const { error } = await supabase
+          .from("profiles")
+          .upsert({ id: targetId, role: "admin" });
+
+        if (error) {
+          alert(`Failed to update role: ${error.message}`);
+        } else {
+          alert(`User ${targetId} elevated to Admin!`);
+          document.getElementById("promote-user-id").value = "";
+        }
       });
 
     } else {
