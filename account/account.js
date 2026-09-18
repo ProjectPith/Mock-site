@@ -61,6 +61,7 @@
 
       const isAdmin = userRole === "admin";
       const currentFullName = user.user_metadata?.full_name || '';
+      const currentPhone = user.user_metadata?.phone || user.phone || '';
       const displayName = currentFullName || user.email;
 
       bodyContainer.innerHTML = `
@@ -73,15 +74,29 @@
         </div>
 
         <!-- Edit Profile Form (Hidden by default) -->
-        <div id="account-settings-view" style="display: none; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+        <div id="account-settings-view" style="display: none; flex-direction: column; gap: 0.85rem; margin-bottom: 1.5rem;">
           <div class="account-form-group">
             <label for="edit-full-name">Full Name</label>
-            <input type="text" id="edit-full-name" class="account-input" value="${currentFullName}" placeholder="Enter your full name">
+            <input type="text" id="edit-full-name" class="account-input" value="${currentFullName}" placeholder="Jane Doe">
           </div>
-          <button id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; justify-content: center;">
+          <div class="account-form-group">
+            <label for="edit-email">Email Address</label>
+            <input type="email" id="edit-email" class="account-input" value="${user.email || ''}" placeholder="you@company.com">
+          </div>
+          <div class="account-form-group">
+            <label for="edit-phone">Phone Number (Optional)</label>
+            <input type="tel" id="edit-phone" class="account-input" value="${currentPhone}" placeholder="(555) 000-0000">
+          </div>
+          <div class="account-form-group">
+            <label for="edit-password">New Password (Leave blank to keep current)</label>
+            <input type="password" id="edit-password" class="account-input" placeholder="••••••••">
+          </div>
+
+          <!-- Scaled-Up Action Buttons matching the Sign-In UI -->
+          <button id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Save Changes
           </button>
-          <button id="cancel-profile-btn" class="nav-btn" style="justify-content: center; opacity: 0.7;">
+          <button id="cancel-profile-btn" class="nav-btn" style="width: 100%; justify-content: center; opacity: 0.8; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Cancel
           </button>
         </div>
@@ -134,25 +149,44 @@
         menuStack.style.display = "flex";
       });
 
-      // Save Name via Supabase User Metadata
+      // Save Profile Changes
       document.getElementById("save-profile-btn")?.addEventListener("click", async () => {
         const newName = document.getElementById("edit-full-name")?.value.trim();
-        if (!newName) return alert("Please enter a valid name.");
+        const newEmail = document.getElementById("edit-email")?.value.trim();
+        const newPhone = document.getElementById("edit-phone")?.value.trim();
+        const newPassword = document.getElementById("edit-password")?.value.trim();
 
         const saveBtn = document.getElementById("save-profile-btn");
         saveBtn.disabled = true;
         saveBtn.textContent = "Saving...";
 
-        const { data: updatedData, error } = await supabase.auth.updateUser({
-          data: { full_name: newName }
-        });
+        const updatePayload = {
+          data: { 
+            full_name: newName,
+            phone: newPhone
+          }
+        };
+
+        if (newEmail && newEmail !== user.email) {
+          updatePayload.email = newEmail;
+        }
+
+        if (newPassword) {
+          updatePayload.password = newPassword;
+        }
+
+        const { data: updatedData, error } = await supabase.auth.updateUser(updatePayload);
 
         if (error) {
           alert(`Update failed: ${error.message}`);
           saveBtn.disabled = false;
           saveBtn.textContent = "Save Changes";
         } else {
-          alert("Account information updated!");
+          let message = "Account details updated successfully!";
+          if (newEmail && newEmail !== user.email) {
+            message += "\n\nNote: If email confirmation is enabled on Supabase, please check your new inbox to confirm the change.";
+          }
+          alert(message);
           await updateAccountPanelUI(updatedData.user);
         }
       });
