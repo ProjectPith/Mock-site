@@ -62,6 +62,7 @@
   });
 })();
 
+// Mobile styling //
 document.addEventListener("DOMContentLoaded", () => {
   const navContainer = document.getElementById("nav-container");
 
@@ -80,11 +81,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <div class="nav-actions">
           <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart">
-            🛒 <span class="cart-badge" id="cart-count">0</span>
+            <span class="icon-symbol">🛒</span>
+            <span class="btn-text-label">Cart</span>
+            <span class="cart-badge" id="cart-count">0</span>
           </button>
 
           <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account">
-            👤
+            <span class="icon-symbol">👤</span>
+            <span class="btn-text-label">Account</span>
           </button>
 
           <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu">
@@ -96,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   if (navContainer) {
-    navContainer.innerHTML = navHTML; // Replaces content instead of duplicating
+    navContainer.innerHTML = navHTML;
   }
 
   // Hamburger menu toggle logic
