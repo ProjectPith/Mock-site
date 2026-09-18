@@ -60,3 +60,96 @@
     }
   });
 })();
+
+/* --- MOBILE NAVBAR STYLING --- */
+@media (max-width: 600px) {
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Shrink Logo on Mobile */
+  .logo, .logo-text {
+    font-size: 1.1rem !important;
+    letter-spacing: -0.02em;
+  }
+
+  /* Hide Desktop Links by Default */
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #0d1117;
+    border-bottom: 1px solid #30363d;
+    flex-direction: column;
+    padding: 1rem 0;
+    z-index: 1000;
+  }
+
+  /* Revealed state when Hamburger is clicked */
+  .nav-links.mobile-active {
+    display: flex;
+  }
+
+  .nav-links a {
+    padding: 0.75rem 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Action Icons Group (Hamburger + Cart Icon + Account Icon) */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Icon Button Styling */
+  .icon-nav-btn {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    color: #f0f6fc;
+    font-size: 1.1rem;
+    cursor: pointer;
+    position: relative;
+  }
+
+  /* Compact Badge on Cart Icon */
+  .cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: #1f6beb;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+    line-height: 1;
+  }
+
+  /* Hide full button text labels on mobile */
+  .btn-text-label {
+    display: none;
+  }
+}
+
+/* Hide Hamburger Toggle on Desktop */
+@media (min-width: 601px) {
+  .hamburger-btn {
+    display: none !important;
+  }
+}
