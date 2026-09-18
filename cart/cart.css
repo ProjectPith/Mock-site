@@ -67,3 +67,28 @@
   border-top: 1px solid var(--border-subtle, #373e47);
   padding-top: 1rem;
 }
+
+/* Scaled-up, prominent checkout button inside cart footer */
+.cart-overlay-footer button,
+#checkout-btn,
+.cart-checkout-btn {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background-color: var(--sky-blue, #87ceeb);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.cart-overlay-footer button:hover,
+#checkout-btn:hover,
+.cart-checkout-btn:hover {
+  opacity: 0.9;
+}
