@@ -60,7 +60,7 @@ async function updateAccountPanelUI(user = null) {
       }
 
       const isAdmin = userRole === "admin";
-      // Display full name, falling back to email if empty
+      // Get display name: fallback to email if name is missing
       const displayName = user.user_metadata?.full_name || user.email;
 
       bodyContainer.innerHTML = `
@@ -71,7 +71,8 @@ async function updateAccountPanelUI(user = null) {
             ${userRole}
           </span>
         </div>
-
+        ...
+      `;
         <div class="account-tab-stack">
           ${isAdmin ? `
             <button class="nav-btn" style="border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
