@@ -204,24 +204,38 @@
 }
 
 .account-promotion-row {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 8px;
   align-items: center;
 }
 
-.account-promotion-row input {
-  flex: 1; /* Input takes up most of the row */
+.account-promotion-row .account-input {
+  flex: 1 !important; /* Forces input to fill full remaining width */
+  height: 38px;
 }
 
-/* Compact Checkmark Button */
+/* Fixed Compact Checkmark Button */
 .account-promote-btn {
-  min-width: 42px;
-  height: 38px;
-  padding: 0 10px;
+  width: 42px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center;
   justify-content: center;
-  border-color: #238636 !important;
+  background-color: transparent;
+  border: 1px solid #238636 !important;
   color: #3fb950 !important;
   font-size: 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0 !important; /* Prevents button from squishing */
+}
+
+.account-promote-btn:hover {
+  background-color: #238636;
+  color: #ffffff !important;
 }
 
 @media (max-width: 600px) {
