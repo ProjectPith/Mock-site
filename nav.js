@@ -63,51 +63,49 @@
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
-  const navContainer = document.getElementById("nav-container") || document.body;
+  const navContainer = document.getElementById("nav-container");
 
-  // Render unified navbar HTML
   const navHTML = `
-    <header class="navbar">
-      <a href="/" class="logo">LunarCraft</a>
+    <header class="site-header">
+      <div class="header-container">
+        <div class="brand-logo">
+          <a href="/">LunarCraft</a>
+        </div>
 
-      <nav class="nav-links" id="mobile-nav-menu">
-        <a href="/">Home</a>
-        <a href="/estimator">Booking & Estimator</a>
-        <a href="/store">Store</a>
-      </nav>
+        <nav class="nav-links" id="mobile-nav-menu">
+          <a href="/" class="nav-item">Home</a>
+          <a href="/estimator" class="nav-item">Booking & Estimator</a>
+          <a href="/store" class="nav-item">Store</a>
+        </nav>
 
-      <div class="nav-actions">
-        <button id="cart-btn" class="icon-nav-btn" aria-label="Cart">
-          🛒 <span class="cart-badge" id="cart-count">0</span>
-        </button>
+        <div class="nav-actions">
+          <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart">
+            🛒 <span class="cart-badge" id="cart-count">0</span>
+          </button>
 
-        <button id="account-btn" class="icon-nav-btn" aria-label="Account">
-          👤
-        </button>
+          <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account">
+            👤
+          </button>
 
-        <button id="hamburger-btn" class="icon-nav-btn hamburger-btn" aria-label="Toggle Menu">
-          ☰
-        </button>
+          <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu">
+            ☰
+          </button>
+        </div>
       </div>
     </header>
   `;
 
-  // Inject at top of page or designated container
-  navContainer.insertAdjacentHTML("afterbegin", navHTML);
+  if (navContainer) {
+    navContainer.innerHTML = navHTML; // Replaces content instead of duplicating
+  }
 
-  // Toggle dropdown on mobile hamburger click
+  // Hamburger menu toggle logic
   const hamburgerBtn = document.getElementById("hamburger-btn");
   const navLinks = document.getElementById("mobile-nav-menu");
 
   if (hamburgerBtn && navLinks) {
     hamburgerBtn.addEventListener("click", () => {
       navLinks.classList.toggle("mobile-active");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!hamburgerBtn.contains(e.target) && !navLinks.contains(e.target)) {
-        navLinks.classList.remove("mobile-active");
-      }
     });
   }
 });
