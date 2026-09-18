@@ -71,8 +71,6 @@ async function updateAccountPanelUI(user = null) {
             ${userRole}
           </span>
         </div>
-        ...
-      `;
         <div class="account-tab-stack">
           ${isAdmin ? `
             <button class="nav-btn" style="border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
