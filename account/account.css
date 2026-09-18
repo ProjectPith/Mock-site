@@ -1,45 +1,108 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. Inject Cart Drawer Overlay into body
-  const cartHTML = `
-    <div id="cart-overlay" class="cart-overlay-backdrop hidden">
-      <aside class="cart-overlay-panel">
-        <div class="cart-overlay-header">
-          <h3>Your Order Cart</h3>
-          <button id="close-cart-overlay" class="cart-close-btn">✕</button>
-        </div>
-        <div class="cart-overlay-body">
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Your cart is currently empty.</p>
-        </div>
-        <div class="cart-overlay-footer">
-          <button class="nav-btn" style="width: 100%; justify-content: center;">Proceed to Checkout →</button>
-        </div>
-      </aside>
-    </div>
-  `;
-  document.body.insertAdjacentHTML("beforeend", cartHTML);
+/* Account Slide-Out Panel Backdrop */
+.account-overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 
-  const cartOverlay = document.getElementById("cart-overlay");
-  const closeBtn = document.getElementById("close-cart-overlay");
+/* Hidden State */
+.account-overlay-backdrop.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 
-  // 2. Event delegation listener for ANY cart button clicked on the page
-  document.addEventListener("click", (e) => {
-    if (e.target.closest("#cart-btn")) {
-      e.preventDefault();
-      cartOverlay.classList.remove("hidden");
-      document.body.style.overflow = "hidden"; // Lock background scroll
-    }
-  });
+/* Right-side Drawer Panel */
+.account-overlay-panel {
+  width: 100%;
+  max-width: 400px;
+  height: 100%;
+  background-color: #161b22; /* Slate dark background */
+  color: #f0f6fc;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  transform: translateX(0);
+  transition: transform 0.3s ease-in-out;
+}
 
-  // 3. Close Overlay Controls
-  function closeCart() {
-    cartOverlay.classList.add("hidden");
-    document.body.style.overflow = "";
-  }
+.account-overlay-backdrop.hidden .account-overlay-panel {
+  transform: translateX(100%);
+}
 
-  if (closeBtn) closeBtn.addEventListener("click", closeCart);
-  if (cartOverlay) {
-    cartOverlay.addEventListener("click", (e) => {
-      if (e.target === cartOverlay) closeCart();
-    });
-  }
-});
+/* Header Elements */
+.account-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.account-overlay-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #87ceeb; /* Sky blue header text */
+}
+
+.account-close-btn {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s;
+}
+
+.account-close-btn:hover {
+  color: #ffffff;
+}
+
+/* Form Styles */
+.account-overlay-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.account-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.account-form-group label {
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.account-input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #f0f6fc;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.account-input:focus {
+  outline: none;
+  border-color: #87ceeb;
+}
