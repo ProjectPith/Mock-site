@@ -74,13 +74,12 @@
             <button class="nav-btn">📄 Contract Vault & Search</button>
             <button class="nav-btn">💬 Global Communications</button>
 
-            // Render inside updateAccountPanelUI() for admins:
             <div class="account-promotion-box">
-              <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
-              <div class="account-promotion-row">
-                <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
-                <button id="promote-btn" class="nav-btn account-promote-btn" title="Promote to Admin">✓</button>
-              </div>
+                <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
+                <div class="account-promotion-row">
+                    <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
+                    <button id="promote-btn" type="button" class="account-promote-btn" title="Promote to Admin">✓</button>
+                </div>
             </div>
           ` : `
             <button class="nav-btn">📦 Order History</button>
