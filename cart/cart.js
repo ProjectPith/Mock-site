@@ -9,7 +9,6 @@ let cart = (typeof state !== 'undefined' && state.cart)
 
 const stripeKey = 'pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe'; 
 let stripeInstance = null;
-let activeCheckout = null;
 
 // Self-initializing setup
 function setupCartEnvironment() {
@@ -129,6 +128,8 @@ window.removeFromCart = function(index) {
   renderCartItems();
 };
 
+let activeCheckout = null; // Put this at the very top of cart.js (outside any function)
+
 async function handleCheckout(event) {
   if (event) event.preventDefault();
   if (!cart || cart.length === 0) return;
@@ -141,6 +142,23 @@ async function handleCheckout(event) {
     checkoutBtn.disabled = true;
     checkoutBtn.textContent = 'Loading Checkout...';
   }
+
+  // --- CLEANUP STEP START ---
+  // If a checkout iframe is already mounted, destroy it before building a new one
+  if (activeCheckout) {
+    try {
+      activeCheckout.destroy();
+    } catch (e) {
+      console.warn('Destroying previous checkout instance:', e);
+    }
+    activeCheckout = null;
+  }
+
+  const checkoutContainer = document.getElementById('checkout-container');
+  if (checkoutContainer) {
+    checkoutContainer.innerHTML = '';
+  }
+  // --- CLEANUP STEP END ---
 
   try {
     const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
@@ -167,8 +185,9 @@ async function handleCheckout(event) {
     if (listContainer) listContainer.innerHTML = '';
     if (footer) footer.style.display = 'none';
 
-    const checkout = await stripeInstance.initEmbeddedCheckout({ clientSecret });
-    checkout.mount('#checkout-container');
+    // Save the new instance to activeCheckout so we can destroy it next time
+    activeCheckout = await stripeInstance.initEmbeddedCheckout({ clientSecret });
+    activeCheckout.mount('#checkout-container');
 
   } catch (err) {
     console.error('Checkout error:', err.message);
