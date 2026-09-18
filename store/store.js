@@ -7,38 +7,34 @@ const products = [
     title: 'LunarCraft Mouse Pad', 
     price: 9.99, 
     image: '../images/MousePad.png', 
-    desc: 'Rectangle foam mouse pad with rubber bottom. 1.58mm thick',
-    buyUrl: '#' 
+    desc: 'Rectangle foam mouse pad with rubber bottom. 1.58mm thick'
   },
   { 
     id: 'p2', 
     title: 'LunarCraft Developer Hoodie', 
     price: 55.56, 
     image: '../images/Hoodie.png', 
-    desc: '80% cotton. Medium heavy fabric. Regular fit.',
-    buyUrl: '#' 
+    desc: '80% cotton. Medium heavy fabric. Regular fit.'
   },
   { 
     id: 'p3', 
     title: 'LunarCraft Ceramic Mug', 
     price: 12.99, 
     image: '../images/Mug.png', 
-    desc: '15oz dark ceramic mug. Lead and BPA free.',
-    buyUrl: '#' 
+    desc: '15oz dark ceramic mug. Lead and BPA free.'
   },
   { 
     id: 'p4', 
     title: 'LunarCraft Laptop Sleeve', 
     price: 17.52, 
     image: '../images/LaptopSleeve.png', 
-    desc: 'Fleece interior. YKK 5 nylon zipper. Lightweight.',
-    buyUrl: '#' 
+    desc: 'Fleece interior. YKK 5 nylon zipper. Lightweight.'
   },
   { 
     id: 'p5', 
     isDemo: true,
     title: 'Custom Build Consultation', 
-    desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.',
+    desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.'
   }
 ];
 
@@ -64,7 +60,7 @@ function renderProducts() {
             <h3>${prod.title}</h3>
             <p>${prod.desc}</p>
             <div class="card-actions">
-              <a href="/booking/booking.html" class="btn btn-primary" style="width:100%; text-align:center;">Inquire About Builds</a>
+              <a href="/booking/booking.html" class="btn btn-primary">Inquire About Builds</a>
             </div>
           </div>
         </div>`;
@@ -78,10 +74,9 @@ function renderProducts() {
             <span class="badge">Official Gear</span>
             <h3>${prod.title}</h3>
             <p>${prod.desc}</p>
-            <div class="product-price">$${prod.price}</div>
+            <div class="product-price">$${prod.price.toFixed(2)}</div>
             <div class="card-actions">
-              <button class="btn btn-secondary" onclick="addToCart('${prod.id}')">Test Cart</button>
-              <a href="${prod.buyUrl}" target="_blank" class="btn btn-primary">Buy Now</a>
+              <button class="btn btn-secondary" onclick="addToCart('${prod.id}')">Add to Cart</button>
             </div>
           </div>
         </div>`;
@@ -91,15 +86,12 @@ function renderProducts() {
   container.innerHTML = html;
 }
 
-// Inside store.js
 function addToCart(productId) {
-  // Replace 'products' below with whatever variable name holds your array in store.js
   if (typeof products === 'undefined' || !Array.isArray(products)) {
     console.error('Products array is not loaded yet.');
     return;
   }
 
-  // Find item by ID
   const product = products.find(p => p.id === productId || p.id === String(productId));
 
   if (!product) {
@@ -107,7 +99,6 @@ function addToCart(productId) {
     return;
   }
 
-  // Get active cart array from global state or localStorage
   let cart = (typeof state !== 'undefined' && state.cart) 
     ? state.cart 
     : (JSON.parse(localStorage.getItem('cart')) || []);
@@ -120,13 +111,11 @@ function addToCart(productId) {
     cart.push({ ...product, quantity: 1 });
   }
 
-  // Update localStorage and global state
   localStorage.setItem('cart', JSON.stringify(cart));
   if (typeof state !== 'undefined') {
     state.cart = cart;
   }
 
-  // Refresh cart badge and open cart drawer
   if (typeof updateCartUI === 'function') updateCartUI();
   if (typeof openCartDrawer === 'function') openCartDrawer();
 }
