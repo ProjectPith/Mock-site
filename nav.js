@@ -1,5 +1,4 @@
 (function () {
-  // 1. Dependency Loader
   function loadAsset(src, type) {
     if (type === "css") {
       if (!document.querySelector(`link[href="${src}"]`)) {
@@ -18,7 +17,6 @@
     }
   }
 
-  // Load Component Assets
   loadAsset("/nav.css", "css");
   loadAsset("https://js.stripe.com/v3/", "js");
   loadAsset("/cart/cart.css", "css");
@@ -27,20 +25,16 @@
   loadAsset("/account/account.js", "js");
   loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
 
-  // 2. Render Single Unified Nav Header
   document.addEventListener("DOMContentLoaded", () => {
-    // Find target wrapper, or create a default wrapper at top of body
     let navContainer = document.getElementById("nav-container") || 
                          document.getElementById("site-header-container") || 
                          document.getElementById("nav-placeholder");
 
     if (!navContainer) {
       navContainer = document.createElement("div");
-      navContainer.id = "nav-container";
       document.body.insertAdjacentElement("afterbegin", navContainer);
-    } else {
-      navContainer.id = "nav-container"; // Ensure ID matches nav.css selectors
     }
+    navContainer.id = "nav-container";
 
     const navHTML = `
       <header class="site-header">
@@ -49,7 +43,8 @@
             <a href="/index.html">LunarCraft</a>
           </div>
 
-          <nav class="nav-links" id="mobile-nav-menu">
+          <!-- Desktop Links -->
+          <nav class="nav-links desktop-only">
             <a href="/index.html" class="nav-item">Home</a>
             <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
             <a href="/store/store.html" class="nav-item">Store</a>
@@ -64,7 +59,7 @@
 
             <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account" type="button">
               <span class="icon-symbol">👤</span>
-              <span class="btn-text-label">Sign In</span>
+              <span class="account-text-wrapper"><span class="btn-text-label">Sign In</span></span>
             </button>
 
             <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu" type="button">
@@ -73,26 +68,42 @@
           </div>
         </div>
       </header>
+
+      <!-- Side Drawer Navigation -->
+      <div id="nav-drawer-overlay" class="drawer-overlay"></div>
+      <aside id="nav-side-drawer" class="nav-side-drawer">
+        <div class="drawer-header">
+          <h3>Menu</h3>
+          <button id="close-nav-drawer" class="close-btn">&times;</button>
+        </div>
+        <nav class="drawer-links">
+          <a href="/index.html" class="drawer-item">Home</a>
+          <a href="/booking/booking.html" class="drawer-item">Booking & Estimator</a>
+          <a href="/store/store.html" class="drawer-item">Store</a>
+        </nav>
+      </aside>
     `;
 
     navContainer.innerHTML = navHTML;
 
-    // 3. Hamburger Toggle Event Listener
+    // Side Panel Toggle Handling
     const hamburgerBtn = document.getElementById("hamburger-btn");
-    const navLinks = document.getElementById("mobile-nav-menu");
+    const closeBtn = document.getElementById("close-nav-drawer");
+    const drawer = document.getElementById("nav-side-drawer");
+    const overlay = document.getElementById("nav-drawer-overlay");
 
-    if (hamburgerBtn && navLinks) {
-      hamburgerBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        navLinks.classList.toggle("mobile-active");
-      });
-
-      // Close mobile dropdown when clicking anywhere else
-      document.addEventListener("click", (e) => {
-        if (!hamburgerBtn.contains(e.target) && !navLinks.contains(e.target)) {
-          navLinks.classList.remove("mobile-active");
-        }
-      });
+    function openDrawer() {
+      drawer.classList.add("open");
+      overlay.classList.add("open");
     }
+
+    function closeDrawer() {
+      drawer.classList.remove("open");
+      overlay.classList.remove("open");
+    }
+
+    if (hamburgerBtn) hamburgerBtn.addEventListener("click", openDrawer);
+    if (closeBtn) closeBtn.addEventListener("click", closeDrawer);
+    if (overlay) overlay.addEventListener("click", closeDrawer);
   });
 })();
