@@ -61,95 +61,52 @@
   });
 })();
 
-/* --- MOBILE NAVBAR STYLING --- */
-@media (max-width: 600px) {
-  .navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  const navContainer = document.getElementById("nav-container") || document.body;
 
-  /* Shrink Logo on Mobile */
-  .logo, .logo-text {
-    font-size: 1.1rem !important;
-    letter-spacing: -0.02em;
-  }
+  // Render unified navbar HTML
+  const navHTML = `
+    <header class="navbar">
+      <a href="/" class="logo">LunarCraft</a>
 
-  /* Hide Desktop Links by Default */
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: #0d1117;
-    border-bottom: 1px solid #30363d;
-    flex-direction: column;
-    padding: 1rem 0;
-    z-index: 1000;
-  }
+      <nav class="nav-links" id="mobile-nav-menu">
+        <a href="/">Home</a>
+        <a href="/estimator">Booking & Estimator</a>
+        <a href="/store">Store</a>
+      </nav>
 
-  /* Revealed state when Hamburger is clicked */
-  .nav-links.mobile-active {
-    display: flex;
-  }
+      <div class="nav-actions">
+        <button id="cart-btn" class="icon-nav-btn" aria-label="Cart">
+          🛒 <span class="cart-badge" id="cart-count">0</span>
+        </button>
 
-  .nav-links a {
-    padding: 0.75rem 1.5rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
+        <button id="account-btn" class="icon-nav-btn" aria-label="Account">
+          👤
+        </button>
 
-  /* Action Icons Group (Hamburger + Cart Icon + Account Icon) */
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+        <button id="hamburger-btn" class="icon-nav-btn hamburger-btn" aria-label="Toggle Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+  `;
 
-  /* Icon Button Styling */
-  .icon-nav-btn {
-    min-width: 38px;
-    height: 38px;
-    padding: 0 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background-color: #161b22;
-    border: 1px solid #30363d;
-    color: #f0f6fc;
-    font-size: 1.1rem;
-    cursor: pointer;
-    position: relative;
-  }
+  // Inject at top of page or designated container
+  navContainer.insertAdjacentHTML("afterbegin", navHTML);
 
-  /* Compact Badge on Cart Icon */
-  .cart-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background-color: #1f6beb;
-    color: #ffffff;
-    font-size: 0.65rem;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-radius: 10px;
-    line-height: 1;
-  }
+  // Toggle dropdown on mobile hamburger click
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const navLinks = document.getElementById("mobile-nav-menu");
 
-  /* Hide full button text labels on mobile */
-  .btn-text-label {
-    display: none;
-  }
-}
+  if (hamburgerBtn && navLinks) {
+    hamburgerBtn.addEventListener("click", () => {
+      navLinks.classList.toggle("mobile-active");
+    });
 
-/* Hide Hamburger Toggle on Desktop */
-@media (min-width: 601px) {
-  .hamburger-btn {
-    display: none !important;
+    document.addEventListener("click", (e) => {
+      if (!hamburgerBtn.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.remove("mobile-active");
+      }
+    });
   }
-}
+});
