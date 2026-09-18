@@ -34,20 +34,23 @@
       if (supabase) {
         try {
           const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("role, full_name")
+         .from("profiles")
+            .select("*")
             .eq("id", user.id)
-            .single(); // Use single() instead of maybeSingle() to throw a visible error if missing
+            .maybeSingle();
 
           if (error) {
-            console.error("Supabase Profile Error:", error);
-          } else if (profile) {
-            console.log("Profile Data Retrieved:", profile);
-            userRole = profile.role || userRole;
+            console.warn("Error fetching profile:", error.message);
+          }
+
+          if (profile) {
+            // Handles both "role" and potential typo "roll"
+            const matchedRole = profile.role || profile.roll;
+            if (matchedRole) userRole = String(matchedRole).toLowerCase().trim();
             if (profile.full_name) fullName = profile.full_name;
           }
         } catch (err) {
-          console.error("Profile fetch crashed:", err);
+          console.warn("Could not fetch profile role, defaulting to client:", err);
         }
       }
       
