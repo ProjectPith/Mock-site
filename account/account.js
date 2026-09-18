@@ -10,7 +10,7 @@
             <button id="close-account-overlay" class="account-close-btn" type="button">✕</button>
           </div>
           <div class="account-overlay-body">
-            <form onsubmit="event.preventDefault();">
+            <form id="account-signin-form">
               <div class="account-form-group">
                 <label for="client-email">Client Email</label>
                 <input type="email" id="client-email" class="account-input" placeholder="client@company.com" required>
@@ -29,7 +29,7 @@
 
     const accountOverlay = document.getElementById("account-overlay");
 
-    // Global Click Delegation
+    // Global Click Delegation for Opening/Closing
     document.addEventListener("click", (e) => {
       if (e.target.closest("#account-btn")) {
         e.preventDefault();
@@ -42,6 +42,46 @@
         document.body.style.overflow = "";
       }
     });
+
+    // --- NEW SUBMIT EVENT HANDLER ---
+    const form = document.getElementById("account-signin-form");
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("client-email")?.value;
+        const password = document.getElementById("client-pass")?.value;
+        const submitBtn = form.querySelector("button[type='submit']");
+
+        const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+
+        if (!window.supabase) {
+          alert("Supabase SDK is still loading. Please try again in a moment.");
+          return;
+        }
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Authenticating...";
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+
+        if (error) {
+          alert(`Sign in failed: ${error.message}`);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Access Workspace";
+        } else {
+          alert(`Welcome back, ${data.user.email}!`);
+          // Redirect to workspace or update UI state
+          window.location.href = "/workspace.html"; 
+        }
+      });
+    }
   }
 
   if (document.readyState === "loading") {
