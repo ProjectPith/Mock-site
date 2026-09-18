@@ -127,11 +127,15 @@
 /* --- MOBILE RESPONSIVE OVERRIDES --- */
 @media (max-width: 768px) {
   .hero-wrapper {
-    padding: 2rem 1.5rem;
+    margin-top: 1rem; /* Restores preferred spacing below nav */
+    padding: 2.25rem 1.5rem;
     min-height: auto;
-    /* Shifts gradient mask to cover image better on mobile portrait */
+    background-position: right center;
+    background-size: cover;
+    
+    /* Radial gradient keeps dark backing strictly behind text while preserving image brightness */
     background-image: 
-      linear-gradient(180deg, rgba(13, 15, 18, 0.85) 0%, #0d0f12 100%),
+      radial-gradient(circle at 20% 50%, rgba(13, 15, 18, 0.95) 0%, rgba(13, 15, 18, 0.5) 70%, transparent 100%),
       url('images/BlueMoon.png');
   }
 
@@ -140,20 +144,12 @@
   }
 
   .hero-description {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    color: var(--text-muted, #919ba1);
   }
 
   .hero-actions .btn {
     width: 100%;
     text-align: center;
-  }
-
-  .capabilities-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .cta-banner {
-    padding: 2.5rem 1.25rem;
   }
 }
