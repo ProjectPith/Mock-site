@@ -19,49 +19,59 @@
 
     const supabase = getSupabase();
 
-    // 1. Check active session if user isn't passed directly
     if (!user && supabase) {
       const { data } = await supabase.auth.getSession();
       user = data?.session?.user || null;
     }
 
-    // 2. If LOGGED IN: Render account details in the side panel
     if (user) {
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
 
-      // Fetch role from profiles table
-      let userRole = "client";
+      let userRole = "client"; // Explicitly defined baseline
       let fullName = user.user_metadata?.full_name || "";
 
       if (supabase) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role, full_name")
-          .eq("id", user.id)
-          .single();
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role, full_name")
+            .eq("id", user.id)
+            .maybeSingle();
 
-        if (profile) {
-          userRole = profile.role || userRole;
-          if (profile.full_name) fullName = profile.full_name;
+          if (profile) {
+            if (profile.role) userRole = profile.role;
+            if (profile.full_name) fullName = profile.full_name;
+          }
+        } catch (err) {
+          console.warn("Could not fetch profile role, defaulting to client:", err);
         }
       }
+
+      const isAdmin = userRole === "admin";
 
       bodyContainer.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 1rem;">
           <div style="border-bottom: 1px solid #30363d; padding-bottom: 1rem;">
             <p style="margin: 0; font-size: 0.8rem; color: #8b949e;">LOGGED IN AS</p>
             <h4 style="margin: 0.25rem 0 0 0; color: #f0f6fc; font-size: 1.1rem;">${fullName || user.email}</h4>
-            <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${userRole === 'admin' ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
+            <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
               ${userRole}
             </span>
           </div>
 
-          <!-- Account Specific Tools / Links -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-            <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📋 Order History</button>
-            <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Messages</button>
-            ${userRole === 'admin' ? `<button class="nav-btn" style="width: 100%; justify-content: flex-start; border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>` : ''}
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            ${isAdmin ? `
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start; border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Search Vault</button>
+            ` : `
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Order History</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Messages</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📝 Maintenance Forms</button>
+              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contracts</button>
+            `}
           </div>
 
           <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 2rem; border-color: #f85149; color: #f85149;">
@@ -70,15 +80,12 @@
         </div>
       `;
 
-      // Attach Logout Event
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
-        alert("Signed out successfully.");
         location.reload();
       });
 
     } else {
-      // 3. If LOGGED OUT: Render Sign-In / Register Form
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
@@ -145,10 +152,7 @@
         const fullName = document.getElementById("client-name")?.value;
         const supabase = getSupabase();
 
-        if (!supabase) {
-          alert("Supabase SDK is loading... Please try again.");
-          return;
-        }
+        if (!supabase) return;
 
         submitBtn.disabled = true;
         submitBtn.textContent = isSignUpMode ? "Creating Account..." : "Authenticating...";
@@ -177,7 +181,6 @@
             submitBtn.disabled = false;
             submitBtn.textContent = "Access Workspace";
           } else {
-            // Keep user on current page, close panel, and refresh panel UI to show active account state
             document.getElementById("account-overlay")?.classList.add("hidden");
             document.body.style.overflow = "";
             await updateAccountPanelUI(data.user);
@@ -205,7 +208,6 @@
 
     const accountOverlay = document.getElementById("account-overlay");
 
-    // Global Delegated Open/Close
     document.addEventListener("click", (e) => {
       if (e.target.closest("#account-btn")) {
         e.preventDefault();
@@ -219,7 +221,6 @@
       }
     });
 
-    // Load initial UI state (Checks session automatically on render)
     setTimeout(() => updateAccountPanelUI(), 300);
   }
 
@@ -229,39 +230,3 @@
     initAccount();
   }
 })();
-
-// Render inside updateAccountPanelUI() when user is logged in:
-const isAdmin = userRole === 'admin';
-
-bodyContainer.innerHTML = `
-  <div style="display: flex; flex-direction: column; gap: 1rem;">
-    <div style="border-bottom: 1px solid #30363d; padding-bottom: 1rem;">
-      <p style="margin: 0; font-size: 0.8rem; color: #8b949e;">LOGGED IN AS</p>
-      <h4 style="margin: 0.25rem 0 0 0; color: #f0f6fc; font-size: 1.1rem;">${fullName || user.email}</h4>
-      <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
-        ${userRole}
-      </span>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-      ${isAdmin ? `
-        <!-- ADMIN CONTROLS -->
-        <a href="/admin.html" class="nav-btn" style="justify-content: flex-start; border-color: #238636; color: #3fb950; text-decoration: none;">⚙️ Developer Dashboard</a>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders Queue</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Search Vault</button>
-      ` : `
-        <!-- CLIENT CONTROLS -->
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 My Orders</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🚀 Project Status</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📝 Maintenance Forms</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 My Contracts</button>
-        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Chat</button>
-      `}
-    </div>
-
-    <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1.5rem; border-color: #f85149; color: #f85149;">
-      Sign Out
-    </button>
-  </div>
-`;
