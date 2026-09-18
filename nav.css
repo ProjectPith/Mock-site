@@ -10,7 +10,7 @@
 }
 
 #nav-container .header-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0.85rem 2rem;
   display: flex;
@@ -28,33 +28,49 @@
 #nav-container .nav-links.desktop-only {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 #nav-container .nav-item {
   color: var(--text-muted, #919ba1);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+#nav-container .nav-item:hover {
+  color: var(--text-main, #e6edf3);
 }
 
 #nav-container .nav-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 #nav-container .nav-btn {
   background-color: var(--bg-hover, #2d333b);
   color: var(--text-main, #e6edf3);
   border: 1px solid var(--border-subtle, #373e47);
-  padding: 0.45rem 0.9rem;
+  padding: 0.55rem 1.1rem;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-height: 38px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   position: relative;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#nav-container .nav-btn:hover {
+  background-color: #373e47;
+  border-color: #444c56;
 }
 
 #nav-container .hamburger-btn {
