@@ -35,22 +35,19 @@
         try {
           const { data: profile, error } = await supabase
             .from("profiles")
-            .select("*")
+            .select("role, full_name")
             .eq("id", user.id)
-            .maybeSingle();
+            .single(); // Use single() instead of maybeSingle() to throw a visible error if missing
 
           if (error) {
-            console.warn("Error fetching profile:", error.message);
-          }
-
-          if (profile) {
-            // Handles both "role" and potential typo "roll"
-            const matchedRole = profile.role || profile.roll;
-            if (matchedRole) userRole = String(matchedRole).toLowerCase().trim();
+            console.error("Supabase Profile Error:", error);
+          } else if (profile) {
+            console.log("Profile Data Retrieved:", profile);
+            userRole = profile.role || userRole;
             if (profile.full_name) fullName = profile.full_name;
           }
         } catch (err) {
-          console.warn("Could not fetch profile role, defaulting to client:", err);
+          console.error("Profile fetch crashed:", err);
         }
       }
       
