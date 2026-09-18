@@ -80,19 +80,19 @@ document.addEventListener("DOMContentLoaded", () => {
         </nav>
 
         <div class="nav-actions">
-          <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart">
+          <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart" type="button">
             <span class="icon-symbol">🛒</span>
             <span class="btn-text-label">Cart</span>
             <span class="cart-badge" id="cart-count">0</span>
           </button>
 
-          <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account">
+          <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account" type="button">
             <span class="icon-symbol">👤</span>
             <span class="btn-text-label">Account</span>
           </button>
 
-          <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu">
-            ☰
+          <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu" type="button">
+            <span class="icon-symbol">☰</span>
           </button>
         </div>
       </div>
@@ -103,12 +103,12 @@ document.addEventListener("DOMContentLoaded", () => {
     navContainer.innerHTML = navHTML;
   }
 
-  // Hamburger menu toggle logic
   const hamburgerBtn = document.getElementById("hamburger-btn");
   const navLinks = document.getElementById("mobile-nav-menu");
 
   if (hamburgerBtn && navLinks) {
-    hamburgerBtn.addEventListener("click", () => {
+    hamburgerBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       navLinks.classList.toggle("mobile-active");
     });
   }
