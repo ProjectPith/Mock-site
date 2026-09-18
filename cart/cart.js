@@ -9,6 +9,7 @@ let cart = (typeof state !== 'undefined' && state.cart)
 
 const stripeKey = 'pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe'; 
 let stripeInstance = null;
+let activeCheckout = null;
 
 // Self-initializing setup
 function setupCartEnvironment() {
