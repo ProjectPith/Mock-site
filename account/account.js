@@ -33,21 +33,27 @@
 
       if (supabase) {
         try {
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from("profiles")
-            .select("role, full_name")
+            .select("*")
             .eq("id", user.id)
             .maybeSingle();
 
+          if (error) {
+            console.warn("Error fetching profile:", error.message);
+          }
+
           if (profile) {
-            if (profile.role) userRole = profile.role;
+            // Handles both "role" and potential typo "roll"
+            const matchedRole = profile.role || profile.roll;
+            if (matchedRole) userRole = String(matchedRole).toLowerCase().trim();
             if (profile.full_name) fullName = profile.full_name;
           }
         } catch (err) {
           console.warn("Could not fetch profile role, defaulting to client:", err);
         }
       }
-
+      
       const isAdmin = userRole === "admin";
 
       bodyContainer.innerHTML = `
