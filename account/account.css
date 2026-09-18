@@ -185,29 +185,48 @@
   gap: 6px;
 }
 
+/* Create distinct visual separation above Sign Out button */
 .account-logout-btn {
   width: 100%;
   justify-content: center;
-  margin-top: auto;
+  margin-top: 1.75rem !important; /* Added breathing room */
   padding-top: 1rem;
   border-color: #f85149 !important;
   color: #f85149 !important;
   min-height: 44px;
 }
 
-/* --- MOBILE SPECIFIC STYLING --- */
+/* Quick Role Promotion Row */
+.account-promotion-box {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed #30363d;
+}
+
+.account-promotion-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.account-promotion-row input {
+  flex: 1; /* Input takes up most of the row */
+}
+
+/* Compact Checkmark Button */
+.account-promote-btn {
+  min-width: 42px;
+  height: 38px;
+  padding: 0 10px;
+  justify-content: center;
+  border-color: #238636 !important;
+  color: #3fb950 !important;
+  font-size: 1.1rem;
+}
+
 @media (max-width: 600px) {
-  .account-overlay-panel {
-    width: 100vw; /* Take full screen width on mobile */
-    padding: 1.25rem;
-  }
-
+  /* Keep input and checkmark on the same line on mobile */
   .account-promotion-row {
-    flex-direction: column; /* Stack input & button on phone screens */
-  }
-
-  .account-promotion-row button {
-    width: 100%;
-    justify-content: center;
+    flex-direction: row !important; 
   }
 }
