@@ -2,8 +2,8 @@
   let isSignUpMode = false;
   let supabaseClient = null;
 
-  // 1. HARDCODED PRIMARY ADMIN UID (Bypasses table fallbacks)
-  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d"; 
+  // Hardcoded Primary Admin Fallback
+  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
 
   function getSupabase() {
     if (!supabaseClient && window.supabase) {
@@ -21,7 +21,7 @@
     if (!bodyContainer) return;
 
     const supabase = getSupabase();
-  
+
     if (!user && supabase) {
       const { data } = await supabase.auth.getSession();
       user = data?.session?.user || null;
@@ -34,7 +34,6 @@
       let userRole = "client";
       let fullName = user.user_metadata?.full_name || "";
 
-      // Hardcoded Primary Admin Override
       if (user.id === PRIMARY_ADMIN_UID) {
         userRole = "admin";
       } else if (supabase) {
@@ -57,60 +56,51 @@
       const isAdmin = userRole === "admin";
 
       bodyContainer.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-          <!-- User Info Header -->
-          <div style="border-bottom: 1px solid #30363d; padding-bottom: 1rem;">
-            <p style="margin: 0; font-size: 0.8rem; color: #8b949e;">LOGGED IN AS</p>
-            <h4 style="margin: 0.25rem 0 0 0; color: #f0f6fc; font-size: 1.1rem;">${fullName || user.email}</h4>
-              <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
-              ${userRole}
-            </span>
-          </div>
-
-          <!-- Navigation Tabs -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            ${isAdmin ? `
-              <!-- DEVELOPER / ADMIN TABS -->
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start; border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders Queue</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💳 Client Invoicing</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🗓️ Maintenance Schedule</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Vault & Search</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Global Communications</button>
-
-              <!-- Admin User Promotion Tool -->
-              <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #30363d;">
-                <p style="margin: 0 0 0.5rem 0; font-size: 0.8rem; color: #8b949e;">QUICK ROLE PROMOTION</p>
-                <div style="display: flex; gap: 6px;">
-                  <input type="text" id="promote-user-id" class="account-input" placeholder="User UID" style="font-size: 0.8rem; padding: 6px;">
-                  <button id="promote-btn" class="nav-btn" style="font-size: 0.8rem; padding: 6px 12px; white-space: nowrap;">Make Admin</button>
-                </div>
-              </div>
-            ` : `
-              <!-- CLIENT TABS -->
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Order History</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🚀 Project History & Status</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💳 Billing & Payments</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📝 Maintenance Forms</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 My Contracts</button>
-              <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Communications</button>
-            `}
-          </div>
-
-          <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1rem; border-color: #f85149; color: #f85149;">
-            Sign Out
-          </button>
+        <div class="account-user-card">
+          <p class="account-subtext">LOGGED IN AS</p>
+          <h4 class="account-user-name">${fullName || user.email}</h4>
+          <span class="account-role-badge ${isAdmin ? 'admin' : 'client'}">
+            ${userRole}
+          </span>
         </div>
+
+        <div class="account-tab-stack">
+          ${isAdmin ? `
+            <button class="nav-btn" style="border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
+            <button class="nav-btn">📦 Printify Orders Queue</button>
+            <button class="nav-btn">🛠️ Ongoing Builds</button>
+            <button class="nav-btn">💳 Client Invoicing</button>
+            <button class="nav-btn">🗓️ Maintenance Schedule</button>
+            <button class="nav-btn">📄 Contract Vault & Search</button>
+            <button class="nav-btn">💬 Global Communications</button>
+
+            <div class="account-promotion-box">
+              <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
+              <div class="account-promotion-row">
+                <input type="text" id="promote-user-id" class="account-input" placeholder="User UID">
+                <button id="promote-btn" class="nav-btn">Make Admin</button>
+              </div>
+            </div>
+          ` : `
+            <button class="nav-btn">📦 Order History</button>
+            <button class="nav-btn">🚀 Project History & Status</button>
+            <button class="nav-btn">💳 Billing & Payments</button>
+            <button class="nav-btn">📝 Maintenance Forms</button>
+            <button class="nav-btn">📄 My Contracts</button>
+            <button class="nav-btn">💬 Project Communications</button>
+          `}
+        </div>
+
+        <button id="account-logout-btn" class="nav-btn account-logout-btn">
+          Sign Out
+        </button>
       `;
 
-      // Logout Handler
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
       });
 
-      // Promotion Tool Handler
       document.getElementById("promote-btn")?.addEventListener("click", async () => {
         const targetId = document.getElementById("promote-user-id")?.value?.trim();
         if (!targetId) return alert("Please enter a User UID.");
@@ -122,20 +112,19 @@
         if (error) {
           alert(`Failed to update role: ${error.message}`);
         } else {
-          alert(`User ${targetId} elevated to Admin!`);
+          alert(`User elevated to Admin!`);
           document.getElementById("promote-user-id").value = "";
         }
       });
 
     } else {
-      // Unauthenticated State
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
       bodyContainer.innerHTML = `
-        <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
-          <button type="button" id="tab-signin" class="nav-btn" style="flex: 1; justify-content: center; opacity: ${isSignUpMode ? '0.6' : '1'};">Sign In</button>
-          <button type="button" id="tab-signup" class="nav-btn" style="flex: 1; justify-content: center; opacity: ${isSignUpMode ? '1' : '0.6'};">Register</button>
+        <div class="account-tab-toggle">
+          <button type="button" id="tab-signin" class="nav-btn" style="opacity: ${isSignUpMode ? '0.6' : '1'};">Sign In</button>
+          <button type="button" id="tab-signup" class="nav-btn" style="opacity: ${isSignUpMode ? '1' : '0.6'};">Register</button>
         </div>
 
         <form id="account-auth-form">
@@ -198,7 +187,7 @@
         if (!supabase) return;
 
         submitBtn.disabled = true;
-        submitBtn.textContent = isSignUpMode ? "Creating Account..." : "Authenticating...";
+        submitBtn.textContent = isSignUpMode ? "Creating..." : "Authenticating...";
 
         if (isSignUpMode) {
           const { error } = await supabase.auth.signUp({
