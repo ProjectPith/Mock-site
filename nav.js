@@ -1,5 +1,5 @@
 (function () {
-  // 1. Helper function to dynamically load component CSS & JS dependencies
+  // 1. Dependency Loader
   function loadAsset(src, type) {
     if (type === "css") {
       if (!document.querySelector(`link[href="${src}"]`)) {
@@ -18,7 +18,7 @@
     }
   }
 
-  // 2. Automatically pull in Cart and Account CSS + JS files
+  // Load Component Assets
   loadAsset("/nav.css", "css");
   loadAsset("https://js.stripe.com/v3/", "js");
   loadAsset("/cart/cart.css", "css");
@@ -26,12 +26,21 @@
   loadAsset("/account/account.css", "css");
   loadAsset("/account/account.js", "js");
   loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
-  
-  // 3. Render Navigation Bar HTML
+
+  // 2. Render Single Unified Nav Header
   document.addEventListener("DOMContentLoaded", () => {
-    const navContainer = document.getElementById("site-header-container") || 
-                         document.getElementById("nav-placeholder") || 
-                         document.body;
+    // Find target wrapper, or create a default wrapper at top of body
+    let navContainer = document.getElementById("nav-container") || 
+                         document.getElementById("site-header-container") || 
+                         document.getElementById("nav-placeholder");
+
+    if (!navContainer) {
+      navContainer = document.createElement("div");
+      navContainer.id = "nav-container";
+      document.body.insertAdjacentElement("afterbegin", navContainer);
+    } else {
+      navContainer.id = "nav-container"; // Ensure ID matches nav.css selectors
+    }
 
     const navHTML = `
       <header class="site-header">
@@ -39,77 +48,51 @@
           <div class="brand-logo">
             <a href="/index.html">LunarCraft</a>
           </div>
-          <nav class="nav-links">
+
+          <nav class="nav-links" id="mobile-nav-menu">
             <a href="/index.html" class="nav-item">Home</a>
             <a href="/booking/booking.html" class="nav-item">Booking & Estimator</a>
             <a href="/store/store.html" class="nav-item">Store</a>
           </nav>
+
           <div class="nav-actions">
-            <button id="cart-btn" class="nav-btn">
-              Cart <span class="cart-badge" id="cart-count">0</span>
+            <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart" type="button">
+              <span class="icon-symbol">🛒</span>
+              <span class="btn-text-label">Cart</span>
+              <span class="cart-badge" id="cart-count">0</span>
             </button>
-            <button id="account-btn" class="nav-btn">Sign In</button>
+
+            <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account" type="button">
+              <span class="icon-symbol">👤</span>
+              <span class="btn-text-label">Sign In</span>
+            </button>
+
+            <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu" type="button">
+              <span class="icon-symbol">☰</span>
+            </button>
           </div>
         </div>
       </header>
     `;
 
-    if (navContainer === document.body) {
-      document.body.insertAdjacentHTML("afterbegin", navHTML);
-    } else {
-      navContainer.innerHTML = navHTML;
+    navContainer.innerHTML = navHTML;
+
+    // 3. Hamburger Toggle Event Listener
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const navLinks = document.getElementById("mobile-nav-menu");
+
+    if (hamburgerBtn && navLinks) {
+      hamburgerBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        navLinks.classList.toggle("mobile-active");
+      });
+
+      // Close mobile dropdown when clicking anywhere else
+      document.addEventListener("click", (e) => {
+        if (!hamburgerBtn.contains(e.target) && !navLinks.contains(e.target)) {
+          navLinks.classList.remove("mobile-active");
+        }
+      });
     }
   });
 })();
-
-// Mobile styling //
-document.addEventListener("DOMContentLoaded", () => {
-  const navContainer = document.getElementById("nav-container");
-
-  const navHTML = `
-    <header class="site-header">
-      <div class="header-container">
-        <div class="brand-logo">
-          <a href="/">LunarCraft</a>
-        </div>
-
-        <nav class="nav-links" id="mobile-nav-menu">
-          <a href="/" class="nav-item">Home</a>
-          <a href="/estimator" class="nav-item">Booking & Estimator</a>
-          <a href="/store" class="nav-item">Store</a>
-        </nav>
-
-        <div class="nav-actions">
-          <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart" type="button">
-            <span class="icon-symbol">🛒</span>
-            <span class="btn-text-label">Cart</span>
-            <span class="cart-badge" id="cart-count">0</span>
-          </button>
-
-          <button id="account-btn" class="nav-btn icon-nav-btn" aria-label="Account" type="button">
-            <span class="icon-symbol">👤</span>
-            <span class="btn-text-label">Account</span>
-          </button>
-
-          <button id="hamburger-btn" class="nav-btn icon-nav-btn hamburger-btn" aria-label="Toggle Menu" type="button">
-            <span class="icon-symbol">☰</span>
-          </button>
-        </div>
-      </div>
-    </header>
-  `;
-
-  if (navContainer) {
-    navContainer.innerHTML = navHTML;
-  }
-
-  const hamburgerBtn = document.getElementById("hamburger-btn");
-  const navLinks = document.getElementById("mobile-nav-menu");
-
-  if (hamburgerBtn && navLinks) {
-    hamburgerBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      navLinks.classList.toggle("mobile-active");
-    });
-  }
-});
