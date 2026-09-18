@@ -24,7 +24,8 @@
   loadAsset("/cart/cart.js", "js");
   loadAsset("/account/account.css", "css");
   loadAsset("/account/account.js", "js");
-
+  loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
+  
   // 3. Render Navigation Bar HTML
   document.addEventListener("DOMContentLoaded", () => {
     const navContainer = document.getElementById("site-header-container") || 
