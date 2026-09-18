@@ -186,14 +186,27 @@
 }
 
 /* Create distinct visual separation above Sign Out button */
+/* Create distinct visual separation above Sign Out button */
 .account-logout-btn {
   width: 100%;
-  justify-content: center;
-  margin-top: 1.75rem !important; /* Added breathing room */
-  padding-top: 1rem;
-  border-color: #f85149 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 1.75rem !important;
+  padding: 0.75rem 1rem !important; /* Balanced vertical and horizontal padding */
+  background-color: transparent !important; /* Removes white background */
+  border: 1px solid #f85149 !important;
   color: #f85149 !important;
   min-height: 44px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Optional hover state for a slick red subtle fill */
+.account-logout-btn:hover {
+  background-color: rgba(248, 81, 73, 0.1) !important;
 }
 
 /* Quick Role Promotion Row */
