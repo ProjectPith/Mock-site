@@ -1,15 +1,15 @@
-/* --- Sticky Header Base --- */
-.site-header {
+/* --- Desktop Header Base --- */
+#nav-container .site-header {
   position: sticky;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
-  background-color: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface, #22272e);
+  border-bottom: 1px solid var(--border-subtle, #373e47);
 }
 
-.header-container {
+#nav-container .header-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0.85rem 2rem;
@@ -18,52 +18,40 @@
   align-items: center;
 }
 
-/* Brand Logo (Left) */
-.brand-logo a {
-  color: var(--sky-blue);
+#nav-container .brand-logo a {
+  color: var(--sky-blue, #88c0d0);
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.3px;
-  transition: color 0.2s ease;
+  text-decoration: none;
 }
 
-.brand-logo a:hover {
-  color: var(--sky-blue-hover);
-}
-
-/* Centered Navigation Links (Desktop) */
-.nav-links {
+#nav-container .nav-links {
   display: flex;
   align-items: center;
   gap: 2rem;
   justify-content: center;
 }
 
-.nav-item {
-  color: var(--text-muted);
+#nav-container .nav-item {
+  color: var(--text-muted, #919ba1);
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s ease;
+  text-decoration: none;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  color: var(--sky-blue);
-}
-
-/* Right Actions (Cart, Account, Hamburger) */
-.nav-actions {
+#nav-container .nav-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 0.85rem;
 }
 
-/* Base Desktop Button */
-.nav-btn {
-  background-color: var(--bg-hover);
-  color: var(--text-main);
-  border: 1px solid var(--border-subtle);
+/* Default Desktop Buttons */
+#nav-container .nav-btn {
+  background-color: var(--bg-hover, #2d333b);
+  color: var(--text-main, #e6edf3);
+  border: 1px solid var(--border-subtle, #373e47);
   padding: 0.45rem 0.9rem;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -72,144 +60,57 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.nav-btn:hover {
-  background-color: var(--sky-blue-subtle);
-  border-color: var(--sky-blue);
-  color: var(--sky-blue-hover);
-}
-
-.cart-badge {
-  background-color: var(--sky-blue-subtle);
-  color: var(--sky-blue);
-  border: 1px solid var(--border-subtle);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.1rem 0.4rem;
-  border-radius: 10px;
-}
-
-/* Hide Hamburger Toggle on Desktop */
-.hamburger-btn {
-  display: none !important;
-}
-
-/* --- RESPONSIVE MOBILE STYLING --- */
-@media (max-width: 600px) {
-  .header-container {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-  }
-
-  /* Shrink Logo Text */
-  .brand-logo a {
-    font-size: 1.1rem;
-  }
-
-  /* Transform Links into Collapsible Mobile Dropdown */
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: var(--bg-surface);
-    border-bottom: 1px solid var(--border-subtle);
-    flex-direction: column;
-    padding: 1rem 0;
-    gap: 0;
-  }
-
-  /* Revealed State via JS Toggle */
-  .nav-links.mobile-active {
-    display: flex;
-  }
-
-  .nav-item {
-    padding: 0.85rem 1.5rem;
-    width: 100%;
-    font-size: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .nav-actions {
-    gap: 6px;
-  }
-
-  /* Convert Desktop Buttons to Compact Mobile Icons */
-  .icon-nav-btn {
-    min-width: 38px !important;
-    height: 38px !important;
-    padding: 0 8px !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background-color: var(--bg-hover);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-main);
-    font-size: 1.1rem;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .icon-nav-btn:hover {
-    border-color: var(--sky-blue);
-    color: var(--sky-blue);
-  }
-
-  .hamburger-btn {
-    display: inline-flex !important;
-  }
-
-  .btn-text-label {
-    display: none !important; /* Hides text labels on phone screens */
-  }
-
-  .cart-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    margin: 0 !important;
-    font-size: 0.65rem;
-    padding: 2px 5px;
-    line-height: 1;
-  }
-
-  #cart-btn {
-    position: relative;
-  }
-}
-
-/* Base Icon Symbol sizing */
-.icon-symbol {
-  font-size: 1.1rem;
-  line-height: 1;
-  display: inline-block;
-}
-
-/* Hide Hamburger on Desktop by Default */
-.site-header .hamburger-btn {
+#nav-container .hamburger-btn {
   display: none !important;
 }
 
 /* --- MOBILE BREAKPOINT OVERRIDES --- */
 @media (max-width: 600px) {
-  /* Hide text labels entirely on mobile */
-  .site-header .btn-text-label {
+  #nav-container .header-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Collapsible Navigation Menu */
+  #nav-container .nav-links {
+    display: none !important;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-surface, #22272e);
+    border-bottom: 1px solid var(--border-subtle, #373e47);
+    flex-direction: column;
+    padding: 1rem 0;
+    gap: 0;
+  }
+
+  #nav-container .nav-links.mobile-active {
+    display: flex !important;
+  }
+
+  #nav-container .nav-item {
+    padding: 0.85rem 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Hide Text Labels on Mobile */
+  #nav-container .btn-text-label {
     display: none !important;
   }
 
-  /* Force display of the Hamburger button on small screens */
-  .site-header .hamburger-btn {
+  /* Show Hamburger Button */
+  #nav-container .hamburger-btn {
     display: inline-flex !important;
   }
 
-  /* Compact square sizing for mobile buttons */
-  .site-header .icon-nav-btn {
+  /* Turn Cart and Account into Small Square Buttons */
+  #nav-container .icon-nav-btn {
     width: 38px !important;
     height: 38px !important;
     min-width: 38px !important;
@@ -217,10 +118,11 @@
     justify-content: center !important;
     align-items: center !important;
     position: relative !important;
+    gap: 0 !important;
   }
 
-  /* Absolute pin position for the cart badge */
-  .site-header .cart-badge {
+  /* Badge Pin to Top-Right of Cart Icon */
+  #nav-container .cart-badge {
     position: absolute !important;
     top: -4px !important;
     right: -4px !important;
