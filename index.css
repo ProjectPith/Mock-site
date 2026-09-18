@@ -54,38 +54,72 @@
   backdrop-filter: blur(8px);
 }
 
-/* --- FEATURES GRID SECTION --- */
-.capabilities-section {
-  padding: 3rem 0;
-  border-top: 1px solid var(--card-border, #2d333b);
-}
-
-.capabilities-title {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  font-size: 1.5rem;
-}
-
+/* --- CAPABILITY CARDS --- */
 .capabilities-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
-.feature-card-icon {
-  font-size: 1.75rem;
-  margin-bottom: 0.75rem;
+.capability-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--card-bg, #161920);
+  border: 1px solid var(--card-border, #2d333b);
+  border-radius: 10px;
+  padding: 1.75rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feature-card-title {
+.card-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  color: var(--text-main, #ffffff);
+  font-size: 1.15rem;
+  font-weight: 600;
   margin-bottom: 0.5rem;
-  font-size: 1.1rem;
 }
 
-.feature-card-desc {
+.card-desc {
   color: var(--text-muted, #919ba1);
   font-size: 0.9rem;
   line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.card-link-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sky-blue, #88c0d0);
+  margin-top: auto;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+/* --- DISABLED STATE (Current Setup) --- */
+.capability-card.feature-card-disabled {
+  cursor: default;
+  pointer-events: none; /* Prevents clicks for now */
+}
+
+.capability-card.feature-card-disabled .card-link-label {
+  display: none; /* Hides arrow text until ready to link */
+}
+
+/* --- ACTIVE HOVER STATE (Triggered when you remove feature-card-disabled) --- */
+.capability-card:not(.feature-card-disabled):hover {
+  transform: translateY(-4px);
+  border-color: var(--sky-blue, #88c0d0);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.capability-card:not(.feature-card-disabled):hover .card-link-label {
+  transform: translateX(4px);
 }
 
 /* --- CTA BANNER --- */
