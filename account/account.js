@@ -33,7 +33,7 @@
     }
   }
 
-  async function updateAccountPanelUI(user = null) {
+async function updateAccountPanelUI(user = null) {
     const bodyContainer = document.querySelector(".account-overlay-body");
     const panelTitle = document.getElementById("account-panel-title");
     const navAccountBtn = document.getElementById("account-btn");
@@ -46,7 +46,7 @@
       user = data?.session?.user || null;
     }
 
-    // IF USER IS LOGGED IN
+    // --- LOGGED-IN VIEW ---
     if (user) {
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
@@ -54,19 +54,19 @@
       const userEmail = (user.email || "").toLowerCase();
       const promotedAdmins = getPromotedAdmins();
       
-      // Determine Role: Primary UID OR locally promoted email
       let userRole = "client";
       if (user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail)) {
         userRole = "admin";
       }
 
       const isAdmin = userRole === "admin";
-      const fullName = user.user_metadata?.full_name || "";
+      // Display full name, falling back to email if empty
+      const displayName = user.user_metadata?.full_name || user.email;
 
       bodyContainer.innerHTML = `
         <div class="account-user-card">
           <p class="account-subtext">LOGGED IN AS</p>
-          <h4 class="account-user-name">${fullName || user.email}</h4>
+          <h4 class="account-user-name">${displayName}</h4>
           <span class="account-role-badge ${isAdmin ? 'admin' : 'client'}">
             ${userRole}
           </span>
@@ -119,7 +119,6 @@
           promoteBtn.disabled = true;
           promoteBtn.textContent = "…";
 
-          // Store email in local admin permissions
           addPromotedAdmin(targetEmail);
 
           alert(`User ${targetEmail} elevated to Admin!`);
@@ -129,7 +128,7 @@
           promoteBtn.textContent = "✓";
       });
 
-    // IF USER IS LOGGED OUT
+    // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
     } else {
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
@@ -153,7 +152,9 @@
             <label for="client-pass">Password / Passcode</label>
             <input type="password" id="client-pass" class="account-input" placeholder="••••••••" required>
           </div>
-          <button type="submit" id="auth-submit-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 0.75rem;">
+          
+          <!-- Taller, larger submit button added here -->
+          <button type="submit" id="auth-submit-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             ${isSignUpMode ? 'Create Account' : 'Access Workspace'}
           </button>
         </form>
