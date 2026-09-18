@@ -229,3 +229,39 @@
     initAccount();
   }
 })();
+
+// Render inside updateAccountPanelUI() when user is logged in:
+const isAdmin = userRole === 'admin';
+
+bodyContainer.innerHTML = `
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="border-bottom: 1px solid #30363d; padding-bottom: 1rem;">
+      <p style="margin: 0; font-size: 0.8rem; color: #8b949e;">LOGGED IN AS</p>
+      <h4 style="margin: 0.25rem 0 0 0; color: #f0f6fc; font-size: 1.1rem;">${fullName || user.email}</h4>
+      <span style="display: inline-block; margin-top: 0.5rem; padding: 2px 8px; font-size: 0.75rem; border-radius: 12px; background: ${isAdmin ? '#238636' : '#1f6beb'}; color: white; text-transform: uppercase;">
+        ${userRole}
+      </span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      ${isAdmin ? `
+        <!-- ADMIN CONTROLS -->
+        <a href="/admin.html" class="nav-btn" style="justify-content: flex-start; border-color: #238636; color: #3fb950; text-decoration: none;">⚙️ Developer Dashboard</a>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 Printify Orders Queue</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🛠️ Ongoing Builds</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 Contract Search Vault</button>
+      ` : `
+        <!-- CLIENT CONTROLS -->
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📦 My Orders</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">🚀 Project Status</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📝 Maintenance Forms</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">📄 My Contracts</button>
+        <button class="nav-btn" style="width: 100%; justify-content: flex-start;">💬 Project Chat</button>
+      `}
+    </div>
+
+    <button id="account-logout-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1.5rem; border-color: #f85149; color: #f85149;">
+      Sign Out
+    </button>
+  </div>
+`;
