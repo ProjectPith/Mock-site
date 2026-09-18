@@ -1,4 +1,4 @@
-(function () {
+    (function () {
   let isSignUpMode = false;
   let supabaseClient = null;
 
@@ -74,11 +74,12 @@
             <button class="nav-btn">📄 Contract Vault & Search</button>
             <button class="nav-btn">💬 Global Communications</button>
 
+            // Render inside updateAccountPanelUI() for admins:
             <div class="account-promotion-box">
               <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
               <div class="account-promotion-row">
-                <input type="text" id="promote-user-id" class="account-input" placeholder="User UID">
-                <button id="promote-btn" class="nav-btn">Make Admin</button>
+                <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
+                <button id="promote-btn" class="nav-btn account-promote-btn" title="Promote to Admin">✓</button>
               </div>
             </div>
           ` : `
@@ -101,22 +102,52 @@
         location.reload();
       });
 
+      // Role Promotion Handler via Email
       document.getElementById("promote-btn")?.addEventListener("click", async () => {
-        const targetId = document.getElementById("promote-user-id")?.value?.trim();
-        if (!targetId) return alert("Please enter a User UID.");
+        const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
+        if (!targetEmail) return alert("Please enter a user email address.");
 
-        const { error } = await supabase
+        const promoteBtn = document.getElementById("promote-btn");
+        promoteBtn.disabled = true;
+        promoteBtn.textContent = "…";
+
+        // Query profiles or search user by email directly
+        const { data: profiles, error: findError } = await supabase
           .from("profiles")
-          .upsert({ id: targetId, role: "admin" });
+          .select("id")
+          .eq("email", targetEmail) // Ensure email column is synced or lookup via RPC
+          .maybeSingle();
 
-        if (error) {
-          alert(`Failed to update role: ${error.message}`);
+        if (findError || !profiles) {
+          // Direct RPC / fallback option: query profile directly by ID if email isn't in profiles table yet
+          const { error: upsertErr } = await supabase
+            .from("profiles")
+            .upsert({ email: targetEmail, role: "admin" }, { onConflict: "email" });
+
+          if (upsertErr) {
+            alert(`Could not elevate user: ${upsertErr.message}`);
+          } else {
+            alert(`User ${targetEmail} set to Admin!`);
+            document.getElementById("promote-user-email").value = "";
+          }
         } else {
-          alert(`User elevated to Admin!`);
-          document.getElementById("promote-user-id").value = "";
-        }
-      });
+          const { error: updateErr } = await supabase
+            .from("profiles")
+            .update({ role: "admin" })
+            .eq("id", profiles.id);
 
+          if (updateErr) {
+            alert(`Failed to elevate role: ${updateErr.message}`);
+          } else {
+            alert(`User ${targetEmail} elevated to Admin!`);
+            document.getElementById("promote-user-email").value = "";
+          }
+        }
+
+        promoteBtn.disabled = false;
+        promoteBtn.textContent = "✓";
+      });
+      
     } else {
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
