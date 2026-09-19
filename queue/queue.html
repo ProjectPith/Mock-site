@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders Queue | LunarCraft</title>
+  <link rel="stylesheet" href="nav.css">
+  <link rel="stylesheet" href="queue.css">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-logo"><a href="store.html">LunarCraft</a></div>
+      <h2 class="page-title">Orders Queue</h2>
+      <a href="store.html" class="nav-btn">← Back to Store</a>
+    </div>
+  </header>
+
+  <main class="queue-container">
+    <div class="queue-header-actions">
+      <h3>Incoming Orders</h3>
+      <div class="queue-filters">
+        <label><input type="checkbox" id="show-completed" /> Show Completed</label>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="table-wrapper">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Customer Email</th>
+            <th>Order Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th style="text-align: center;">Complete</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table-body">
+          <tr>
+            <td colspan="6" class="loading-cell">Loading orders...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Order Details Modal -->
+  <div id="order-modal" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-order-title">Order Details</h3>
+        <button id="close-modal-btn" class="close-btn">✕</button>
+      </div>
+      <div id="modal-order-body" class="modal-body">
+        <!-- Dynamic content injected here -->
+      </div>
+      <div class="modal-footer">
+        <button id="fulfill-btn" class="nav-btn primary-btn">Fulfill & Send Email</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="queue.js"></script>
+</body>
+</html>
