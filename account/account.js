@@ -337,16 +337,44 @@
     document.body.insertAdjacentHTML("beforeend", accountHTML);
     const accountOverlay = document.getElementById("account-overlay");
 
+    // --- Overlay Toggle & Close Handlers ---
     document.addEventListener("click", (e) => {
+      // 1. Open overlay when Account nav button is clicked
       if (e.target.closest("#account-btn")) {
         e.preventDefault();
         accountOverlay.classList.remove("hidden");
         document.body.style.overflow = "hidden";
       }
 
+      // 2. Close overlay when 'X' or backdrop is clicked
       if (e.target.closest("#close-account-overlay") || e.target === accountOverlay) {
         accountOverlay.classList.add("hidden");
         document.body.style.overflow = "";
+      }
+
+      // 3. Page Routing for Menu Items (Closes overlay & opens page)
+      const menuBtn = e.target.closest("#account-menu-stack .nav-btn");
+      if (menuBtn) {
+        const btnText = menuBtn.textContent.trim();
+
+        // Skip "Account Details" so it toggles the inline edit form instead of redirecting
+        if (menuBtn.id === "account-settings-btn") return;
+
+        // Close side overlay
+        accountOverlay.classList.add("hidden");
+        document.body.style.overflow = "";
+
+        // Route to the appropriate dedicated page
+        if (btnText.includes("Printify Orders Queue")) {
+          window.location.href = "queue.html";
+        } else if (btnText.includes("Order History")) {
+          window.location.href = "orders.html";
+        } else if (btnText.includes("Developer Dashboard")) {
+          window.location.href = "dashboard.html";
+        } else if (btnText.includes("Billing") || btnText.includes("Invoicing")) {
+          window.location.href = "billing.html";
+        }
+        // Add more route conditions here as you build out additional pages!
       }
     });
 
