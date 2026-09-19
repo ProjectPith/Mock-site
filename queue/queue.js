@@ -42,8 +42,17 @@
 
     activeOrders = data || [];
     renderTable(activeOrders);
-  }
 
+    // REALTIME LISTENER: Refresh queue instantly on new order
+    if (!window.orderSubscription) {
+      window.orderSubscription = supabase
+        .channel('public:orders')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
+          fetchOrders();
+        })
+        .subscribe();
+    }
+  }
   function renderTable(orders) {
     const tableBody = document.getElementById("orders-table-body");
     if (!orders.length) {
