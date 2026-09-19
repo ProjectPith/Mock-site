@@ -6,14 +6,14 @@
   const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
 
   function getSupabase() {
-    if (!supabaseClient && window.supabase) {
+    if (!window.supabaseClient && window.supabase) {
       const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    return supabaseClient;
+    return window.supabaseClient;
   }
-
+  
   // Get local list of promoted admin emails
   function getPromotedAdmins() {
     try {
