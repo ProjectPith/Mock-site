@@ -22,7 +22,8 @@
 
   async function fetchOrders() {
     const tableBody = document.getElementById("orders-table-body");
-    const showCompleted = document.getElementById("show-completed").checked;
+    const showCompletedCheckbox = document.getElementById("show-completed");
+    const showCompleted = showCompletedCheckbox ? showCompletedCheckbox.checked : false;
 
     let query = supabase
       .from("orders")
@@ -36,7 +37,8 @@
     const { data, error } = await query;
 
     if (error) {
-      tableBody.innerHTML = `<tr><td colspan="6" style="color: #ff6b6b;">Error loading orders: ${error.message}</td></tr>`;
+      if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" style="color: #ff6b6b;">Error loading orders: ${error.message}</td></tr>`;
+      console.error("Fetch orders error:", error);
       return;
     }
 
@@ -53,8 +55,11 @@
         .subscribe();
     }
   }
+
   function renderTable(orders) {
     const tableBody = document.getElementById("orders-table-body");
+    if (!tableBody) return;
+
     if (!orders.length) {
       tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #919ba1;">No active orders found.</td></tr>`;
       return;
@@ -67,10 +72,10 @@
 
       return `
         <tr class="${isCompleted ? 'completed' : ''}" data-id="${order.id}">
-          <td><strong>${order.customer_email}</strong></td>
+          <td><strong>${order.customer_email || 'No email'}</strong></td>
           <td>${orderDate}</td>
           <td>${itemCount} item(s)</td>
-          <td>$${Number(order.total_amount).toFixed(2)}</td>
+          <td>$${Number(order.total_amount || 0).toFixed(2)}</td>
           <td><span class="status-badge ${order.status}">${order.status}</span></td>
           <td style="text-align: center;" onclick="event.stopPropagation();">
             <input type="checkbox" class="order-complete-checkbox" data-id="${order.id}" ${isCompleted ? 'checked' : ''}>
@@ -87,32 +92,40 @@
       });
     });
 
-    // Checkbox Quick Toggle with Stop Propagation
+    // Checkbox Quick Toggle
     document.querySelectorAll(".order-complete-checkbox").forEach(box => {
       box.addEventListener("click", (e) => e.stopPropagation());
       box.addEventListener("change", async (e) => {
         e.stopPropagation();
         const orderId = e.target.getAttribute("data-id");
         const newStatus = e.target.checked ? "completed" : "pending";
-        await toggleOrderStatus(orderId, newStatus, e.target);
+        await updateOrderStatusInDb(orderId, newStatus);
       });
     });
   }
 
-  async function toggleOrderStatus(orderId, isCompleted) {
-    const newStatus = isCompleted ? 'completed' : 'pending';
-
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
-
-    if (error) {
-      console.error('Failed to update order status:', error.message);
-      return;
+  // Unified Database Update Handler
+  async function updateOrderStatusInDb(orderId, status, trackingNumber = null) {
+    const updatePayload = { status: status };
+    if (trackingNumber !== null) {
+      updatePayload.tracking_number = trackingNumber;
     }
 
-    console.log(`Order ${orderId} status updated to ${newStatus}`);
+    console.log(`Sending DB update for order ${orderId} -> status: ${status}`);
+
+    const { data, error } = await supabase
+      .from("orders")
+      .update(updatePayload)
+      .eq("id", orderId);
+
+    if (error) {
+      alert(`Failed to update status in database: ${error.message}`);
+      console.error("Supabase DB Update Error:", error);
+      fetchOrders(); // Reset UI state back to match DB
+    } else {
+      console.log(`Successfully updated order ${orderId} in database!`);
+      fetchOrders(); // Refresh table to reflect updated DB row
+    }
   }
 
   function openOrderModal(orderId) {
@@ -120,6 +133,8 @@
     if (!currentSelectedOrder) return;
 
     const modal = document.getElementById("order-modal");
+    if (!modal) return;
+
     document.getElementById("modal-order-title").textContent = `Order Details: ${currentSelectedOrder.customer_email}`;
     
     const itemsList = (currentSelectedOrder.order_items || [])
@@ -132,7 +147,7 @@
       <div>
         <h4>Shipping Address</h4>
         <p style="margin: 0; color: #919ba1;">
-          ${currentSelectedOrder.customer_name}<br>
+          ${currentSelectedOrder.customer_name || 'N/A'}<br>
           ${shipping.line1 || ''} ${shipping.line2 || ''}<br>
           ${shipping.city || ''}, ${shipping.state || ''} ${shipping.postal_code || ''}<br>
           ${shipping.country || ''}
@@ -151,25 +166,9 @@
     modal.classList.remove("hidden");
   }
 
-  async function toggleOrderStatus(orderId, status) {
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: status })
-      .eq("id", orderId);
-
-    if (error) {
-      alert(`Failed to update status: ${error.message}`);
-      fetchOrders(); // Reset UI state on error
-    } else {
-      // Re-fetch orders so row either disappears (if showCompleted is off) 
-      // or stays checked smoothly (if showCompleted is on)
-      fetchOrders();
-    }
-  }
-
   // Event Listeners
   document.getElementById("close-modal-btn")?.addEventListener("click", () => {
-    document.getElementById("order-modal").classList.add("hidden");
+    document.getElementById("order-modal")?.classList.add("hidden");
   });
 
   document.getElementById("show-completed")?.addEventListener("change", fetchOrders);
@@ -178,19 +177,8 @@
     if (!currentSelectedOrder) return;
     const tracking = document.getElementById("modal-tracking")?.value;
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ 
-        status: "completed",
-        tracking_number: tracking
-      })
-      .eq("id", currentSelectedOrder.id);
-
-    if (!error) {
-      alert("Order marked as complete!");
-      document.getElementById("order-modal").classList.add("hidden");
-      fetchOrders();
-    }
+    await updateOrderStatusInDb(currentSelectedOrder.id, "completed", tracking);
+    document.getElementById("order-modal")?.classList.add("hidden");
   });
 
   document.addEventListener("DOMContentLoaded", checkAuthAndLoad);
