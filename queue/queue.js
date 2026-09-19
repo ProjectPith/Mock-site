@@ -88,10 +88,16 @@
     });
 
     // Checkbox Quick Toggle
+    // Updated Checkbox Quick Toggle inside renderTable
     document.querySelectorAll(".order-complete-checkbox").forEach(box => {
       box.addEventListener("change", async (e) => {
         const orderId = e.target.getAttribute("data-id");
-        const newStatus = e.target.checked ? "completed" : "pending";
+        const isChecked = e.target.checked;
+        const newStatus = isChecked ? "completed" : "pending";
+
+        // Disable checkbox briefly to prevent spam clicks during DB update
+        e.target.disabled = true;
+
         await toggleOrderStatus(orderId, newStatus);
       });
     });
@@ -141,7 +147,10 @@
 
     if (error) {
       alert(`Failed to update status: ${error.message}`);
+      fetchOrders(); // Reset UI state on error
     } else {
+      // Re-fetch orders so row either disappears (if showCompleted is off) 
+      // or stays checked smoothly (if showCompleted is on)
       fetchOrders();
     }
   }
