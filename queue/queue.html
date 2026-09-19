@@ -48,27 +48,32 @@
   <div id="order-modal" class="modal-backdrop hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Order Details: <span id="customer-email"></span></h2>
+        <h2 style="margin:0; font-size: 1.1rem; color: var(--text-main, #e6edf3);">
+          Order Details: <span id="customer-email" style="color: #87ceeb;"></span>
+        </h2>
         <button id="close-modal-btn" class="close-btn">&times;</button>
       </div>
 
-      <div class="modal-section">
-        <h3>Shipping Address</h3>
-        <p id="shipping-address"></p>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>Shipping Address</h3>
+          <p id="shipping-address" class="address-box"></p>
+        </div>
+
+        <div class="modal-section">
+          <h3>Ordered Items</h3>
+          <ul id="ordered-items-list" class="ordered-items-list"></ul>
+        </div>
+
+        <div class="modal-section">
+          <label for="tracking-input" style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem; color: #919ba1;">
+            Tracking Number (Optional for automated email):
+          </label>
+          <input type="text" id="tracking-input" class="modal-input" placeholder="e.g. 94010000000000000000" />
+        </div>
       </div>
 
-      <div class="modal-section">
-        <h3>Ordered Items</h3>
-        <!-- Target container to render purchased items -->
-        <ul id="ordered-items-list" class="ordered-items-list"></ul>
-      </div>
-
-      <div class="modal-section">
-        <label for="tracking-input">Tracking Number (Optional for automated email):</label>
-        <input type="text" id="tracking-input" class="modal-input" placeholder="e.g. 94010000000000000000" />
-      </div>
-
-      <div class="modal-actions">
+      <div class="modal-footer">
         <button id="fulfill-btn" class="btn-fulfill">Fulfill & Send Email</button>
       </div>
     </div>
