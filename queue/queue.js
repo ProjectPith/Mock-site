@@ -87,20 +87,35 @@
       });
     });
 
-    // Checkbox Quick Toggle
-    // Updated Checkbox Quick Toggle inside renderTable
+    // Checkbox Quick Toggle with Stop Propagation
     document.querySelectorAll(".order-complete-checkbox").forEach(box => {
+      box.addEventListener("click", (e) => e.stopPropagation());
       box.addEventListener("change", async (e) => {
+        e.stopPropagation();
         const orderId = e.target.getAttribute("data-id");
-        const isChecked = e.target.checked;
-        const newStatus = isChecked ? "completed" : "pending";
-
-        // Disable checkbox briefly to prevent spam clicks during DB update
-        e.target.disabled = true;
-
-        await toggleOrderStatus(orderId, newStatus);
+        const newStatus = e.target.checked ? "completed" : "pending";
+        await toggleOrderStatus(orderId, newStatus, e.target);
       });
     });
+  }
+
+  async function toggleOrderStatus(orderId, status, checkboxEl) {
+    console.log(`Updating order ${orderId} to status: ${status}...`);
+    
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status: status })
+      .eq("id", orderId)
+      .select();
+
+    if (error) {
+      console.error("Supabase Update Error:", error);
+      alert(`Failed to update status: ${error.message}`);
+      if (checkboxEl) checkboxEl.checked = !checkboxEl.checked; // Revert checkbox visual state on failure
+    } else {
+      console.log("Successfully updated order status in DB:", data);
+      fetchOrders();
+    }
   }
 
   function openOrderModal(orderId) {
