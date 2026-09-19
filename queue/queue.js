@@ -1,5 +1,4 @@
 (function () {
-  // Check if a client already exists on window, otherwise create it
   if (!window.supabaseClient && window.supabase) {
     const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
@@ -45,7 +44,6 @@
     activeOrders = data || [];
     renderTable(activeOrders);
 
-    // REALTIME LISTENER: Refresh queue instantly on new order
     if (!window.orderSubscription) {
       window.orderSubscription = supabase
         .channel('public:orders')
@@ -66,7 +64,15 @@
     }
 
     tableBody.innerHTML = orders.map(order => {
-      const itemCount = order.order_items ? order.order_items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+      // Calculate count from order_items relational table or raw json items column
+      let itemCount = 0;
+      if (order.order_items && order.order_items.length > 0) {
+        itemCount = order.order_items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      } else if (order.items) {
+        const rawItems = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : order.items;
+        itemCount = rawItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      }
+
       const orderDate = new Date(order.created_at).toLocaleDateString();
       const isCompleted = order.status === "completed";
 
@@ -75,7 +81,7 @@
           <td><strong>${order.customer_email || 'No email'}</strong></td>
           <td>${orderDate}</td>
           <td>${itemCount} item(s)</td>
-          <td>$${Number(order.total_amount || 0).toFixed(2)}</td>
+          <td>$${Number(order.total_amount || order.total || 0).toFixed(2)}</td>
           <td><span class="status-badge ${order.status}">${order.status}</span></td>
           <td style="text-align: center;" onclick="event.stopPropagation();">
             <input type="checkbox" class="order-complete-checkbox" data-id="${order.id}" ${isCompleted ? 'checked' : ''}>
@@ -84,7 +90,6 @@
       `;
     }).join("");
 
-    // Row Click Listener for Details Modal
     document.querySelectorAll(".orders-table tbody tr").forEach(row => {
       row.addEventListener("click", () => {
         const orderId = row.getAttribute("data-id");
@@ -92,7 +97,6 @@
       });
     });
 
-    // Checkbox Quick Toggle
     document.querySelectorAll(".order-complete-checkbox").forEach(box => {
       box.addEventListener("click", (e) => e.stopPropagation());
       box.addEventListener("change", async (e) => {
@@ -104,16 +108,13 @@
     });
   }
 
-  // Unified Database Update Handler
   async function updateOrderStatusInDb(orderId, status, trackingNumber = null) {
     const updatePayload = { status: status };
     if (trackingNumber !== null) {
       updatePayload.tracking_number = trackingNumber;
     }
 
-    console.log(`Sending DB update for order ${orderId} -> status: ${status}`);
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("orders")
       .update(updatePayload)
       .eq("id", orderId);
@@ -121,10 +122,9 @@
     if (error) {
       alert(`Failed to update status in database: ${error.message}`);
       console.error("Supabase DB Update Error:", error);
-      fetchOrders(); // Reset UI state back to match DB
+      fetchOrders();
     } else {
-      console.log(`Successfully updated order ${orderId} in database!`);
-      fetchOrders(); // Refresh table to reflect updated DB row
+      fetchOrders();
     }
   }
 
@@ -135,38 +135,60 @@
     const modal = document.getElementById("order-modal");
     if (!modal) return;
 
-    document.getElementById("modal-order-title").textContent = `Order Details: ${currentSelectedOrder.customer_email}`;
+    document.getElementById("customer-email").textContent = currentSelectedOrder.customer_email || "N/A";
     
-    const itemsList = (currentSelectedOrder.order_items || [])
-      .map(item => `<li>${item.quantity}x ${item.product_title} (${item.variant_title || 'Default'}) - $${item.unit_price}</li>`)
-      .join("");
+    // Format Shipping Address (Object or String)
+    const addrEl = document.getElementById("shipping-address");
+    const ship = currentSelectedOrder.shipping_address;
+    if (typeof ship === 'object' && ship !== null) {
+      addrEl.innerHTML = `
+        ${currentSelectedOrder.customer_name || ship.name || ''}<br>
+        ${ship.line1 || ship.address || ''} ${ship.line2 || ''}<br>
+        ${ship.city || ''}${ship.city ? ',' : ''} ${ship.state || ''} ${ship.postal_code || ship.zip || ''}<br>
+        ${ship.country || ''}
+      `;
+    } else {
+      addrEl.innerText = ship || "No shipping address provided.";
+    }
 
-    const shipping = currentSelectedOrder.shipping_address || {};
+    // Format Ordered Items
+    const itemsList = document.getElementById("ordered-items-list");
+    itemsList.innerHTML = "";
 
-    document.getElementById("modal-order-body").innerHTML = `
-      <div>
-        <h4>Shipping Address</h4>
-        <p style="margin: 0; color: #919ba1;">
-          ${currentSelectedOrder.customer_name || 'N/A'}<br>
-          ${shipping.line1 || ''} ${shipping.line2 || ''}<br>
-          ${shipping.city || ''}, ${shipping.state || ''} ${shipping.postal_code || ''}<br>
-          ${shipping.country || ''}
-        </p>
-      </div>
-      <div>
-        <h4>Ordered Items</h4>
-        <ul style="padding-left: 1.25rem; color: #919ba1;">${itemsList}</ul>
-      </div>
-      <div class="account-form-group">
-        <label for="modal-tracking">Tracking Number (Optional for automated email):</label>
-        <input type="text" id="modal-tracking" class="account-input" placeholder="e.g. 9400100000000000000000" value="${currentSelectedOrder.tracking_number || ''}">
-      </div>
-    `;
+    let itemsToRender = currentSelectedOrder.order_items || [];
+    if (!itemsToRender.length && currentSelectedOrder.items) {
+      itemsToRender = typeof currentSelectedOrder.items === 'string' 
+        ? JSON.parse(currentSelectedOrder.items) 
+        : currentSelectedOrder.items;
+    }
+
+    if (Array.isArray(itemsToRender) && itemsToRender.length > 0) {
+      itemsToRender.forEach(item => {
+        const li = document.createElement("li");
+        const title = item.product_title || item.title || item.name || "Product Item";
+        const qty = item.quantity || item.qty || 1;
+        const price = item.unit_price || item.price || 0;
+        
+        li.innerHTML = `
+          <span><strong>${qty}x</strong> ${title}</span>
+          <span>$${Number(price).toFixed(2)}</span>
+        `;
+        itemsList.appendChild(li);
+      });
+    } else {
+      itemsList.innerHTML = `<li><span>No item breakdown available.</span></li>`;
+    }
+
+    // Set tracking number input
+    const trackingInput = document.getElementById("tracking-input");
+    if (trackingInput) {
+      trackingInput.value = currentSelectedOrder.tracking_number || "";
+    }
 
     modal.classList.remove("hidden");
   }
 
-  // Event Listeners
+  // Bind Listeners
   document.getElementById("close-modal-btn")?.addEventListener("click", () => {
     document.getElementById("order-modal")?.classList.add("hidden");
   });
@@ -175,7 +197,7 @@
 
   document.getElementById("fulfill-btn")?.addEventListener("click", async () => {
     if (!currentSelectedOrder) return;
-    const tracking = document.getElementById("modal-tracking")?.value;
+    const tracking = document.getElementById("tracking-input")?.value;
 
     await updateOrderStatusInDb(currentSelectedOrder.id, "completed", tracking);
     document.getElementById("order-modal")?.classList.add("hidden");
