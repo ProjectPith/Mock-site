@@ -155,22 +155,45 @@
     const itemsList = document.getElementById("ordered-items-list");
     itemsList.innerHTML = "";
 
-    let itemsToRender = currentSelectedOrder.order_items || [];
-    if (!itemsToRender.length && currentSelectedOrder.items) {
-      itemsToRender = typeof currentSelectedOrder.items === 'string' 
-        ? JSON.parse(currentSelectedOrder.items) 
-        : currentSelectedOrder.items;
+    // Grab whatever product data column exists on the order row
+    const rawItemsData = currentSelectedOrder.items 
+      || currentSelectedOrder.product_tags 
+      || currentSelectedOrder.products;
+
+    let itemsToRender = [];
+
+    if (rawItemsData) {
+      // Handle array, JSON string, or comma-separated string ("p1, p2")
+      if (Array.isArray(rawItemsData)) {
+        itemsToRender = rawItemsData;
+      } else if (typeof rawItemsData === 'string') {
+        try {
+          itemsToRender = JSON.parse(rawItemsData);
+        } catch (e) {
+          // If it's a plain string like "p1, p2" or "p1"
+          itemsToRender = rawItemsData.split(',').map(tag => tag.trim());
+        }
+      }
     }
 
-    if (Array.isArray(itemsToRender) && itemsToRender.length > 0) {
+    if (itemsToRender.length > 0) {
       itemsToRender.forEach(item => {
         const li = document.createElement("li");
-        const title = item.product_title || item.title || item.name || "Product Item";
-        const qty = item.quantity || item.qty || 1;
-        const price = item.unit_price || item.price || 0;
         
+        // Extract tag string if item is an object or plain string
+        const tag = typeof item === 'string' ? item : (item.id || item.tag || item.title);
+        
+        // Match tag against map, or fall back to displaying the raw string
+        const productInfo = PRODUCT_MAP[tag] || { 
+          title: item.title || item.name || tag, 
+          price: item.price || 0 
+        };
+
+        const qty = item.quantity || item.qty || 1;
+        const price = productInfo.price || 0;
+
         li.innerHTML = `
-          <span><strong>${qty}x</strong> ${title}</span>
+          <span><strong>${qty}x</strong> ${productInfo.title}</span>
           <span>$${Number(price).toFixed(2)}</span>
         `;
         itemsList.appendChild(li);
