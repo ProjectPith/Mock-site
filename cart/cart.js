@@ -2,6 +2,8 @@
 // CART & STRIPE EMBEDDED CHECKOUT CONTROLLER
 // ==========================================
 
+let activeCheckout = null;
+
 // Global Cart State
 let cart = (typeof state !== 'undefined' && state.cart) 
   ? state.cart 
@@ -16,7 +18,28 @@ function setupCartEnvironment() {
     stripeInstance = Stripe(stripeKey);
   }
   
+  // Auto-clear cart if returning from a completed Stripe checkout session
+  checkAndClearSuccessCart();
+
   initCartOverlay();
+  updateCartUI();
+}
+
+function checkAndClearSuccessCart() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("session_id") || window.location.pathname.includes("/success")) {
+    clearCart();
+    
+    // Clean URL without triggering page reload
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+function clearCart() {
+  cart = [];
+  localStorage.removeItem('cart');
+  if (typeof state !== 'undefined') state.cart = [];
   updateCartUI();
 }
 
@@ -28,19 +51,16 @@ if (document.readyState === 'loading') {
 
 // Global Event Delegation for Dynamic Elements
 document.addEventListener('click', (e) => {
-  // Open Cart Drawer
   if (e.target.closest('#cart-btn')) {
     e.preventDefault();
     openCartDrawer();
   }
   
-  // Close Cart Drawer
   if (e.target.closest('#cart-close-btn') || e.target.classList.contains('cart-overlay-backdrop')) {
     e.preventDefault();
     closeCartDrawer();
   }
   
-  // Trigger Checkout
   if (e.target.closest('#checkout-btn')) {
     handleCheckout(e);
   }
@@ -128,8 +148,6 @@ window.removeFromCart = function(index) {
   renderCartItems();
 };
 
-let activeCheckout = null; // Put this at the very top of cart.js (outside any function)
-
 async function handleCheckout(event) {
   if (event) event.preventDefault();
   if (!cart || cart.length === 0) return;
@@ -143,8 +161,6 @@ async function handleCheckout(event) {
     checkoutBtn.textContent = 'Loading Checkout...';
   }
 
-  // --- CLEANUP STEP START ---
-  // If a checkout iframe is already mounted, destroy it before building a new one
   if (activeCheckout) {
     try {
       activeCheckout.destroy();
@@ -158,7 +174,6 @@ async function handleCheckout(event) {
   if (checkoutContainer) {
     checkoutContainer.innerHTML = '';
   }
-  // --- CLEANUP STEP END ---
 
   try {
     const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY', {
@@ -185,7 +200,6 @@ async function handleCheckout(event) {
     if (listContainer) listContainer.innerHTML = '';
     if (footer) footer.style.display = 'none';
 
-    // Save the new instance to activeCheckout so we can destroy it next time
     activeCheckout = await stripeInstance.initEmbeddedCheckout({ clientSecret });
     activeCheckout.mount('#checkout-container');
 
