@@ -99,23 +99,20 @@
     });
   }
 
-  async function toggleOrderStatus(orderId, status, checkboxEl) {
-    console.log(`Updating order ${orderId} to status: ${status}...`);
-    
+  async function toggleOrderStatus(orderId, isCompleted) {
+    const newStatus = isCompleted ? 'completed' : 'pending';
+
     const { data, error } = await supabase
-      .from("orders")
-      .update({ status: status })
-      .eq("id", orderId)
-      .select();
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
 
     if (error) {
-      console.error("Supabase Update Error:", error);
-      alert(`Failed to update status: ${error.message}`);
-      if (checkboxEl) checkboxEl.checked = !checkboxEl.checked; // Revert checkbox visual state on failure
-    } else {
-      console.log("Successfully updated order status in DB:", data);
-      fetchOrders();
+      console.error('Failed to update order status:', error.message);
+      return;
     }
+
+    console.log(`Order ${orderId} status updated to ${newStatus}`);
   }
 
   function openOrderModal(orderId) {
