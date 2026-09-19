@@ -161,7 +161,7 @@ async function handleCheckout(event) {
   // --- CLEANUP STEP END ---
 
   try {
-    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/CHECK-OUT-SESSION', {
+    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
