@@ -366,7 +366,7 @@
 
         // Route to the appropriate dedicated page
         if (btnText.includes("Printify Orders Queue")) {
-          window.location.href = "queue/queue.html";
+          window.location.href = "/queue/queue.html";
         } else if (btnText.includes("Order History")) {
           window.location.href = "orders.html";
         } else if (btnText.includes("Developer Dashboard")) {
