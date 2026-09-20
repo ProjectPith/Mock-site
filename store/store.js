@@ -14,7 +14,7 @@ const products = [
     details: [
       'Material: Durable, high-density foam with an ultra-thin rubber base',
       '1/16 inch (1.58 mm) thick',
-      'One-sided print'.
+      'One-sided print',
     ]
   },
   { 
