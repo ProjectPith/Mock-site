@@ -12,15 +12,42 @@ let cart = (typeof state !== 'undefined' && state.cart)
 const stripeKey = 'pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV'; 
 let stripeInstance = null;
 
+// Helper to convert cart items into short codes
+function generateShortTag(item) {
+  // If item already has a pre-formatted short tag, use it
+  if (item.shortTag) return item.shortTag;
+
+  // Derive short code prefix based on product title or ID
+  let code = 'LC';
+  const title = (item.title || item.name || '').toLowerCase();
+
+  if (title.includes('hoodie')) code = 'LC Hdy';
+  else if (title.includes('laptop') || title.includes('sleeve')) code = 'LC LTS';
+  else if (title.includes('mouse')) code = 'LC MP';
+  else if (title.includes('mug') || title.includes('cup')) code = 'LC CM';
+  else code = item.code || 'LC Item';
+
+  // Build variants string (Size / Color or Specs)
+  const parts = [code];
+
+  if (item.size) parts.push(item.size); // e.g. S, M, L, XL, 2XL, or 12, 13, 15
+  if (item.color) {
+    // Map full color names to single letters if needed
+    const colorMap = { 'gray': 'G', 'charcoal': 'C', 'black': 'B', 'navy': 'N' };
+    const colorCode = colorMap[item.color.toLowerCase()] || item.color.toUpperCase()[0];
+    parts.push(colorCode);
+  }
+
+  return parts.join(' | ');
+}
+
 // Self-initializing setup
 function setupCartEnvironment() {
   if (window.Stripe) {
     stripeInstance = Stripe(stripeKey);
   }
   
-  // Auto-clear cart if returning from a completed Stripe checkout session
   checkAndClearSuccessCart();
-
   initCartOverlay();
   updateCartUI();
 }
@@ -29,8 +56,6 @@ function checkAndClearSuccessCart() {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("session_id") || window.location.pathname.includes("/success")) {
     clearCart();
-    
-    // Clean URL without triggering page reload
     const cleanUrl = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
   }
@@ -49,7 +74,7 @@ if (document.readyState === 'loading') {
   setupCartEnvironment();
 }
 
-// Global Event Delegation for Dynamic Elements
+// Global Event Delegation
 document.addEventListener('click', (e) => {
   if (e.target.closest('#cart-btn')) {
     e.preventDefault();
@@ -171,9 +196,10 @@ async function handleCheckout(event) {
   }
 
   const checkoutContainer = document.getElementById('checkout-container');
-  if (checkoutContainer) {
-    checkoutContainer.innerHTML = '';
-  }
+  if (checkoutContainer) checkoutContainer.innerHTML = '';
+
+  // Transform cart items into your short tags array
+  const formattedTags = cart.map(item => generateShortTag(item));
 
   try {
     const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY', {
@@ -182,7 +208,10 @@ async function handleCheckout(event) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0'
       },
-      body: JSON.stringify({ items: cart }),
+      body: JSON.stringify({ 
+        items: cart,
+        product_tags: formattedTags // Pass array like ["LC Hdy | M | C", "LC MP"]
+      }),
     });
 
     if (!response.ok) {
