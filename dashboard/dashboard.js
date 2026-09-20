@@ -46,9 +46,13 @@ function saveToolBookmark(name, url) {
 // ==========================================
 async function fetchProjects() {
   const tableBody = document.getElementById("projects-table-body");
+  if (!tableBody) return;
+
+  const db = getDb
+  if (!db) return;
 
   // Fetching projects from Supabase 'projects' table
-  const { data: projects, error } = await getDb
+  const { data: projects, error } = await db
     .from("projects")
     .select("*")
     .order("created_at", { ascending: false });
