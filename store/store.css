@@ -212,6 +212,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .modal-image-wrap img {
@@ -221,6 +222,7 @@
 }
 
 .modal-info-wrap {
+  padding: 1.75rem 1.25rem 1.25rem 1.25rem;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -251,7 +253,7 @@
   .modal-info-wrap {
     overflow-y: visible;
     height: auto;
-    padding: 1.25rem;
+    padding: 1..75rem 1.25rem 1.25rem 1.25rem;
     max-height: none;
   }
 }
