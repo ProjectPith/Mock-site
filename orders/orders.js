@@ -87,7 +87,7 @@ function renderOrderCard(order) {
     : `<span class="text-muted">N/A</span>`;
 
   // Dynamic Status Badge Logic
-  const statusBadge = getStatusBadgeHTML(order.status, orderId);
+  const statusBadge = getStatusBadgeHTML(order.status, order.id);
 
   return `
     <div class="order-card">
@@ -144,7 +144,7 @@ function decodeShorthand(rawTag) {
 }
 
 // Maps internal status to readable badges
-function getStatusBadgeHTML(status, orderId) {
+function getStatusBadgeHTML(status, id) {
   const s = (status || 'pending').toLowerCase();
   
   switch (s) {
