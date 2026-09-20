@@ -146,6 +146,19 @@
   justify-content: center;
 }
 
+/* Demo Card Specifics */
+.demo-card {
+  border: 1px dashed var(--accent-red);
+  text-align: left; /* Changed from center to align with standard cards */
+  padding: 0; /* Clear padding so the image wrapper touches the top edge */
+  cursor: default;
+}
+
+.demo-card:hover {
+  transform: none;
+  border-color: var(--accent-red);
+}
+
 /* Dynamic Modal Product Overlay */
 .modal-overlay {
   position: fixed;
