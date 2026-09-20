@@ -80,6 +80,14 @@ const products = [
       'Lightweight',
       'Please note: Always check the measurement table for the correct size choice',
     ]
+    sizeTable: {
+      headers: ['Size', 'Length (in)', 'Height (in)', 'Depth (in)'],
+      rows: [
+        ['12"', '11.30', '8.39', '0.91'],
+        ['13"', '12.80', '9.29', '0.91'],
+        ['15"', '14.41', '10.08', '0.91']
+      ]
+    }
   },
   { 
     id: 'p5', 
