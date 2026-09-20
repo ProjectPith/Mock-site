@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookkeeping & Ledger | LunarCraft</title>
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="bookkeeping.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bookkeeping-body">
+
+  <div class="bookkeeping-container">
+    
+    <!-- HEADER & SUMMARY CARDS -->
+    <header class="page-header">
+      <div>
+        <h1>Financial Ledger</h1>
+        <p class="subtitle">Real-time revenue, platform deductions, and tax estimations.</p>
+      </div>
+      <a href="../dashboard/dashboard.html" class="btn btn-outline">← Back to Dashboard</a>
+    </header>
+
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <span class="label">Gross Revenue</span>
+        <h2 id="metric-gross">$0.00</h2>
+      </div>
+      <div class="metric-card">
+        <span class="label">Platform & COGS Cuts</span>
+        <h2 id="metric-cuts" class="text-danger">-$0.00</h2>
+      </div>
+      <div class="metric-card">
+        <span class="label">Est. Tax Reserve (25%)</span>
+        <h2 id="metric-taxes" class="text-warning">-$0.00</h2>
+      </div>
+      <div class="metric-card highlight">
+        <span class="label">Net Take-Home</span>
+        <h2 id="metric-net" class="text-success">$0.00</h2>
+      </div>
+    </section>
+
+    <!-- FILTER TOOLBAR -->
+    <div class="filter-toolbar">
+      <button class="filter-btn active" data-view="sitewide">Site-Wide Overview</button>
+      <button class="filter-btn" data-view="printify">Printify / Merchandise</button>
+      <button class="filter-btn" data-view="maintenance">Maintenance Contracts</button>
+      <button class="filter-btn" data-view="builds">Site Builds</button>
+      <button class="filter-btn" data-view="tax_ledger">Tax & Reserves Ledger</button>
+    </div>
+
+    <!-- DYNAMIC DATA TABLE -->
+    <main class="ledger-table-container">
+      <table class="ledger-table">
+        <thead id="ledger-thead">
+          <!-- Dynamic headers based on selected view -->
+        </thead>
+        <tbody id="ledger-tbody">
+          <!-- Dynamic rows based on selected view -->
+        </tbody>
+      </table>
+    </main>
+
+  </div>
+
+  <script src="bookkeeping.js"></script>
+</body>
+</html>
