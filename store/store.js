@@ -13,7 +13,7 @@ const products = [
     // Printify Details
     details: [
       'Material: Durable, high-density foam with an ultra-thin rubber base'
-      '1/16" (1.58 mm) thick'
+      '1/16 inch (1.58 mm) thick'
       'One-sided print'
     ]
   },
