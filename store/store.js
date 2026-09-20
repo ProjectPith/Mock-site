@@ -93,8 +93,8 @@ const products = [
     id: 'p5', 
     isDemo: true,
     title: 'Custom Build Consultation', 
-    image: '/images/place-holder.jpg
-    desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.',
+    image: '/images/place-holder.jpg,
+    desc: 'Need a custom E-commerce web build for your brand? Reach out for a consultation.'
   }
 ];
 
