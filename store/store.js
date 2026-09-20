@@ -131,8 +131,7 @@ function renderProducts() {
           </div>
         </div>
       `;
-    }
-    
+    } else {
       const hasSizes = prod.sizes && prod.sizes.length > 0;
       const hasColors = prod.colors && prod.colors.length > 0;
 
@@ -174,6 +173,7 @@ function renderProducts() {
             </div>
           </div>
         </div>`;
+    }
   }
 
   container.innerHTML = html;
