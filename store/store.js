@@ -116,6 +116,11 @@ function renderProducts() {
     if (prod.isDemo) {
       return `
         <div class="product-card demo-card">
+          ${prod.image ? `
+            <div class="product-image-wrap">
+              <img src="${prod.image}" alt="${prod.title}">
+            </div>
+          ` : ''}
           <div class="product-info">
             <span class="badge">🚀 Portfolio Demo</span>
             <h3>${prod.title}</h3>
@@ -126,6 +131,7 @@ function renderProducts() {
           </div>
         </div>
       `;
+    }
     
       const hasSizes = prod.sizes && prod.sizes.length > 0;
       const hasColors = prod.colors && prod.colors.length > 0;
