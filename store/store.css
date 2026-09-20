@@ -146,20 +146,6 @@
   justify-content: center;
 }
 
-/* Demo Card Specifics */
-.demo-card {
-  border: 1px dashed var(--accent-red);
-  text-align: center;
-  justify-content: center;
-  padding: 2rem 1.25rem;
-  cursor: default;
-}
-
-.demo-card:hover {
-  transform: none;
-  border-color: var(--accent-red);
-}
-
 /* Dynamic Modal Product Overlay */
 .modal-overlay {
   position: fixed;
@@ -187,9 +173,11 @@
   border-radius: 12px;
   max-width: 800px;
   width: 100%;
+  max-height: 85vh; /* Caps total modal height */
   position: relative;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex; /* Keeps layout aligned */
 }
 
 .modal-close-btn {
@@ -211,11 +199,14 @@
 .modal-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-height: 85vh; /* Matches parent constraint */
 }
 
 @media (max-width: 650px) {
   .modal-body {
     grid-template-columns: 1fr;
+    overflow-y: auto; /* Enables vertical scrolling on mobile stack */
   }
 }
 
@@ -225,6 +216,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
+  height: 100%;
 }
 
 .modal-image-wrap img {
@@ -237,6 +229,27 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Makes right-hand details pane scrollable */
+  max-height: 85vh;
+  box-sizing: border-box;
+}
+
+/* Custom Scrollbar Styling */
+.modal-info-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-info-wrap::-webkit-scrollbar-track {
+  background: #0f1419;
+}
+
+.modal-info-wrap::-webkit-scrollbar-thumb {
+  background: #2a3542;
+  border-radius: 4px;
+}
+
+.modal-info-wrap::-webkit-scrollbar-thumb:hover {
+  background: #87ceeb;
 }
 
 .modal-info-wrap h2 {
@@ -311,7 +324,6 @@
 .modal-add-btn {
   width: 100%;
 }
-
 /* Button Overrides */
 .btn-secondary, 
 .btn-primary {
