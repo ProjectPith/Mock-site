@@ -360,9 +360,11 @@ function openProductModal(productId) {
   `;
 
   modalOverlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeProductModal() {
   const modalOverlay = document.getElementById('product-modal-overlay');
   if (modalOverlay) modalOverlay.classList.add('hidden');
+  document.body.style.overflow = '';
 }
