@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Render Product Grid
+// Render Product Grid
 function renderProducts() {
   const container = document.getElementById('products-grid');
   if (!container) return;
@@ -114,7 +115,7 @@ function renderProducts() {
     const prod = products[i];
 
     if (prod.isDemo) {
-      return `
+      html += `
         <div class="product-card demo-card">
           ${prod.image ? `
             <div class="product-image-wrap">
