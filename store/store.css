@@ -205,23 +205,13 @@
   overflow: hidden;
 }
 
-@media (max-width: 650px) {
-   .modal-card {
-      max height: 80vh;
-   }
-   
-   .modal-body {
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto; 
-      -webkit-overflow-scrolling: touch;
-   }
-}
-
+/* Desktop Styles for Wrappers */
 .modal-image-wrap {
-  min-height: 220px;
-  max-height: 250px;
-  flex-shrink: 0;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
 }
 
 .modal-image-wrap img {
@@ -231,101 +221,41 @@
 }
 
 .modal-info-wrap {
-   overflow-y: visible; /* Lets content flow naturally inside scrollable modal-body */
-   height: auto;
-   padding: 1.25rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 85vh;
+  box-sizing: border-box;
 }
 
-/* Custom Scrollbar Styling */
-.modal-info-wrap::-webkit-scrollbar {
-  width: 6px;
+/* Mobile Responsive Adjustments */
+@media (max-width: 650px) {
+  .modal-card {
+    max-height: 80vh;
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-image-wrap {
+    min-height: 200px;
+    max-height: 220px;
+    flex-shrink: 0;
+  }
+
+  .modal-info-wrap {
+    overflow-y: visible;
+    height: auto;
+    padding: 1.25rem;
+    max-height: none;
+  }
 }
 
-.modal-info-wrap::-webkit-scrollbar-track {
-  background: #0f1419;
-}
-
-.modal-info-wrap::-webkit-scrollbar-thumb {
-  background: #2a3542;
-  border-radius: 4px;
-}
-
-.modal-info-wrap::-webkit-scrollbar-thumb:hover {
-  background: #87ceeb;
-}
-
-.modal-info-wrap h2 {
-  font-size: 1.5rem;
-  color: var(--text-main);
-  margin: 0.5rem 0;
-}
-
-.modal-desc {
-  color: var(--text-main);
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
-
-.modal-details {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  margin-bottom: 1.5rem;
-}
-
-/* Modal Size Table */
-.modal-size-table-wrap {
-  margin-bottom: 1.25rem;
-}
-
-.modal-size-table-wrap strong {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--text-main);
-  margin-bottom: 0.5rem;
-}
-
-.modal-size-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.8rem;
-  text-align: center;
-  background-color: #12181f;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-}
-
-.modal-size-table th {
-  background-color: #1a222a;
-  color: #87ceeb;
-  padding: 6px 8px;
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.modal-size-table td {
-  padding: 6px 8px;
-  color: var(--text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.modal-size-table tr:last-child td {
-  border-bottom: none;
-}
-
-.modal-variants {
-  margin-top: auto;
-}
-
-.modal-price {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.modal-add-btn {
-  width: 100%;
-}
 /* Button Overrides */
 .btn-secondary, 
 .btn-primary {
