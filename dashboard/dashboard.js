@@ -121,44 +121,16 @@ function setupEventListeners() {
   // PAYOUT WIDGET DISPLAY LOGIC
   // ==========================================
   async function renderPayoutWidget() {
-    const netDisplay = document.getElementById("net-payout-display");
-    const grossDisplay = document.getElementById("payout-gross");
-    const deductionsDisplay = document.getElementById("payout-deductions");
+    if (!window.BookkeepingEngine) return;
+  
+    const { gross, cuts, tax, net } = await window.BookkeepingEngine.calculateNetPayout();
 
-    if (!netDisplay) return;
+    // Updated to match your exact HTML IDs
+    const netDisplay = document.getElementById("net-payout-display") || document.querySelector(".payout-amount");
+    const grossDisplay = document.getElementById("payout-gross") || document.querySelector(".payout-breakdown small:nth-child(1)");
+    const deductionsDisplay = document.getElementById("payout-deductions") || document.querySelector(".payout-breakdown small:nth-child(2)");
 
-    let gross = 0;
-    let cuts = 0;
-    let tax = 0;
-    let net = 0;
-
-    // Use global engine if available, otherwise fetch directly
-    if (window.BookkeepingEngine) {
-      const data = await window.BookkeepingEngine.calculateNetPayout();
-      gross = data.gross;
-      cuts = data.cuts;
-      tax = data.tax;
-      net = data.net;
-    } else {
-      const supabase = getDb();
-      if (!supabase) return;
-
-      const { data: orders } = await supabase.from("orders").select("total_amount");
-      const { data: contracts } = await supabase.from("contracts").select("amount");
-
-      const ordersGross = (orders || []).reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-      const contractsGross = (contracts || []).reduce((acc, c) => acc + Number(c.amount || 0), 0);
-    
-      gross = ordersGross + contractsGross;
-      const stripeCut = (gross * 0.029) + (((orders || []).length + (contracts || []).length) * 0.30);
-      const bizReserve = gross * 0.10;
-      tax = (gross - stripeCut) * 0.25;
-      cuts = stripeCut + bizReserve;
-      net = Math.max(0, gross - cuts - tax);
-    }
-
-    // Update UI Elements
-    netDisplay.textContent = `$${net.toFixed(2)}`;
+    if (netDisplay) netDisplay.textContent = `$${net.toFixed(2)}`;
     if (grossDisplay) grossDisplay.textContent = `Gross: $${gross.toFixed(2)}`;
     if (deductionsDisplay) deductionsDisplay.textContent = `Deductions: -$${(cuts + tax).toFixed(2)}`;
   }
