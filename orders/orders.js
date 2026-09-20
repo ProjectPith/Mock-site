@@ -144,7 +144,7 @@ function decodeShorthand(rawTag) {
 }
 
 // Maps internal status to readable badges
-function getStatusBadgeHTML(status, orderId) {
+function getStatusBadgeHTML(status, order.id) {
   const s = (status || 'pending').toLowerCase();
   
   switch (s) {
