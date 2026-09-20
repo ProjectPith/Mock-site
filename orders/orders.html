@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order History | LunarCraft</title>
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="orders.css">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
+</head>
+<body>
+
+  <main class="orders-container">
+    <div class="orders-header">
+      <h1>Your Order History</h1>
+      <p>Track your Printify gear orders and delivery statuses in real-time.</p>
+    </div>
+
+    <div id="orders-list" class="orders-list">
+      <!-- Order cards injected via orders.js -->
+      <div class="orders-loading">Loading order history...</div>
+    </div>
+  </main>
+
+  <script src="/orders/orders.js"></script>
+  <script src="/nav.js"></script>
+</body>
+</html>
