@@ -10,6 +10,7 @@ const getDb = window.supabaseClient;
 document.addEventListener("DOMContentLoaded", () => {
   loadToolBookmarks();
   fetchProjects();
+  renderPayoutWidget(); // Make sure this call is here!
   setupEventListeners();
 });
 
