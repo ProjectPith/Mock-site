@@ -302,6 +302,7 @@ function openProductModal(productId) {
       <span class="badge">Official Gear</span>
       <h2>${prod.title}</h2>
       <p class="modal-desc">${prod.desc}</p>
+      
       <div class="modal-details">
         <strong>Printify Specs & Features:</strong>
         ${Array.isArray(prod.details) ? `
@@ -310,6 +311,26 @@ function openProductModal(productId) {
           </ul>
         ` : `<p>${prod.details || ''}</p>`}
       </div>
+
+      ${prod.sizeTable ? `
+        <div class="modal-size-table-wrap">
+          <strong>Sizing & Inner Dimensions:</strong>
+          <table class="modal-size-table">
+            <thead>
+              <tr>
+                ${prod.sizeTable.headers.map(h => `<th>${h}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${prod.sizeTable.rows.map(row => `
+                <tr>
+                  ${row.map(cell => `<td>${cell}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
 
       ${(hasSizes || hasColors) ? `
         <div class="variant-selectors modal-variants">
