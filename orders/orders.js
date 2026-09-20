@@ -96,6 +96,7 @@ function renderOrderCard(order) {
           ${items.map(item => `
             <div class="order-item-row">
               <span class="item-qty">${item.quantity || 1}x</span>
+              <span class="item-details">${decodeShorthand(item.shortTag \vert{}\vert{} item.title)}</span>               <span class="item-price">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
             </div>
           `).join('')}
         </div>
