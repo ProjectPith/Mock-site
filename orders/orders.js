@@ -146,7 +146,7 @@ function decodeShorthand(rawTag) {
 // Maps internal status to readable badges
 function getStatusBadgeHTML(status, id) {
   const s = (status || 'pending').toLowerCase();
-  
+
   switch (s) {
     case 'pending':
     case 'order placed':
@@ -156,8 +156,9 @@ function getStatusBadgeHTML(status, id) {
     case 'in_printify':
       return `<span class="badge badge-progress">In Progress</span>`;
     case 'shipped':
-      return `<button class="badge badge-shipped status-action-btn" onclick="openDeliveryModal('${order.id}')">Shipped (Confirm Delivery)</button>`;
+      return `<button class="badge badge-shipped status-action-btn" onclick="openDeliveryModal('${id}')">Shipped (Click to Confirm Delivery)</button>`;
     case 'delivered':
+    case 'completed':
       return `<span class="badge badge-delivered">Delivered</span>`;
     case 'undelivered':
       return `<span class="badge badge-undelivered">Delivery Issue</span>`;
