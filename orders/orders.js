@@ -1,116 +1,155 @@
 // ==========================================
-// CLIENT ORDER HISTORY & SHORTHAND DECODER
+// CUSTOMER ORDERS MODULE
 // ==========================================
 
-// Shorthand Translation Mapping Dictionary
-const PRODUCT_DECODER = {
-  // Product Short Codes
-  codes: {
-    'LC MP': 'LunarCraft Mouse Pad',
-    'LC Hdy': 'LunarCraft Developer Hoodie',
-    'LC CM': 'LunarCraft Ceramic Mug',
-    'LC LTS': 'LunarCraft Laptop Sleeve'
-  },
-  // Color Code Mapping
-  colors: {
-    'C': 'Charcoal',
-    'B': 'Black',
-    'G': 'Gray',
-    'N': 'Navy'
-  }
+// Catalog dictionary to decode shorthand tags back to full descriptions
+const catalogMap = {
+  'LC MP': 'LunarCraft Mouse Pad',
+  'LC Hdy': 'LunarCraft Developer Hoodie',
+  'LC CM': 'LunarCraft Ceramic Mug',
+  'LC LTS': 'LunarCraft Laptop Sleeve'
 };
 
-/**
- * Translates cart tags like "LC LTS | 13" or "LC Hdy | M | C" into full titles
- * @param {string} shortTag 
- * @returns {string} Human-readable product description
- */
-function decodeShortTag(shortTag) {
-  if (!shortTag) return 'Custom Item';
-  
-  const parts = shortTag.split('|').map(p => p.trim());
-  const rawCode = parts[0];
-  const translatedTitle = PRODUCT_DECODER.codes[rawCode] || rawCode;
-  
-  const formattedSpecs = parts.slice(1).map(spec => {
-    // If spec matches a color code, translate it; otherwise return raw size/spec
-    return PRODUCT_DECODER.colors[spec] || spec;
-  });
+const colorMap = {
+  'C': 'Charcoal',
+  'B': 'Black',
+  'G': 'Gray',
+  'N': 'Navy'
+};
 
-  return formattedSpecs.length > 0 
-    ? `${translatedTitle} (${formattedSpecs.join(' / ')})` 
-    : translatedTitle;
-}
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchCustomerOrders();
+});
 
-// Render Orders for Logged-In User
-function renderCustomerOrders() {
-  const container = document.getElementById('customer-orders-container');
+async function fetchCustomerOrders() {
+  const container = document.getElementById('orders-list');
   if (!container) return;
 
-  // Retrieve current user and global order database from localStorage
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  const allOrders = JSON.parse(localStorage.getItem('lunar_orders')) || [];
+  // 1. Ensure user is authenticated via Supabase
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!currentUser) {
+  if (authError || !user) {
     container.innerHTML = `
       <div class="orders-empty-state">
         <p>Please log in to view your order history.</p>
-        <a href="../account/login.html" class="btn btn-primary">Log In</a>
+        <a href="../account/account.html" class="btn btn-primary">Go to Account</a>
       </div>`;
     return;
   }
 
-  // Filter orders pertaining ONLY to this client's account
-  const userOrders = allOrders.filter(order => order.customerEmail === currentUser.email);
+  // 2. Fetch orders specific to the logged-in client from Supabase
+  const { data: orders, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
 
-  if (userOrders.length === 0) {
+  if (error) {
+    console.error('Error fetching orders:', error);
+    container.innerHTML = `<p class="error-msg">Failed to load orders. Please try again later.</p>`;
+    return;
+  }
+
+  if (!orders || orders.length === 0) {
     container.innerHTML = `
       <div class="orders-empty-state">
         <p>You haven't placed any orders yet.</p>
-        <a href="../store/store.html" class="btn btn-secondary">Visit Store</a>
+        <a href="../store/store.html" class="btn btn-primary">Browse Store</a>
       </div>`;
     return;
   }
 
-  // Build Orders HTML
-  container.innerHTML = userOrders.map(order => {
-    // Calculate total quantity of items
-    const totalItems = order.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    
-    // Status Badge Formatting
-    const isPrintifySent = order.status === 'In Production' || order.status === 'Shipped' || order.status === 'Complete';
-    const statusClass = isPrintifySent ? 'status-active' : 'status-pending';
-    const statusDisplay = isPrintifySent ? 'In Printify Queue' : (order.status || 'Processing');
+  // 3. Render Order Cards
+  container.innerHTML = orders.map(order => renderOrderCard(order)).join('');
+}
 
-    return `
-      <div class="order-card">
-        <div class="order-header">
-          <div>
-            <span class="order-number">Order #${order.orderId}</span>
-            <span class="order-date">${new Date(order.createdAt).toLocaleDateString()}</span>
-          </div>
-          <span class="order-status-badge ${statusClass}">${statusDisplay}</span>
+function renderOrderCard(order) {
+  const dateFormatted = new Date(order.created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
+  const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]');
+  const itemCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  
+  // Format tracking link/text
+  const trackingDisplay = order.tracking_number 
+    ? `<a href="${order.tracking_url || '#'}" target="_blank" class="tracking-link">${order.tracking_number}</a>`
+    : `<span class="text-muted">N/A</span>`;
+
+  // Dynamic Status Badge Logic
+  const statusBadge = getStatusBadgeHTML(order.status);
+
+  return `
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <span class="order-id">Order #${order.order_number || order.id.slice(0, 8)}</span>
+          <span class="order-date">${dateFormatted}</span>
         </div>
+        ${statusBadge}
+      </div>
 
+      <div class="order-body">
         <div class="order-items-list">
-          ${order.items.map(item => `
+          ${items.map(item => `
             <div class="order-item-row">
-              <span class="item-name">${decodeShortTag(item.shortTag || item.title)}</span>
-              <span class="item-qty">x${item.quantity \vert{}\vert{} 1}</span>               <span class="item-price">$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
+              <span class="item-qty">${item.quantity || 1}x</span>
+              <span class="item-details">${decodeShorthand(item.shortTag \vert{}\vert{} item.title)}</span>               <span class="item-price">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
             </div>
           `).join('')}
         </div>
 
-        <div class="order-footer">
-          <div class="order-meta">
-            <span><strong>Total Items:</strong> ${totalItems}</span>
-            <span><strong>Tracking Number:</strong> ${order.trackingNumber ? `<a href="${order.trackingUrl \vert{}\vert{} '#'}" target="_blank">${order.trackingNumber}</a>` : 'N/A'}</span>
+        <div class="order-meta-grid">
+          <div class="meta-block">
+            <span class="meta-label">Total Amount</span>
+            <span class="meta-value highlight">$${Number(order.total_amount).toFixed(2)}</span>
           </div>
-          <div class="order-total">$${parseFloat(order.totalPaid).toFixed(2)}</div>
+          <div class="meta-block">
+            <span class="meta-label">Total Items</span>
+            <span class="meta-value">${itemCount} item${itemCount === 1 ? '' : 's'}</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Tracking Number</span>
+            <span class="meta-value">${trackingDisplay}</span>
+          </div>
         </div>
       </div>
-    `;
-  }).join('');
+    </div>
+  `;
 }
 
-document.addEventListener('DOMContentLoaded', renderCustomerOrders);
+// Translates "LC LTS | 13" or "LC Hdy | M | C" back to full text
+function decodeShorthand(rawTag) {
+  if (!rawTag) return 'Unknown Product';
+  
+  const parts = rawTag.split(' | ').map(p => p.trim());
+  const code = parts[0];
+  
+  const fullTitle = catalogMap[code] || code;
+  
+  // Handle optional variant descriptors (Size / Color)
+  const variants = parts.slice(1).map(v => colorMap[v] || v);
+  const variantText = variants.length > 0 ? ` (${variants.join(', ')})` : '';
+
+  return `${fullTitle}${variantText}`;
+}
+
+// Maps internal status to readable badges
+function getStatusBadgeHTML(status) {
+  const s = (status || 'pending').toLowerCase();
+
+  switch (s) {
+    case 'in_printify':
+    case 'processing':
+      return `<span class="status-badge badge-processing">In Production (Printify)</span>`;
+    case 'shipped':
+      return `<span class="status-badge badge-shipped">Shipped</span>`;
+    case 'completed':
+    case 'delivered':
+      return `<span class="status-badge badge-completed">Delivered</span>`;
+    default:
+      return `<span class="status-badge badge-pending">Order Placed</span>`;
+  }
+}
