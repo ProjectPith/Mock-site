@@ -144,19 +144,53 @@ function decodeShorthand(rawTag) {
 }
 
 // Maps internal status to readable badges
-function getStatusBadgeHTML(status) {
-  const s = (status || 'pending').toLowerCase();
-
-  switch (s) {
+function getStatusBadge(status) {
+  switch (status?.toLowerCase()) {
+    case 'pending':
+    case 'order placed':
+      return `<span class="badge badge-pending">Pending</span>`;
+    case 'in_progress':
+    case 'in progress':
     case 'in_printify':
-    case 'processing':
-      return `<span class="status-badge badge-processing">In Production (Printify)</span>`;
+      return `<span class="badge badge-progress">In Progress</span>`;
     case 'shipped':
-      return `<span class="status-badge badge-shipped">Shipped</span>`;
-    case 'completed':
+      return `<button class="badge badge-shipped status-action-btn" onclick="openDeliveryModal('${order.id}')">Shipped (Confirm Delivery)</button>`;
     case 'delivered':
-      return `<span class="status-badge badge-completed">Delivered</span>`;
+      return `<span class="badge badge-delivered">Delivered</span>`;
+    case 'undelivered':
+      return `<span class="badge badge-undelivered">Delivery Issue</span>`;
     default:
-      return `<span class="status-badge badge-pending">Order Placed</span>`;
+      return `<span class="badge badge-default">${status || 'Pending'}</span>`;
   }
 }
+
+async function updateDeliveryStatus(orderId, newStatus) {
+  const { error } = await db
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', orderId);
+
+  if (error) {
+    alert("Failed to update status. Please try again.");
+    console.error(error);
+  } else {
+    alert(`Order updated to: ${newStatus.toUpperCase()}`);
+    fetchCustomerOrders(); // Reload the history UI
+  }
+}
+
+// Global modal launcher for user delivery confirmation
+window.openDeliveryModal = function(orderId) {
+  const userConfirmed = confirm(
+    "Did you receive this package?\n\nClick 'OK' if Delivered.\nClick 'Cancel' to report Undelivered."
+  );
+  
+  if (userConfirmed) {
+    updateDeliveryStatus(orderId, 'delivered');
+  } else {
+    const reportIssue = confirm("Would you like to mark this order as Undelivered so our support team can review it?");
+    if (reportIssue) {
+      updateDeliveryStatus(orderId, 'undelivered');
+    }
+  }
+};
