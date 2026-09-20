@@ -121,21 +121,16 @@ function setupEventListeners() {
   // PAYOUT WIDGET DISPLAY LOGIC
   // ==========================================
   async function renderPayoutWidget() {
-    if (!window.BookkeepingEngine) {
-      console.error("BookkeepingEngine script not found.");
-      return;
-    }
+    if (!window.BookkeepingEngine) return;
 
-    // Pull calculated figures directly from the bookkeeping module
-    const { grossRevenue, totalDeductions, netPayout } = await window.BookkeepingEngine.calculateNetPayout();
+    const { gross, cuts, tax, net } = await window.BookkeepingEngine.calculateNetPayout();
 
-    // Render to UI
-    document.getElementById("net-payout-display").textContent = `$${netPayout.toFixed(2)}`;
-    document.getElementById("payout-gross").textContent = `Gross: $${grossRevenue.toFixed(2)}`;
-    document.getElementById("payout-deductions").textContent = `Est. Cuts/Tax: -$${totalDeductions.toFixed(2)}`;
+    const netDisplay = document.getElementById("net-payout-display");
+    const grossDisplay = document.getElementById("payout-gross");
+    const deductionsDisplay = document.getElementById("payout-deductions");
+
+    if (netDisplay) netDisplay.textContent = `$${net.toFixed(2)}`;
+    if (grossDisplay) grossDisplay.textContent = `Gross: $${gross.toFixed(2)}`;
+    if (deductionsDisplay) deductionsDisplay.textContent = `Deductions: -$${(cuts + tax).toFixed(2)}`;
   }
-
-  window.navigateToBookkeeping = function() {
-    window.location.href = "../bookkeeping/bookkeeping.html";
-  };
 }
