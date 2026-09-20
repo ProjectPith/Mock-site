@@ -183,6 +183,12 @@
   padding-top: 0.5rem;
 }
 
+.payout-container-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 /* MESSAGES CONTAINER (Remaining 3/4) */
 .messages-container {
   flex: 1;
