@@ -5,12 +5,12 @@ if (!window.supabaseClient && window.supabase) {
   window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-const getDb = window.supabaseClient;
+const getDb = () => window.supabaseClient;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadToolBookmarks();
   fetchProjects();
-  renderPayoutWidget(); // Make sure this call is here!
+  renderPayoutWidget();
   setupEventListeners();
 });
 
@@ -21,6 +21,8 @@ function loadToolBookmarks() {
   const tools = JSON.parse(localStorage.getItem("dev_tools") || "[]");
   const container = document.getElementById("tools-list");
   
+  if (!container) return;
+
   if (tools.length === 0) {
     container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">No tools bookmarked yet.</p>`;
     return;
@@ -48,7 +50,7 @@ async function fetchProjects() {
   const tableBody = document.getElementById("projects-table-body");
   if (!tableBody) return;
 
-  const db = getDb
+  const db = getDb();
   if (!db) return;
 
   // Fetching projects from Supabase 'projects' table
@@ -87,57 +89,55 @@ window.navigateToProject = function(projectId) {
 };
 
 // ==========================================
-// 3. EVENT LISTENERS & MODALS
+// 3. PAYOUT WIDGET DISPLAY LOGIC
+// ==========================================
+async function renderPayoutWidget() {
+  if (!window.BookkeepingEngine) return;
+
+  const { gross, cuts, tax, net } = await window.BookkeepingEngine.calculateNetPayout();
+
+  const netDisplay = document.getElementById("net-payout-display") || document.querySelector(".payout-amount");
+  const grossDisplay = document.getElementById("payout-gross") || document.querySelector(".payout-breakdown small:nth-child(1)");
+  const deductionsDisplay = document.getElementById("payout-deductions") || document.querySelector(".payout-breakdown small:nth-child(2)");
+
+  if (netDisplay) netDisplay.textContent = `$${net.toFixed(2)}`;
+  if (grossDisplay) grossDisplay.textContent = `Gross: $${gross.toFixed(2)}`;
+  if (deductionsDisplay) deductionsDisplay.textContent = `Deductions: -$${(cuts + tax).toFixed(2)}`;
+}
+
+// ==========================================
+// 4. EVENT LISTENERS & MODALS
 // ==========================================
 function setupEventListeners() {
   const toolModal = document.getElementById("tool-modal");
-  
-  document.getElementById("add-tool-btn").addEventListener("click", () => {
-    toolModal.classList.remove("hidden");
-  });
+  const addBtn = document.getElementById("add-tool-btn");
+  const closeBtn = document.getElementById("close-tool-modal");
+  const form = document.getElementById("add-tool-form");
+  const startContractBtn = document.getElementById("start-contract-btn");
 
-  document.getElementById("close-tool-modal").addEventListener("click", () => {
-    toolModal.classList.add("hidden");
-  });
-
-  document.getElementById("add-tool-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("tool-name").value;
-    const url = document.getElementById("tool-url").value;
-    
-    saveToolBookmark(name, url);
-    
-    document.getElementById("add-tool-form").reset();
-    toolModal.classList.add("hidden");
-  });
-
-  // Future Contract Generator Workflow Trigger
-  document.getElementById("start-contract-btn").addEventListener("click", () => {
-    window.location.href = "../contracts/new-contract.html";
-  });
-
-    // ==========================================
-  // PAYOUT WIDGET DISPLAY LOGIC
-  // ==========================================
-  async function renderPayoutWidget() {
-    if (!window.BookkeepingEngine) return;
-  
-    const { gross, cuts, tax, net } = await window.BookkeepingEngine.calculateNetPayout();
-
-    // Updated to match your exact HTML IDs
-    const netDisplay = document.getElementById("net-payout-display") || document.querySelector(".payout-amount");
-    const grossDisplay = document.getElementById("payout-gross") || document.querySelector(".payout-breakdown small:nth-child(1)");
-    const deductionsDisplay = document.getElementById("payout-deductions") || document.querySelector(".payout-breakdown small:nth-child(2)");
-
-    if (netDisplay) netDisplay.textContent = `$${net.toFixed(2)}`;
-    if (grossDisplay) grossDisplay.textContent = `Gross: $${gross.toFixed(2)}`;
-    if (deductionsDisplay) deductionsDisplay.textContent = `Deductions: -$${(cuts + tax).toFixed(2)}`;
+  if (addBtn && toolModal) {
+    addBtn.addEventListener("click", () => toolModal.classList.remove("hidden"));
   }
-  
-  document.addEventListener("DOMContentLoaded", () => {
-    loadToolBookmarks();
-    fetchProjects();
-    renderPayoutWidget();
-    setupEventListeners();
-  });
+
+  if (closeBtn && toolModal) {
+    closeBtn.addEventListener("click", () => toolModal.classList.add("hidden"));
+  }
+
+  if (form && toolModal) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("tool-name").value;
+      const url = document.getElementById("tool-url").value;
+      
+      saveToolBookmark(name, url);
+      form.reset();
+      toolModal.classList.add("hidden");
+    });
+  }
+
+  if (startContractBtn) {
+    startContractBtn.addEventListener("click", () => {
+      window.location.href = "../contracts/new-contract.html";
+    });
+  }
 }
