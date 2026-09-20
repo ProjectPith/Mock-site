@@ -12,9 +12,9 @@ const products = [
     desc: 'Rectangle foam mouse pad with rubber bottom.',
     // Printify Details
     details: [
-      'Material: Durable, high-density foam with an ultra-thin rubber base'
-      '1/16 inch (1.58 mm) thick'
-      'One-sided print'
+      'Material: Durable, high-density foam with an ultra-thin rubber base',
+      '1/16 inch (1.58 mm) thick',
+      'One-sided print'.
     ]
   },
   { 
@@ -57,10 +57,10 @@ const products = [
     desc: '15oz dark ceramic mug. Lead and BPA free.',
     // Printify Details
     details: [
-      'Black ceramic material with a glossy finish'
-      'One size: 15oz (0.44 l)'
-      'C-shaped easy-grip handle'
-      'Lead and BPA-free'
+      'Black ceramic material with a glossy finish',
+      'One size: 15oz (0.44 l)',
+      'C-shaped easy-grip handle',
+      'Lead and BPA-free',
     ]
   },
   { 
@@ -73,12 +73,12 @@ const products = [
     desc: 'Fleece interior. Lightweight. Please check sizing chart.',
     // Printify Details
     details: [
-      'Materials: 100% polyester'
-      'Plush fleece interior'
-      'YKK 5 nylon zipper'
-      'Black polyester back'
-      'Lightweight'
-      'Please note: Always check the measurement table for the correct size choice'
+      'Materials: 100% polyester',
+      'Plush fleece interior',
+      'YKK 5 nylon zipper',
+      'Black polyester back',
+      'Lightweight',
+      'Please note: Always check the measurement table for the correct size choice',
     ]
   },
   { 
