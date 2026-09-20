@@ -368,7 +368,7 @@
         if (btnText.includes("Printify Orders Queue")) {
           window.location.href = "/queue/queue.html";
         } else if (btnText.includes("Order History")) {
-          window.location.href = "orders.html";
+          window.location.href = "/orders/orders.html";
         } else if (btnText.includes("Developer Dashboard")) {
           window.location.href = "dashboard.html";
         } else if (btnText.includes("Billing") || btnText.includes("Invoicing")) {
