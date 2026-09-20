@@ -5,7 +5,7 @@ if (!window.supabaseClient && window.supabase) {
   window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-const db = window.supabaseClient;
+const getDb = window.supabaseClient;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadToolBookmarks();
