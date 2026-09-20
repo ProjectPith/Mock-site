@@ -33,10 +33,10 @@ async function fetchCustomerOrders() {
   const container = document.getElementById('orders-list');
   if (!container) return;
 
-  // 1. Fetch current logged-in user session
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  // 1. Get authenticated user session
+  const { data: { session }, error: sessionError } = await db.auth.getSession();
 
-  if (authError || !user || !user.email) {
+  if (sessionError || !session || !session.user || !session.user.email) {
     container.innerHTML = `
       <div class="orders-empty-state">
         <p>Please log in to view your order history.</p>
@@ -45,11 +45,11 @@ async function fetchCustomerOrders() {
     return;
   }
 
-  // 2. Query Supabase orders matching the customer's email
-  const { data: orders, error } = await supabase
+  // 2. Fetch orders matching the customer's logged-in email
+  const { data: orders, error } = await db
     .from('orders')
     .select('*')
-    .eq('customer_email', user.email) // Filtered by email column
+    .eq('customer_email', session.user.email)
     .order('created_at', { ascending: false });
 
   if (error) {
