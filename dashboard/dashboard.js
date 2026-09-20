@@ -111,14 +111,8 @@ function setupEventListeners() {
   document.getElementById("start-contract-btn").addEventListener("click", () => {
     window.location.href = "../contracts/new-contract.html";
   });
-  document.addEventListener("DOMContentLoaded", () => {
-    loadToolBookmarks();
-    fetchProjects();
-    renderPayoutWidget();
-    setupEventListeners();
-  });
 
-  // ==========================================
+    // ==========================================
   // PAYOUT WIDGET DISPLAY LOGIC
   // ==========================================
   async function renderPayoutWidget() {
@@ -135,4 +129,11 @@ function setupEventListeners() {
     if (grossDisplay) grossDisplay.textContent = `Gross: $${gross.toFixed(2)}`;
     if (deductionsDisplay) deductionsDisplay.textContent = `Deductions: -$${(cuts + tax).toFixed(2)}`;
   }
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    loadToolBookmarks();
+    fetchProjects();
+    renderPayoutWidget();
+    setupEventListeners();
+  });
 }
