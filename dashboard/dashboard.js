@@ -47,7 +47,7 @@ async function fetchProjects() {
   const tableBody = document.getElementById("projects-table-body");
 
   // Fetching projects from Supabase 'projects' table
-  const { data: projects, error } = await db
+  const { data: projects, error } = await getDb
     .from("projects")
     .select("*")
     .order("created_at", { ascending: false });
