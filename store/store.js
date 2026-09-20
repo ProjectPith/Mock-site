@@ -22,12 +22,12 @@ const products = [
     shortCode: 'LC Hdy',
     title: 'LunarCraft Developer Hoodie', 
     price: 55.56, 
-    image: '../images/Hoodie_Charcoal.png', 
+    image: '../images/Hoodie_Charcoal.jpg', 
     colorImages: {
-      'C': '../images/Hoodie_Charcoal.png',        // Charcoal / Default
-      'B': '../images/Hoodie_Black.png',  // Black
-      'G': '../images/Hoodie_Gray.png',   // Gray
-      'N': '../images/Hoodie_Navy.png'    // Navy
+      'C': '../images/Hoodie_Charcoal.jpg',        // Charcoal / Default
+      'B': '../images/Hoodie_Black.jpg',  // Black
+      'G': '../images/Hoodie_Gray.jpg',   // Gray
+      'N': '../images/Hoodie_Navy.jpg'    // Navy
     },
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     colors: [
