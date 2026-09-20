@@ -57,17 +57,19 @@
       <aside class="right-column">
   
         <!-- ESTIMATED PAYOUT WIDGET (Clickable -> Bookkeeping Page) -->
-        <div id="payout-card" class="payout-container" onclick="navigateToBookkeeping()">
-          <div class="payout-header">
-            <span>Estimated Net Payout</span>
-            <span class="arrow-icon">→</span>
+        <a href="../bookkeeping/bookkeeping.html" class="payout-container-link">
+          <div id="payout-card" class="payout-container">
+            <div class="payout-header">
+              <span>Estimated Net Payout</span>
+              <span class="arrow-icon">→</span>
+            </div>
+            <div class="payout-amount" id="net-payout-display">$0.00</div>
+            <div class="payout-breakdown">
+              <small id="payout-gross">Gross: $0.00</small>
+              <small id="payout-deductions">Deductions: -$0.00</small>
+            </div>
           </div>
-          <div class="payout-amount" id="net-payout-display">$0.00</div>
-          <div class="payout-breakdown">
-            <small id="payout-gross">Gross: $0.00</small>
-            <small id="payout-deductions">Deductions: -$0.00</small>
-          </div>
-        </div>
+        </a>
 
         <!-- RECENT MESSAGES STREAM -->
         <div class="messages-container">
