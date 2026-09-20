@@ -110,4 +110,32 @@ function setupEventListeners() {
   document.getElementById("start-contract-btn").addEventListener("click", () => {
     window.location.href = "../contracts/new-contract.html";
   });
+  document.addEventListener("DOMContentLoaded", () => {
+    loadToolBookmarks();
+    fetchProjects();
+    renderPayoutWidget();
+    setupEventListeners();
+  });
+
+  // ==========================================
+  // PAYOUT WIDGET DISPLAY LOGIC
+  // ==========================================
+  async function renderPayoutWidget() {
+    if (!window.BookkeepingEngine) {
+      console.error("BookkeepingEngine script not found.");
+      return;
+    }
+
+    // Pull calculated figures directly from the bookkeeping module
+    const { grossRevenue, totalDeductions, netPayout } = await window.BookkeepingEngine.calculateNetPayout();
+
+    // Render to UI
+    document.getElementById("net-payout-display").textContent = `$${netPayout.toFixed(2)}`;
+    document.getElementById("payout-gross").textContent = `Gross: $${grossRevenue.toFixed(2)}`;
+    document.getElementById("payout-deductions").textContent = `Est. Cuts/Tax: -$${totalDeductions.toFixed(2)}`;
+  }
+
+  window.navigateToBookkeeping = function() {
+    window.location.href = "../bookkeeping/bookkeeping.html";
+  };
 }
