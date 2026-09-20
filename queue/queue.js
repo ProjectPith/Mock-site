@@ -26,7 +26,7 @@
 
     let query = supabase
       .from("orders")
-      .select("*, order_items(*)")
+      .select("*")
       .order("created_at", { ascending: false });
 
     if (!showCompleted) {
@@ -64,13 +64,13 @@
     }
 
     tableBody.innerHTML = orders.map(order => {
-      // Calculate count from order_items relational table or raw json items column
+      // Calculate item count from product_tags or items
       let itemCount = 0;
-      if (order.order_items && order.order_items.length > 0) {
-        itemCount = order.order_items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      if (Array.isArray(order.product_tags)) {
+        itemCount = order.product_tags.length;
       } else if (order.items) {
         const rawItems = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : order.items;
-        itemCount = rawItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        itemCount = Array.isArray(rawItems) ? rawItems.length : 1;
       }
 
       const orderDate = new Date(order.created_at).toLocaleDateString();
@@ -137,7 +137,7 @@
 
     document.getElementById("customer-email").textContent = currentSelectedOrder.customer_email || "N/A";
     
-    // Format Shipping Address (Object or String)
+    // Address Formatting
     const addrEl = document.getElementById("shipping-address");
     const ship = currentSelectedOrder.shipping_address;
     if (typeof ship === 'object' && ship !== null) {
@@ -151,58 +151,28 @@
       addrEl.innerText = ship || "No shipping address provided.";
     }
 
-    // Format Ordered Items
+    // Render Product Tags directly as short codes
     const itemsList = document.getElementById("ordered-items-list");
     itemsList.innerHTML = "";
 
-    // Grab whatever product data column exists on the order row
-    const rawItemsData = currentSelectedOrder.items 
-      || currentSelectedOrder.product_tags 
-      || currentSelectedOrder.products;
-
-    let itemsToRender = [];
-
-    if (rawItemsData) {
-      // Handle array, JSON string, or comma-separated string ("p1, p2")
-      if (Array.isArray(rawItemsData)) {
-        itemsToRender = rawItemsData;
-      } else if (typeof rawItemsData === 'string') {
-        try {
-          itemsToRender = JSON.parse(rawItemsData);
-        } catch (e) {
-          // If it's a plain string like "p1, p2" or "p1"
-          itemsToRender = rawItemsData.split(',').map(tag => tag.trim());
-        }
-      }
+    let tags = currentSelectedOrder.product_tags;
+    
+    // Parse string if stored as text string instead of text array
+    if (typeof tags === 'string') {
+      try { tags = JSON.parse(tags); } catch(e) { tags = [tags]; }
     }
 
-    if (itemsToRender.length > 0) {
-      itemsToRender.forEach(item => {
+    if (Array.isArray(tags) && tags.length > 0) {
+      tags.forEach(tag => {
         const li = document.createElement("li");
-        
-        // Extract tag string if item is an object or plain string
-        const tag = typeof item === 'string' ? item : (item.id || item.tag || item.title);
-        
-        // Match tag against map, or fall back to displaying the raw string
-        const productInfo = PRODUCT_MAP[tag] || { 
-          title: item.title || item.name || tag, 
-          price: item.price || 0 
-        };
-
-        const qty = item.quantity || item.qty || 1;
-        const price = productInfo.price || 0;
-
-        li.innerHTML = `
-          <span><strong>${qty}x</strong> ${productInfo.title}</span>
-          <span>$${Number(price).toFixed(2)}</span>
-        `;
+        li.innerHTML = `<span style="font-family: monospace; font-weight: 600; color: #87ceeb;">${tag}</span>`;
         itemsList.appendChild(li);
       });
     } else {
-      itemsList.innerHTML = `<li><span>No item breakdown available.</span></li>`;
+      itemsList.innerHTML = `<li><span>No product tags recorded.</span></li>`;
     }
 
-    // Set tracking number input
+    // Tracking Number
     const trackingInput = document.getElementById("tracking-input");
     if (trackingInput) {
       trackingInput.value = currentSelectedOrder.tracking_number || "";
@@ -211,7 +181,7 @@
     modal.classList.remove("hidden");
   }
 
-  // Bind Listeners
+  // Event Listeners
   document.getElementById("close-modal-btn")?.addEventListener("click", () => {
     document.getElementById("order-modal")?.classList.add("hidden");
   });
