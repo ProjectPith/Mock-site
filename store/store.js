@@ -296,7 +296,11 @@ function openProductModal(productId) {
       <p class="modal-desc">${prod.desc}</p>
       <div class="modal-details">
         <strong>Printify Specs & Features:</strong>
-        <p style="margin-top: 0.5rem; color: var(--text-muted);">${prod.details || ''}</p>
+        ${Array.isArray(prod.details) ? `
+          <ul class="printify-specs">
+            ${prod.details.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        ` : `<p>${prod.details || ''}</p>`}
       </div>
 
       ${(hasSizes || hasColors) ? `
