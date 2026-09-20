@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Dashboard | LunarCraft</title>
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+
+  <div class="dashboard-layout">
+    <!-- LEFT SIDEBAR: Dynamic Tool Bookmarks -->
+    <aside class="sidebar-tools">
+      <div class="sidebar-header">
+        <h3>Tool Bookmarks</h3>
+        <button id="add-tool-btn" class="btn-icon" title="Add Bookmark">+</button>
+      </div>
+      <div id="tools-list" class="tools-list">
+        <!-- Bookmark boxes render here dynamically -->
+      </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT AREA -->
+    <main class="dashboard-main">
+      
+      <!-- CENTER COLUMN (2/3): Active Projects Table -->
+      <section class="projects-container">
+        <div class="section-header">
+          <h2>Active Projects</h2>
+          <button id="start-contract-btn" class="btn btn-primary">+ Start New Contract</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Repository / Links</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-body">
+              <!-- Dynamic Projects Render Here -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN (1/3): Recent Messages Stream -->
+      <aside class="messages-container">
+        <div class="section-header">
+          <h3>Recent Messages</h3>
+        </div>
+        <div id="messages-list" class="messages-list">
+          <div class="message-placeholder">
+            <p>Messaging stream will connect here.</p>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+  </div>
+
+  <!-- MODAL: Add Tool Bookmark -->
+  <div id="tool-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-tool-modal" class="close-btn">&times;</span>
+      <h3>Add Tool Bookmark</h3>
+      <form id="add-tool-form">
+        <div class="form-group">
+          <label for="tool-name">Tool Name</label>
+          <input type="text" id="tool-name" placeholder="e.g. Supabase, GitHub, Figma" required>
+        </div>
+        <div class="form-group">
+          <label for="tool-url">Tool URL</label>
+          <input type="url" id="tool-url" placeholder="https://..." required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Bookmark</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
