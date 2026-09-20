@@ -29,8 +29,9 @@
       .select("*")
       .order("created_at", { ascending: false });
 
+    // Hide finished orders unless checkbox is checked
     if (!showCompleted) {
-      query = query.neq("status", "completed");
+      query = query.not("status", "in", '("completed","delivered")');
     }
 
     const { data, error } = await query;
@@ -47,7 +48,7 @@
     if (!window.orderSubscription) {
       window.orderSubscription = supabase
         .channel('public:orders')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
           fetchOrders();
         })
         .subscribe();
@@ -64,7 +65,6 @@
     }
 
     tableBody.innerHTML = orders.map(order => {
-      // Calculate item count from product_tags or items
       let itemCount = 0;
       if (Array.isArray(order.product_tags)) {
         itemCount = order.product_tags.length;
@@ -74,17 +74,18 @@
       }
 
       const orderDate = new Date(order.created_at).toLocaleDateString();
-      const isCompleted = order.status === "completed";
+      const currentStatus = (order.status || 'pending').toLowerCase();
+      const isFinished = currentStatus === "completed" || currentStatus === "delivered";
 
       return `
-        <tr class="${isCompleted ? 'completed' : ''}" data-id="${order.id}">
+        <tr class="${isFinished ? 'completed' : ''}" data-id="${order.id}">
           <td><strong>${order.customer_email || 'No email'}</strong></td>
           <td>${orderDate}</td>
           <td>${itemCount} item(s)</td>
           <td>$${Number(order.total_amount || order.total || 0).toFixed(2)}</td>
-          <td><span class="status-badge ${order.status}">${order.status}</span></td>
+          <td><span class="status-badge ${currentStatus}">${currentStatus.replace('_', ' ')}</span></td>
           <td style="text-align: center;" onclick="event.stopPropagation();">
-            <input type="checkbox" class="order-complete-checkbox" data-id="${order.id}" ${isCompleted ? 'checked' : ''}>
+            <input type="checkbox" class="order-complete-checkbox" data-id="${order.id}" ${isFinished ? 'checked' : ''}>
           </td>
         </tr>
       `;
@@ -102,7 +103,7 @@
       box.addEventListener("change", async (e) => {
         e.stopPropagation();
         const orderId = e.target.getAttribute("data-id");
-        const newStatus = e.target.checked ? "completed" : "pending";
+        const newStatus = e.target.checked ? "delivered" : "pending";
         await updateOrderStatusInDb(orderId, newStatus);
       });
     });
@@ -157,7 +158,6 @@
 
     let tags = currentSelectedOrder.product_tags;
     
-    // Parse string if stored as text string instead of text array
     if (typeof tags === 'string') {
       try { tags = JSON.parse(tags); } catch(e) { tags = [tags]; }
     }
@@ -172,7 +172,7 @@
       itemsList.innerHTML = `<li><span>No product tags recorded.</span></li>`;
     }
 
-    // Tracking Number
+    // Tracking Number Input Setup
     const trackingInput = document.getElementById("tracking-input");
     if (trackingInput) {
       trackingInput.value = currentSelectedOrder.tracking_number || "";
@@ -188,11 +188,24 @@
 
   document.getElementById("show-completed")?.addEventListener("change", fetchOrders);
 
+  // Action 1: Mark order as "in_progress" (Sent to Printify)
+  document.getElementById("in-progress-btn")?.addEventListener("click", async () => {
+    if (!currentSelectedOrder) return;
+    await updateOrderStatusInDb(currentSelectedOrder.id, "in_progress");
+    document.getElementById("order-modal")?.classList.add("hidden");
+  });
+
+  // Action 2: Mark order as "shipped" with tracking number (Triggers Email)
   document.getElementById("fulfill-btn")?.addEventListener("click", async () => {
     if (!currentSelectedOrder) return;
-    const tracking = document.getElementById("tracking-input")?.value;
+    const tracking = document.getElementById("tracking-input")?.value?.trim();
 
-    await updateOrderStatusInDb(currentSelectedOrder.id, "completed", tracking);
+    if (!tracking) {
+      alert("Please enter a tracking number before marking as shipped.");
+      return;
+    }
+
+    await updateOrderStatusInDb(currentSelectedOrder.id, "shipped", tracking);
     document.getElementById("order-modal")?.classList.add("hidden");
   });
 
