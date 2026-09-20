@@ -114,19 +114,19 @@ function renderProducts() {
     const prod = products[i];
 
     if (prod.isDemo) {
-      html += `
+      return `
         <div class="product-card demo-card">
-          <div class="demo-icon">🚀</div>
           <div class="product-info">
-            <span class="badge badge-demo">Portfolio Demo</span>
+            <span class="badge">🚀 Portfolio Demo</span>
             <h3>${prod.title}</h3>
             <p>${prod.desc}</p>
             <div class="card-actions">
-              <a href="/booking/booking.html" class="btn btn-primary">Inquire About Builds</a>
+              <a href="../estimator/estimator.html" class="btn btn-primary">Inquire About Builds</a>
             </div>
           </div>
-        </div>`;
-    } else {
+        </div>
+      `;
+    
       const hasSizes = prod.sizes && prod.sizes.length > 0;
       const hasColors = prod.colors && prod.colors.length > 0;
 
