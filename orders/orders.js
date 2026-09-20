@@ -25,10 +25,10 @@ async function fetchCustomerOrders() {
   const container = document.getElementById('orders-list');
   if (!container) return;
 
-  // 1. Ensure user is authenticated via Supabase
+  // 1. Fetch current logged-in user session
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (authError || !user) {
+  if (authError || !user || !user.email) {
     container.innerHTML = `
       <div class="orders-empty-state">
         <p>Please log in to view your order history.</p>
@@ -37,11 +37,11 @@ async function fetchCustomerOrders() {
     return;
   }
 
-  // 2. Fetch orders specific to the logged-in client from Supabase
+  // 2. Query Supabase orders matching the customer's email
   const { data: orders, error } = await supabase
     .from('orders')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('customer_email', user.email) // Filtered by email column
     .order('created_at', { ascending: false });
 
   if (error) {
