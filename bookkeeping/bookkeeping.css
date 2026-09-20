@@ -1,0 +1,123 @@
+.bookkeeping-body {
+  margin: 0;
+  background-color: #0d1117;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 2rem;
+}
+
+.bookkeeping-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #f0f6fc;
+}
+
+.subtitle {
+  color: #8b949e;
+  margin-top: 0.25rem;
+}
+
+/* METRICS GRID */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.metric-card.highlight {
+  border-color: #87ceeb;
+  background: linear-gradient(135deg, #1f293d 0%, #161b22 100%);
+}
+
+.metric-card .label {
+  font-size: 0.8rem;
+  color: #8b949e;
+  text-transform: uppercase;
+}
+
+.metric-card h2 {
+  margin: 0.5rem 0 0 0;
+  font-size: 1.6rem;
+}
+
+.text-danger { color: #ff7b72; }
+.text-warning { color: #d29922; }
+.text-success { color: #3fb950; }
+
+/* FILTER TOOLBAR */
+.filter-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 0.75rem;
+  overflow-x: auto;
+}
+
+.filter-btn {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: #87ceeb;
+  color: #f0f6fc;
+}
+
+.filter-btn.active {
+  background: #21262d;
+  color: #87ceeb;
+  border-color: #87ceeb;
+}
+
+/* LEDGER TABLE */
+.ledger-table-container {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ledger-table th, .ledger-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #30363d;
+  font-size: 0.9rem;
+}
+
+.ledger-table th {
+  background: #0d1117;
+  color: #8b949e;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
