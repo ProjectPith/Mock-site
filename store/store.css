@@ -258,6 +258,47 @@
   margin-bottom: 1.5rem;
 }
 
+/* Modal Size Table */
+.modal-size-table-wrap {
+  margin-bottom: 1.25rem;
+}
+
+.modal-size-table-wrap strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.modal-size-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+  background-color: #12181f;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.modal-size-table th {
+  background-color: #1a222a;
+  color: #87ceeb;
+  padding: 6px 8px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-size-table td {
+  padding: 6px 8px;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-size-table tr:last-child td {
+  border-bottom: none;
+}
+
 .modal-variants {
   margin-top: auto;
 }
