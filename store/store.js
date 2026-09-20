@@ -174,7 +174,6 @@ function renderProducts() {
             </div>
           </div>
         </div>`;
-    }
   }
 
   container.innerHTML = html;
