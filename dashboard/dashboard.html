@@ -53,18 +53,35 @@
         </div>
       </section>
 
-      <!-- RIGHT COLUMN (1/3): Recent Messages Stream -->
-      <aside class="messages-container">
-        <div class="section-header">
-          <h3>Recent Messages</h3>
-        </div>
-        <div id="messages-list" class="messages-list">
-          <div class="message-placeholder">
-            <p>Messaging stream will connect here.</p>
+      <!-- RIGHT COLUMN: Financial Overview (1/4) + Recent Messages (3/4) -->
+      <aside class="right-column">
+  
+        <!-- ESTIMATED PAYOUT WIDGET (Clickable -> Bookkeeping Page) -->
+        <div id="payout-card" class="payout-container" onclick="navigateToBookkeeping()">
+          <div class="payout-header">
+            <span>Estimated Net Payout</span>
+            <span class="arrow-icon">→</span>
+          </div>
+          <div class="payout-amount" id="net-payout-display">$0.00</div>
+          <div class="payout-breakdown">
+            <small id="payout-gross">Gross: $0.00</small>
+            <small id="payout-deductions">Deductions: -$0.00</small>
           </div>
         </div>
-      </aside>
 
+        <!-- RECENT MESSAGES STREAM -->
+        <div class="messages-container">
+          <div class="section-header">
+            <h3>Recent Messages</h3>
+          </div>
+          <div id="messages-list" class="messages-list">
+            <div class="message-placeholder">
+              <p>Messaging stream will connect here.</p>
+            </div>
+          </div>
+        </div>
+
+      </aside>
     </main>
   </div>
 
