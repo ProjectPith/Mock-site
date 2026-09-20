@@ -79,7 +79,7 @@ const products = [
       'Black polyester back',
       'Lightweight',
       'Please note: Always check the measurement table for the correct size choice',
-    ]
+    ],
     sizeTable: {
       headers: ['Size', 'Length (in)', 'Height (in)', 'Depth (in)'],
       rows: [
