@@ -5,26 +5,34 @@ if (!window.supabaseClient && window.supabase) {
   window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-// Attach calculations engine globally for dashboard & other pages
+// Attach unified calculations engine globally
 window.BookkeepingEngine = {
   async calculateNetPayout() {
     const supabase = window.supabaseClient;
-    const { data: orders, error } = await supabase.from("orders").select("total_amount");
+    if (!supabase) return { gross: 0, cuts: 0, tax: 0, net: 0 };
+
+    // 1. Fetch Orders
+    const { data: orders } = await supabase.from("orders").select("total_amount");
     
-    if (error || !orders) {
-      return { gross: 0, cuts: 0, tax: 0, net: 0 };
-    }
+    // 2. Fetch Contracts (Site Builds & Maintenance)
+    const { data: contracts } = await supabase.from("contracts").select("amount");
 
-    const gross = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-    const stripeCut = (gross * 0.029) + (orders.length * 0.30);
-    const bizReserve = gross * 0.10; // 10% business reserve
+    const ordersGross = (orders || []).reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+    const contractsGross = (contracts || []).reduce((acc, c) => acc + Number(c.amount || 0), 0);
+    
+    const gross = ordersGross + contractsGross;
+
+    // Platform & Cost Deductions
+    const stripeCut = (gross * 0.029) + (((orders || []).length + (contracts || []).length) * 0.30);
+    const bizReserve = gross * 0.10; // 10% auto-reinvest/growth
     const taxReserve = (gross - stripeCut) * 0.25; // 25% tax estimation
-    const net = Math.max(0, gross - stripeCut - bizReserve - taxReserve);
+    
+    const cuts = stripeCut + bizReserve;
+    const net = Math.max(0, gross - cuts - taxReserve);
 
-    return { gross, cuts: stripeCut + bizReserve, tax: taxReserve, net };
+    return { gross, cuts, tax: taxReserve, net };
   }
 };
-
 // ONLY run ledger rendering if we are on bookkeeping.html
 document.addEventListener("DOMContentLoaded", () => {
   const isBookkeepingPage = document.getElementById("metric-gross");
