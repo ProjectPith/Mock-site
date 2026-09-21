@@ -33,7 +33,7 @@ async function fetchAccountNameByEmail(email) {
     // 2. Direct table query on profiles
     const { data: profile } = await db
       .from('profiles')
-      .select('full_name, name, display_name')
+      .select('full_name, name')
       .ilike('email', cleanEmail)
       .maybeSingle();
 
