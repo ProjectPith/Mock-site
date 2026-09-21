@@ -49,7 +49,7 @@ window.ChatEngine = {
       return [];
     }
     return data;
-  }, // <-- Comma was missing here!
+  },
 
   // 3. Listen to Realtime updates in a room
   subscribeToRoom(roomId, onNewMessage) {
@@ -63,9 +63,10 @@ window.ChatEngine = {
       .order('created_at', { ascending: true })
       .then(({ data }) => onNewMessage(data || [], true));
 
-    // Subscribe to incoming messages live
-    return db
-      .channel(`room:${roomId}`)
+    // Chain .on BEFORE .subscribe()
+    const channel = db.channel(`room:${roomId}`);
+
+    channel
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` },
@@ -74,6 +75,8 @@ window.ChatEngine = {
         }
       )
       .subscribe();
+
+    return channel;
   },
 
   // 4. Send a Message
