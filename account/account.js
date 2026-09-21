@@ -111,7 +111,7 @@
             <button class="nav-btn">💳 Client Invoicing</button>
             <button class="nav-btn">🗓️ Maintenance Schedule</button>
             <button class="nav-btn">📄 Contract Vault & Search</button>
-            <button class="nav-btn">💬 Global Communications</button>
+            <button class="nav-btn">💬 Project Communications</button>
 
             <div class="account-promotion-box">
                 <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
@@ -373,6 +373,8 @@
           window.location.href = "/dashboard/dashboard.html";
         } else if (btnText.includes("Billing") || btnText.includes("Invoicing")) {
           window.location.href = "billing.html";
+        } else if (btnText.includes("Ptoject Communications")) {
+          window.location.href = "messages/messages.html";
         }
         // Add more route conditions here as you build out additional pages!
       }
