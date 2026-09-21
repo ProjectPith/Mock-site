@@ -22,15 +22,7 @@ async function fetchAccountNameByEmail(email) {
   if (!db) return fallbackName;
 
   try {
-    // 1. Check active auth session
-    const { data: sessionData } = await db.auth.getSession();
-    const currentUser = sessionData?.session?.user;
-    if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
-      const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
-      if (metaName) return metaName;
-    }
-
-    // 2. Direct table check on profiles (only querying valid column full_name)
+    // Direct table query on public.profiles (Only requesting full_name)
     const { data: profile } = await db
       .from('profiles')
       .select('full_name')
@@ -41,7 +33,7 @@ async function fetchAccountNameByEmail(email) {
       return profile.full_name;
     }
   } catch (err) {
-    // Suppress network errors
+    // Ignore error silently
   }
 
   return fallbackName;
