@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LunarCraft | Client Messages</title>
+  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <link rel="stylesheet" href="messages.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+
+  
+
+  <div class="chat-layout">
+    <!-- Sidebar: Room List -->
+    <aside class="chat-sidebar">
+      <div class="sidebar-header">
+        <h3>Messages</h3>
+        <button id="open-new-chat-modal" class="btn btn-primary btn-sm">+ New Chat</button>
+      </div>
+      <div id="rooms-list" class="rooms-list">
+        <!-- Room cards will dynamically render here -->
+      </div>
+    </aside>
+
+    <!-- Main Chat Container -->
+    <main class="chat-main">
+      <div id="no-chat-selected" class="empty-chat-state">
+        <p>Select a client conversation or start a new chat.</p>
+      </div>
+
+      <div id="active-chat-container" class="active-chat-container hidden">
+        <!-- Room Header -->
+        <header class="chat-header">
+          <div>
+            <h2 id="active-room-title">Client Name</h2>
+            <small id="active-room-subtitle">client@email.com</small>
+          </div>
+        </header>
+
+        <!-- Message Feed -->
+        <div id="messages-feed" class="messages-feed">
+          <!-- Messages will stream here in real time -->
+        </div>
+
+        <!-- Input Area -->
+        <form id="message-form" class="chat-input-container">
+          <input 
+            type="text" 
+            id="message-input" 
+            placeholder="Type your message..." 
+            autocomplete="off"
+            required
+          >
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Chat Modal -->
+  <div id="new-chat-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Start New Client Chat</h3>
+      <form id="new-chat-form">
+        <div class="form-group">
+          <label for="modal-room-name">Room / Project Name</label>
+          <input type="text" id="modal-room-name" placeholder="e.g. Website Overhaul" required>
+        </div>
+        <div class="form-group">
+          <label for="modal-client-name">Client Name</label>
+          <input type="text" id="modal-client-name" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label for="modal-client-email">Client Email</label>
+          <input type="email" id="modal-client-email" placeholder="john@example.com" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="close-modal-btn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="chatEngine.js"></script>
+  <script src="messages.js"></script>
+</body>
+</html>
