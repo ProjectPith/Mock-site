@@ -33,9 +33,18 @@
       <div id="active-chat-container" class="active-chat-container hidden">
         <!-- Room Header -->
         <header class="chat-header">
-          <div>
-            <h2 id="active-room-title">Client Name</h2>
-            <small id="active-room-subtitle">client@email.com</small>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <!-- Mobile Back Button -->
+            <button id="mobile-back-btn" class="mobile-back-btn" aria-label="Back to messages">
+              <span class="back-circle-outer">
+                <span class="back-circle-inner">‹</span>
+              </span>
+            </button>
+
+            <div>
+              <h2 id="active-room-title">Client Name</h2>
+              <small id="active-room-subtitle">client@email.com</small>
+            </div>
           </div>
         </header>
 
