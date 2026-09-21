@@ -1,20 +1,19 @@
-// messages.js - Safe RPC Name Lookup & Complete Room Management
+// messages.js - Clean Room Management without RPC dependencies
 
 let activeRoomId = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Helper: Fetch account name safely using service_role or session
-// Helper: Fetch account name safely using standard client read
+// Helper: Resolve name locally or via direct table query (No RPC required)
 async function fetchAccountNameByEmail(email) {
-  const db = window.supabaseClient;
   const cleanEmail = email ? email.trim().toLowerCase() : "";
   if (!cleanEmail) return "Guest";
 
   const fallbackName = cleanEmail.split('@')[0];
+  const db = window.supabaseClient;
   if (!db) return fallbackName;
 
   try {
-    // 1. Check current logged-in session user first
+    // 1. Check active auth session
     const { data: sessionData } = await db.auth.getSession();
     const currentUser = sessionData?.session?.user;
     if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
@@ -22,7 +21,7 @@ async function fetchAccountNameByEmail(email) {
       if (metaName) return metaName;
     }
 
-    // 2. Query profiles table directly
+    // 2. Direct table check on profiles
     const { data: profile } = await db
       .from('profiles')
       .select('full_name, name, display_name')
@@ -30,11 +29,10 @@ async function fetchAccountNameByEmail(email) {
       .maybeSingle();
 
     if (profile) {
-      const resolvedName = profile.full_name || profile.name || profile.display_name;
-      if (resolvedName) return resolvedName;
+      return profile.full_name || profile.name || profile.display_name || fallbackName;
     }
   } catch (err) {
-    // Suppress network errors silently
+    // Silently continue to fallback name on any network failure
   }
 
   return fallbackName;
@@ -145,7 +143,7 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and render list of rooms globally accessible
+// Fetch and render list of rooms
 window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   if (!window.ChatEngine) {
     if (retryCount < 10) {
@@ -196,7 +194,7 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   }
 };
 
-// Set up UI Event Listeners
+// UI Event Handlers
 function setupUIEventListeners() {
   const messageForm = document.getElementById("message-form");
   if (messageForm) {
@@ -241,7 +239,6 @@ function setupUIEventListeners() {
     cancelModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
   }
 
-  // Developer Checkbox Event Listener
   if (devCheckbox && clientEmailInput) {
     devCheckbox.addEventListener("change", (e) => {
       let currentEmails = clientEmailInput.value
@@ -264,7 +261,6 @@ function setupUIEventListeners() {
     });
   }
 
-  // Create Room Submission
   if (createRoomForm && modal) {
     createRoomForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -275,7 +271,6 @@ function setupUIEventListeners() {
 
       const emailList = rawEmails.split(',').map(e => e.trim()).filter(Boolean);
 
-      // Fetch corresponding account names from Supabase safely
       const resolvedNames = await Promise.all(
         emailList.map(email => fetchAccountNameByEmail(email))
       );
