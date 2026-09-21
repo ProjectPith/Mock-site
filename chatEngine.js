@@ -3,6 +3,10 @@ window.ChatEngine = {
   // 1. Manual Creation (For now, via Email / Name)
   async createRoom({ name, clientName, clientEmail, projectId = null }) {
     const db = window.supabaseClient;
+    if (!db) {
+      console.warn("Supabase client not initialized yet.");
+      return null;
+    }
     
     // Check if room already exists for this client/project
     let query = db.from('chat_rooms').select('*');
@@ -45,11 +49,12 @@ window.ChatEngine = {
       return [];
     }
     return data;
-  }
+  }, // <-- Comma was missing here!
 
   // 3. Listen to Realtime updates in a room
   subscribeToRoom(roomId, onNewMessage) {
     const db = window.supabaseClient;
+    if (!db) return;
 
     // Fetch historical messages first
     db.from('messages')
@@ -74,6 +79,8 @@ window.ChatEngine = {
   // 4. Send a Message
   async sendMessage(roomId, senderType, senderName, content) {
     const db = window.supabaseClient;
+    if (!db) return;
+
     const { error } = await db
       .from('messages')
       .insert([{
