@@ -1,6 +1,9 @@
-// messages.js - Complete Updated Script
+// messages.js - Clean Script without Inline Styles
 
 let activeRoomId = null;
+
+// Developer default email
+const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
 // Determine sender role (admin vs client) dynamically from Supabase session
 async function getCurrentUserRole() {
@@ -43,9 +46,9 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
   if (selectedItem) selectedItem.classList.add("active");
 
-  // Reveal main chat container immediately in case room has no messages
-  const emptyState = document.querySelector(".empty-chat-state");
-  const chatContainer = document.querySelector(".active-chat-container");
+  // Reveal main chat container immediately
+  const emptyState = document.getElementById("empty-chat-state");
+  const chatContainer = document.getElementById("active-chat-container");
   if (emptyState) emptyState.classList.add("hidden");
   if (chatContainer) chatContainer.classList.remove("hidden");
 
@@ -62,11 +65,10 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
 
 // Render messages to feed
 function renderMessages(messages) {
-  const emptyState = document.querySelector(".empty-chat-state");
-  const chatContainer = document.querySelector(".active-chat-container");
+  const emptyState = document.getElementById("empty-chat-state");
+  const chatContainer = document.getElementById("active-chat-container");
   const feedEl = document.getElementById("messages-feed");
 
-  // Show active container and hide empty placeholder
   if (emptyState) emptyState.classList.add("hidden");
   if (chatContainer) chatContainer.classList.remove("hidden");
 
@@ -74,7 +76,7 @@ function renderMessages(messages) {
   feedEl.innerHTML = "";
 
   if (!messages || messages.length === 0) {
-    feedEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No messages yet in this room.</div>`;
+    feedEl.innerHTML = `<div class="chat-empty-notice">No messages yet in this room.</div>`;
     return;
   }
 
@@ -82,7 +84,6 @@ function renderMessages(messages) {
     appendMessageToFeed(msg);
   });
 
-  // Scroll feed to bottom
   feedEl.scrollTop = feedEl.scrollHeight;
 }
 
@@ -95,26 +96,22 @@ function appendMessageToFeed(msg) {
   const senderClass = msg.sender_type === "admin" ? "admin" : "client";
   bubble.className = `message-bubble ${senderClass}`;
 
-  const timeString = new Date(msg.created_at).toLocaleTimeString([], {
+  const timeString = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit"
-  });
+  }) : '';
 
   bubble.innerHTML = `
     <div class="message-content">${escapeHtml(msg.content)}</div>
-    <div class="message-meta">${escapeHtml(msg.sender_name || msg.sender_type)} • ${timeString}</div>
+    <div class="message-meta">
+      ${escapeHtml(msg.sender_name || msg.sender_type)} • ${timeString}
+    </div>
   `;
 
   feed.appendChild(bubble);
   feed.scrollTop = feed.scrollHeight;
 }
 
-// Handle incoming realtime message
-function handleNewMessage(msg) {
-  appendMessageToFeed(msg);
-}
-
-// Helper to escape HTML characters
 function escapeHtml(str) {
   return String(str || "")
     .replace(/&/g, "&amp;")
@@ -134,26 +131,23 @@ async function loadRoomsList() {
   roomsListEl.innerHTML = "";
 
   if (!rooms || rooms.length === 0) {
-    roomsListEl.innerHTML = `<div class="empty-chat-state">No active chats.</div>`;
+    roomsListEl.innerHTML = `<div class="empty-chat-state rooms-empty-padding">No active chats.</div>`;
     return;
   }
 
   rooms.forEach((room) => {
     const card = document.createElement("div");
-    // Matches .room-card in messages.css
     card.className = "room-card";
     card.setAttribute("data-room-id", room.id);
 
     const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
     const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
 
-    // Matches <h4> and <small> structure in messages.css
     card.innerHTML = `
       <h4>${escapeHtml(displayName)}</h4>
       ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
     `;
 
-    // Attach click handler directly to the room card element
     card.addEventListener("click", () => {
       window.selectRoom(room.id, displayName, room.client_email);
     });
@@ -201,21 +195,45 @@ function setupUIEventListeners() {
   const modal = document.getElementById("create-room-modal");
   const cancelModalBtn = document.getElementById("cancel-modal-btn");
   const createRoomForm = document.getElementById("create-room-form");
+  const devCheckbox = document.getElementById("modal-dev-checkbox");
+
+  const roomNameInput = document.getElementById("modal-room-name");
+  const clientNameInput = document.getElementById("modal-client-name");
+  const clientEmailInput = document.getElementById("modal-client-email");
 
   if (newChatBtn && modal) {
-    newChatBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+    newChatBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+    });
   }
 
   if (cancelModalBtn && modal) {
-    cancelModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
+    cancelModalBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  }
+
+  // Handle Developer Checkbox Toggle
+  if (devCheckbox) {
+    devCheckbox.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        clientEmailInput.value = DEV_DEFAULT_EMAIL;
+        clientEmailInput.readOnly = true;
+        if (!roomNameInput.value) roomNameInput.value = "Developer Inquiry";
+        if (!clientNameInput.value) clientNameInput.value = "Client Support Chat";
+      } else {
+        clientEmailInput.readOnly = false;
+        clientEmailInput.value = "";
+      }
+    });
   }
 
   if (createRoomForm && modal) {
     createRoomForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const roomName = document.getElementById("modal-room-name")?.value.trim();
-      const clientName = document.getElementById("modal-client-name")?.value.trim();
-      const clientEmail = document.getElementById("modal-client-email")?.value.trim();
+      const roomName = roomNameInput?.value.trim();
+      const clientName = clientNameInput?.value.trim();
+      const clientEmail = clientEmailInput?.value.trim();
 
       if (!roomName || !clientEmail) return;
 
@@ -223,24 +241,19 @@ function setupUIEventListeners() {
         const newRoom = await window.ChatEngine.createRoom(roomName, clientName, clientEmail);
         modal.classList.add("hidden");
         createRoomForm.reset();
+        if (devCheckbox) devCheckbox.checked = false;
+        if (clientEmailInput) clientEmailInput.readOnly = false;
+
         await loadRoomsList();
         if (newRoom && newRoom.id) {
-          window.selectRoom(newRoom.id, newRoom.room_name, newRoom.client_email);
+          window.selectRoom(newRoom.id, newRoom.name || newRoom.room_name, newRoom.client_email);
         }
       }
     });
   }
 }
 
-// Initialize interface on DOM load
 document.addEventListener("DOMContentLoaded", () => {
-  const backBtn = document.getElementById("mobile-back-btn");
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      document.querySelector(".chat-layout")?.classList.remove("room-active");
-    });
-  }
-  
   setupUIEventListeners();
   loadRoomsList();
 });
