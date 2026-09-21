@@ -12,7 +12,7 @@
 let activeRoomId = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Helper: Resolve name locally or via direct profiles query (No RPC required)
+// Helper: Resolve name locally or via direct profiles query
 async function fetchAccountNameByEmail(email) {
   const cleanEmail = email ? email.trim().toLowerCase() : "";
   if (!cleanEmail) return "Guest";
@@ -30,15 +30,15 @@ async function fetchAccountNameByEmail(email) {
       if (metaName) return metaName;
     }
 
-    // 2. Direct table query on profiles
+    // 2. Direct table check on profiles (only querying valid column full_name)
     const { data: profile } = await db
       .from('profiles')
-      .select('full_name, name')
+      .select('full_name')
       .ilike('email', cleanEmail)
       .maybeSingle();
 
-    if (profile) {
-      return profile.full_name || profile.name || profile.display_name || fallbackName;
+    if (profile && profile.full_name) {
+      return profile.full_name;
     }
   } catch (err) {
     // Suppress network errors
