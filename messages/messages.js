@@ -1,4 +1,4 @@
-// messages.js - Standardized Client & Room Management
+// messages.js - Ensured Logged-in Creator Email Inclusion
 
 (function () {
   if (!window.supabaseClient && window.supabase) {
@@ -12,7 +12,7 @@ let activeRoomId = null;
 let activeRoomData = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Helper: Resolve name locally or via direct profiles query
+// Helper: Resolve account name by email
 async function fetchAccountNameByEmail(email) {
   const cleanEmail = email ? email.trim().toLowerCase() : "";
   if (!cleanEmail) return "Guest";
@@ -45,15 +45,15 @@ async function fetchAccountNameByEmail(email) {
   return fallbackName;
 }
 
-// Determine sender role dynamically
+// Determine sender role
 async function getCurrentUserRole() {
   const db = window.supabaseClient;
-  if (!db) return { type: 'client', name: 'Client', isAdmin: false };
+  if (!db) return { type: 'client', name: 'Client', isAdmin: false, email: '' };
 
   const { data } = await db.auth.getSession();
   const user = data?.session?.user;
 
-  if (!user) return { type: 'client', name: 'Guest Client', isAdmin: false };
+  if (!user) return { type: 'client', name: 'Guest Client', isAdmin: false, email: '' };
 
   const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
   const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
@@ -62,7 +62,7 @@ async function getCurrentUserRole() {
   const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
   const senderName = user.user_metadata?.full_name || user.email || (isAdmin ? 'Admin' : 'Client');
 
-  return { type: isAdmin ? 'admin' : 'client', name: senderName, isAdmin };
+  return { type: isAdmin ? 'admin' : 'client', name: senderName, isAdmin, email: userEmail };
 }
 
 // Select a chat room
@@ -98,7 +98,6 @@ window.selectRoom = function (roomId, roomName, roomData) {
   }
 };
 
-// Render messages feed
 function renderMessages(messages) {
   const emptyState = document.getElementById("empty-chat-state");
   const chatContainer = document.getElementById("active-chat-container");
@@ -119,7 +118,6 @@ function renderMessages(messages) {
   feedEl.scrollTop = feedEl.scrollHeight;
 }
 
-// Append bubble to feed
 function appendMessageToFeed(msg) {
   const feed = document.getElementById("messages-feed");
   if (!feed) return;
@@ -152,7 +150,6 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and render list of rooms
 window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   if (!window.ChatEngine) {
     if (retryCount < 10) {
@@ -165,7 +162,6 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
     const userRole = await getCurrentUserRole();
     const filterSelect = document.getElementById("admin-room-filter");
     
-    // Unhide filter dropdown if admin
     if (userRole.isAdmin && filterSelect) {
       filterSelect.classList.remove("hidden");
     }
@@ -208,15 +204,17 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   }
 };
 
-// Update room client_email and client_name list in Supabase
 async function updateRoomParticipants(roomId, emailList) {
   if (!roomId || !window.ChatEngine) return;
 
+  // De-duplicate emails
+  const uniqueEmails = [...new Set(emailList.map(e => e.trim().toLowerCase()).filter(Boolean))];
+
   const resolvedNames = await Promise.all(
-    emailList.map(email => fetchAccountNameByEmail(email))
+    uniqueEmails.map(email => fetchAccountNameByEmail(email))
   );
 
-  const clientEmailStr = emailList.join(", ");
+  const clientEmailStr = uniqueEmails.join(", ");
   const clientNameStr = resolvedNames.join(", ");
 
   const success = await window.ChatEngine.updateRoomMembers(roomId, clientEmailStr, clientNameStr);
@@ -230,7 +228,6 @@ async function updateRoomParticipants(roomId, emailList) {
   }
 }
 
-// UI Event Handlers
 function setupUIEventListeners() {
   const filterSelect = document.getElementById("admin-room-filter");
   if (filterSelect) {
@@ -269,7 +266,6 @@ function setupUIEventListeners() {
     });
   }
 
-  // Manage Group Members Modal Logic
   const membersBtn = document.getElementById("manage-members-btn");
   const membersModal = document.getElementById("members-modal");
   const closeMembersBtn = document.getElementById("close-members-modal-btn");
@@ -401,7 +397,16 @@ function setupUIEventListeners() {
 
       if (!roomName || !rawEmails) return;
 
-      const emailList = rawEmails.split(',').map(e => e.trim()).filter(Boolean);
+      const userRole = await getCurrentUserRole();
+      let emailList = rawEmails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
+      // ALWAYS force the creator's logged-in email into the list
+      if (userRole.email && !emailList.includes(userRole.email)) {
+        emailList.unshift(userRole.email);
+      }
+
+      // Deduplicate email list
+      emailList = [...new Set(emailList)];
 
       const resolvedNames = await Promise.all(
         emailList.map(email => fetchAccountNameByEmail(email))
