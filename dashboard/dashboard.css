@@ -363,4 +363,28 @@
     flex-direction: row;
     justify-content: space-between;
   }
+
+  /* DISABLE BOOKING TAB */
+
+  /* DISABLE CLICKING / NAVIGATION ON MOBILE ONLY */
+  .payout-container-link {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  /* REMOVE HOVER / INTERACTIVE VISUAL CUES ON MOBILE */
+  .payout-container {
+    cursor: default;
+  }
+
+  .payout-container:hover {
+    transform: none;
+    border-color: #30363d;
+    box-shadow: none;
+  }
+
+  /* HIDE NAVIGATION ARROW ON MOBILE */
+  .payout-header .arrow-icon {
+    display: none;
+  }
 }
