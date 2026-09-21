@@ -142,39 +142,36 @@ function escapeHtml(str) {
 }
 
 // Fetch and load initial list of rooms
-async function loadRoomsList() {
-  if (!window.ChatEngine) return;
+async function fetchAccountNameByEmail(email) {
+  const db = window.supabaseClient;
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return "Guest";
 
-  const rooms = await window.ChatEngine.fetchRooms();
-  const roomsListEl = document.getElementById("rooms-list");
-  if (!roomsListEl) return;
+  const fallbackName = cleanEmail.split('@')[0];
+  if (!db) return fallbackName;
 
-  roomsListEl.innerHTML = "";
+  try {
+    // 1. Check current logged-in session user first (instant local check)
+    const { data: sessionData } = await db.auth.getSession();
+    const currentUser = sessionData?.session?.user;
+    if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
+      const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
+      if (metaName) return metaName;
+    }
 
-  if (!rooms || rooms.length === 0) {
-    roomsListEl.innerHTML = `<div class="empty-chat-state rooms-empty-padding">No active chats.</div>`;
-    return;
-  }
-
-  rooms.forEach((room) => {
-    const card = document.createElement("div");
-    card.className = "room-card";
-    card.setAttribute("data-room-id", room.id);
-
-    const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
-    const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
-
-    card.innerHTML = `
-      <h4>${escapeHtml(displayName)}</h4>
-      ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
-    `;
-
-    card.addEventListener("click", () => {
-      window.selectRoom(room.id, displayName, room.client_email);
+    // 2. Call secure RPC function
+    const { data: resolvedName, error } = await db.rpc('get_user_name_by_email', {
+      user_email: cleanEmail
     });
 
-    roomsListEl.appendChild(card);
-  });
+    if (!error && resolvedName) {
+      return resolvedName;
+    }
+  } catch (err) {
+    // Fallback quietly if network drops
+  }
+
+  return fallbackName;
 }
 
 // Set up UI Event Listeners
