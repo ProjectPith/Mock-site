@@ -3,7 +3,7 @@
 (function () {
   if (!window.supabaseClient && window.supabase) {
     const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZipqspbdbanobjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 })();
@@ -65,7 +65,7 @@ async function getCurrentUserRole() {
   return { type: isAdmin ? 'admin' : 'client', name: senderName };
 }
 
-// Select a chat room (Cleaner header - no sub-text email)
+// Select a chat room
 window.selectRoom = function (roomId, roomName, roomData) {
   activeRoomId = roomId;
   activeRoomData = roomData || {};
@@ -76,7 +76,7 @@ window.selectRoom = function (roomId, roomName, roomData) {
   const subtitleEl = document.getElementById("active-room-subtitle");
   
   if (titleEl) titleEl.textContent = roomName || "Chat";
-  if (subtitleEl) subtitleEl.textContent = ""; // Stripped subtext email
+  if (subtitleEl) subtitleEl.textContent = ""; 
 
   document.querySelectorAll(".room-card").forEach((el) => el.classList.remove("active"));
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
@@ -152,7 +152,7 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and render list of rooms (Sidebar cards display title only)
+// Fetch and render list of rooms
 window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   if (!window.ChatEngine) {
     if (retryCount < 10) {
@@ -180,7 +180,6 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
 
       const displayName = room.name || room.room_name || room.client_name || "Chat";
 
-      // Render room name only without sub-text email
       card.innerHTML = `<h4>${escapeHtml(displayName)}</h4>`;
 
       card.addEventListener("click", () => {
@@ -290,7 +289,8 @@ function setupUIEventListeners() {
       .filter(Boolean);
   }
 
-  function renderMembersList() {
+  // Asynchronous Member List Renderer: Fetches Display Name + Email
+  async function renderMembersList() {
     if (!membersListContainer) return;
     const emails = getActiveEmailList();
     membersListContainer.innerHTML = "";
@@ -300,14 +300,25 @@ function setupUIEventListeners() {
       return;
     }
 
-    emails.forEach((email) => {
+    // Resolve name lookups in parallel
+    const memberDetails = await Promise.all(
+      emails.map(async (email) => {
+        const name = await fetchAccountNameByEmail(email);
+        return { email, name };
+      })
+    );
+
+    memberDetails.forEach(({ email, name }) => {
       const row = document.createElement("div");
       row.className = "member-item-row";
-      row.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);";
+      row.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.05));";
 
       row.innerHTML = `
-        <span>${escapeHtml(email)}</span>
-        <button type="button" class="btn-remove-member" data-email="${escapeHtml(email)}" style="background: none; border: none; color: #ff6b6b; cursor: pointer;">Remove</button>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main, #fff);">${escapeHtml(name)}</span>
+          <small style="font-size: 0.75rem; color: var(--text-muted, #8b949e);">${escapeHtml(email)}</small>
+        </div>
+        <button type="button" class="btn-remove-member" data-email="${escapeHtml(email)}" style="background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 0.85rem;">Remove</button>
       `;
 
       row.querySelector(".btn-remove-member").addEventListener("click", async (e) => {
@@ -316,7 +327,7 @@ function setupUIEventListeners() {
         const updatedList = currentList.filter(e => e.toLowerCase() !== emailToRemove.toLowerCase());
 
         await updateRoomParticipants(activeRoomId, updatedList);
-        renderMembersList();
+        await renderMembersList();
       });
 
       membersListContainer.appendChild(row);
@@ -336,7 +347,7 @@ function setupUIEventListeners() {
       }
 
       newMemberEmailInput.value = "";
-      renderMembersList();
+      await renderMembersList();
     });
   }
 
