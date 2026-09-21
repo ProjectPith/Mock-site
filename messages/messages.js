@@ -234,6 +234,13 @@ function setupUIEventListeners() {
 
 // Initialize interface on DOM load
 document.addEventListener("DOMContentLoaded", () => {
+  const backBtn = document.getElement.ById("mobile-back-btn");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      document.querySelector(".chat-layout")?.classList.remove("room-active");
+    });
+  }
+  
   setupUIEventListeners();
   loadRoomsList();
 });
