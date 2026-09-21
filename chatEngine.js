@@ -1,4 +1,4 @@
-// chatEngine.js - Role-Based Room Filtering & Realtime Chat Engine
+// chatEngine.js - Fixed Multi-Room Email Matching
 
 (function () {
   const ChatEngine = {
@@ -12,27 +12,39 @@
         const user = sessionData?.session?.user;
         if (!user) return [];
 
-        const userEmail = (user.email || "").toLowerCase();
+        const userEmail = (user.email || "").trim().toLowerCase();
         const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
         const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
         const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
 
-        let query = db.from('chat_rooms').select('*').order('created_at', { ascending: false });
+        // Query all chat rooms ordered by newest first
+        const { data: rooms, error } = await db
+          .from('chat_rooms')
+          .select('*')
+          .order('created_at', { ascending: false });
 
+        if (error) throw error;
+        if (!rooms) return [];
+
+        // Admin Filter handling
         if (isAdmin) {
-          // If admin chooses "my_chats", filter rooms containing admin's email
           if (adminFilterMode === 'my_chats') {
-            query = query.ilike('client_email', `%${userEmail}%`);
+            return rooms.filter(room => {
+              if (!room.client_email) return false;
+              return room.client_email.toLowerCase().includes(userEmail);
+            });
           }
-          // If adminFilterMode === 'all', no filter is applied
-        } else {
-          // STRICT CLIENT FILTER: Only return rooms containing this specific client's email
-          query = query.ilike('client_email', `%${userEmail}%`);
+          // 'all' mode returns every room in the database
+          return rooms;
         }
 
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
+        // CLIENT FILTER: Return ANY room where client_email contains the client's email address
+        return rooms.filter(room => {
+          if (!room.client_email) return false;
+          // Flexible partial match check across comma-separated strings
+          return room.client_email.toLowerCase().includes(userEmail);
+        });
+
       } catch (err) {
         console.error("Error fetching rooms:", err);
         return [];
