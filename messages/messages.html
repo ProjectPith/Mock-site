@@ -50,13 +50,13 @@
           </div>
         </div>
 
-        <!-- Messages Feed (Scrolls independently) -->
+        <!-- Messages Feed -->
         <div class="messages-feed" id="messages-feed">
           <!-- Bubbles render here -->
         </div>
 
         <!-- Input Bar (Pinned at bottom) -->
-        <form class="chat-input-container" id="chat-form">
+        <form class="chat-input-container" id="message-form">
           <input type="text" id="message-input" placeholder="Type a message..." required autocomplete="off" />
           <button type="submit" class="btn">Send</button>
         </form>
@@ -65,24 +65,34 @@
   </div>
   
   <!-- New Chat Modal -->
-  <div id="new-chat-modal" class="modal hidden">
+  <div id="create-room-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>Start New Client Chat</h3>
-      <form id="new-chat-form">
+      <h3>Start New Chat</h3>
+      <form id="create-room-form">
+        
+        <!-- Developer Quick Checkbox -->
+        <div class="form-group checkbox-group">
+          <label for="modal-dev-checkbox" class="checkbox-label">
+            <input type="checkbox" id="modal-dev-checkbox">
+            <span>Direct Chat with Developer (LunarCraft)</span>
+          </label>
+        </div>
+
         <div class="form-group">
           <label for="modal-room-name">Room / Project Name</label>
-          <input type="text" id="modal-room-name" placeholder="e.g. Website Overhaul" required>
+          <input type="text" id="modal-room-name" placeholder="e.g. Website Inquiry" required>
         </div>
         <div class="form-group">
-          <label for="modal-client-name">Client Name</label>
+          <label for="modal-client-name">Your Name / Client Name</label>
           <input type="text" id="modal-client-name" placeholder="John Doe" required>
         </div>
         <div class="form-group">
-          <label for="modal-client-email">Client Email</label>
+          <label for="modal-client-email">Email Address</label>
           <input type="email" id="modal-client-email" placeholder="john@example.com" required>
         </div>
+        
         <div class="modal-actions">
-          <button type="button" id="close-modal-btn" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
           <button type="submit" class="btn btn-primary">Create Room</button>
         </div>
       </form>
