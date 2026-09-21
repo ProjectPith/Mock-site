@@ -68,21 +68,35 @@
             </label>
           </div>
 
-          <!-- OPTION A: HEX CODES -->
+          <!-- OPTION A: HEX CODES (4 Palette Pickers: Bg & Primary Required, Accent 1 & 2 Optional) -->
           <div id="color-sec-hex" class="color-panel active-panel">
             <div class="hex-grid">
               <div class="hex-field">
-                <span class="field-sublabel">Primary Color</span>
+                <span class="field-sublabel">Background Color *</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-primary" placeholder="#12161A" maxlength="7">
-                  <input type="color" id="picker-primary" class="shade-picker" value="#12161A">
+                  <input type="text" id="hex-bg" placeholder="#12161A" maxlength="7" required>
+                  <input type="color" id="picker-bg" class="shade-picker" value="#12161A">
                 </div>
               </div>
               <div class="hex-field">
-                <span class="field-sublabel">Accent / Sky Blue</span>
+                <span class="field-sublabel">Primary Color *</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-accent" placeholder="#87CEEB" maxlength="7">
-                  <input type="color" id="picker-accent" class="shade-picker" value="#87CEEB">
+                  <input type="text" id="hex-primary" placeholder="#FFFFFF" maxlength="7" required>
+                  <input type="color" id="picker-primary" class="shade-picker" value="#FFFFFF">
+                </div>
+              </div>
+              <div class="hex-field">
+                <span class="field-sublabel">Accent Color 1 <small>(Optional)</small></span>
+                <div class="hex-input-wrap">
+                  <input type="text" id="hex-accent-1" placeholder="#87CEEB" maxlength="7">
+                  <input type="color" id="picker-accent-1" class="shade-picker" value="#87CEEB">
+                </div>
+              </div>
+              <div class="hex-field">
+                <span class="field-sublabel">Accent Color 2 <small>(Optional)</small></span>
+                <div class="hex-input-wrap">
+                  <input type="text" id="hex-accent-2" placeholder="#4ED1A0" maxlength="7">
+                  <input type="color" id="picker-accent-2" class="shade-picker" value="#4ED1A0">
                 </div>
               </div>
             </div>
@@ -127,9 +141,9 @@
             </div>
           </div>
 
-          <!-- OPTION C: GENERAL VIBE -->
+          <!-- OPTION C: GENERAL VIBE (Expanded Textarea) -->
           <div id="color-sec-vibe" class="color-panel hidden">
-            <input type="text" id="vibe-text" placeholder="e.g. Modern minimalist, warm luxury, neon cyberpunk, clean pastel...">
+            <textarea id="vibe-text" rows="4" placeholder="Describe the overall aesthetic, feel, or vibe (e.g. Modern minimalist with dark tones, warm luxury, neon cyberpunk, clean pastel look with soft low-contrast lighting)..."></textarea>
           </div>
         </div>
 
@@ -182,7 +196,13 @@
           </div>
         </div>
 
-        <!-- 6. EXTRA NOTES -->
+        <!-- 6. MAINTENANCE NEEDS SECTION -->
+        <div class="form-group">
+          <label for="maintenance-notes">Ongoing Maintenance & Update Schedule *</label>
+          <textarea id="maintenance-notes" rows="3" required placeholder="Specify your desired update schedule (e.g. weekly content drops, bi-weekly product updates, monthly maintenance) and what content or features you need updated regular..."></textarea>
+        </div>
+
+        <!-- 7. EXTRA NOTES -->
         <div class="form-group">
           <label for="extra-notes">Extra Notes & Special Requests</label>
           <textarea id="extra-notes" rows="3" placeholder="Specify any bespoke requirements, custom APIs, third-party integrations, or non-listed features..."></textarea>
