@@ -12,11 +12,42 @@ let signaturePad;
 let currentIntakeId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  initSignaturePad();
-  parseQueryParamsAndLoadData();
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get("mode");
+  const intakeId = urlParams.get("intake_id");
 
-  document.getElementById("btn-download-preview")?.addEventListener("click", generatePDFPreview);
-  document.getElementById("btn-submit-signature")?.addEventListener("click", handleExecuteContract);
+  if (mode === 'review') {
+    document.getElementById("review-banner")?.classList.remove("hidden");
+  }
+
+  // Handle "Edit Intake" button action
+  document.getElementById("btn-edit-intake")?.addEventListener("click", () => {
+    window.location.href = `/intake/intake.html?intake_id=${intakeId}`;
+  });
+
+  // Handle "Send to Provider for Review" action
+  document.getElementById("btn-submit-to-admin")?.addEventListener("click", async () => {
+    const msgEl = document.getElementById("contract-msg");
+    msgEl.textContent = "Submitting intake and contract draft to provider...";
+    msgEl.style.color = "#87ceeb";
+
+    const db = window.supabaseClient;
+    const { error } = await db
+      .from('project_intakes')
+      .update({ status: 'pending_admin_review' })
+      .eq('id', intakeId);
+
+    if (error) {
+      msgEl.textContent = "Error submitting: " + error.message;
+      msgEl.style.color = "#ff6b6b";
+    } else {
+      msgEl.textContent = "Submitted successfully! Your provider will review and respond shortly.";
+      msgEl.style.color = "#4ed1a0";
+      setTimeout(() => {
+        window.location.href = "/dashboard.html";
+      }, 2000);
+    }
+  });
 });
 
 function initSignaturePad() {
