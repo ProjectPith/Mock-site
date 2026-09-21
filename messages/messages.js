@@ -1,4 +1,4 @@
-// messages.js - Standardized Client & Room Management with Dynamic Role Filtering
+// messages.js - Standardized Client & Room Management
 
 (function () {
   if (!window.supabaseClient && window.supabase) {
@@ -170,7 +170,7 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
       filterSelect.classList.remove("hidden");
     }
 
-    const adminFilterMode = filterSelect ? filterSelect.value : 'all';
+    const adminFilterMode = filterSelect ? filterSelect.value : 'my_chats';
     const rooms = await window.ChatEngine.fetchRooms(adminFilterMode);
     const roomsListEl = document.getElementById("rooms-list");
     if (!roomsListEl) return;
