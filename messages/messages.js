@@ -37,18 +37,16 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
   if (titleEl) titleEl.textContent = roomName || clientEmail || "Chat";
   if (subtitleEl) subtitleEl.textContent = clientEmail || "";
 
-  // Highlight selected room item in list
-  document.querySelectorAll(".room-item").forEach((el) => el.classList.remove("active"));
+  // Highlight selected room card in list (matching .room-card.active in CSS)
+  document.querySelectorAll(".room-card").forEach((el) => el.classList.remove("active"));
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
   if (selectedItem) selectedItem.classList.add("active");
 
   if (window.ChatEngine) {
-    // Subscribe handles both loading initial messages AND realtime updates
     window.ChatEngine.subscribeToRoom(roomId, (messages, isInitialLoad) => {
       if (isInitialLoad) {
         renderMessages(messages);
       } else {
-        // Append new realtime message
         if (messages && messages[0]) {
           appendMessageToFeed(messages[0]);
         }
@@ -119,29 +117,31 @@ async function loadRoomsList() {
   roomsListEl.innerHTML = "";
 
   if (!rooms || rooms.length === 0) {
-    roomsListEl.innerHTML = `<div class="empty-state" style="padding: 1rem; opacity: 0.7;">No active chats.</div>`;
+    roomsListEl.innerHTML = `<div class="empty-chat-state">No active chats.</div>`;
     return;
   }
 
   rooms.forEach((room) => {
-    const item = document.createElement("div");
-    item.className = "room-item";
-    item.setAttribute("data-room-id", room.id);
+    const card = document.createElement("div");
+    // Matches .room-card in messages.css
+    card.className = "room-card";
+    card.setAttribute("data-room-id", room.id);
 
-    // Displays name, or falls back to client_name or client_email
     const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
     const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
 
-    item.innerHTML = `
-      <div class="room-item-name" style="font-weight: 600;">${escapeHtml(displayName)}</div>
-      ${subText ? `<div class="room-item-sub" style="font-size: 0.85rem; opacity: 0.7;">${escapeHtml(subText)}</div>` : ''}
+    // Matches <h4> and <small> structure in messages.css
+    card.innerHTML = `
+      <h4>${escapeHtml(displayName)}</h4>
+      ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
     `;
 
-    item.addEventListener("click", () => {
+    // Attach click handler directly to the room card element
+    card.addEventListener("click", () => {
       window.selectRoom(room.id, displayName, room.client_email);
     });
 
-    roomsListEl.appendChild(item);
+    roomsListEl.appendChild(card);
   });
 }
 
