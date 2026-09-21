@@ -1,4 +1,4 @@
-// chatEngine.js - Fixed Multi-Room Email & Participant Matching
+// chatEngine.js - Auto-includes Creator/Current User in Rooms
 
 (function () {
   const ChatEngine = {
@@ -17,7 +17,6 @@
         const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
         const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
 
-        // Fetch all rooms sorted by newest
         const { data: rooms, error } = await db
           .from('chat_rooms')
           .select('*')
@@ -26,7 +25,6 @@
         if (error) throw error;
         if (!rooms) return [];
 
-        // Helper function to check if current email is in client_email list
         const isUserParticipant = (room) => {
           if (!room.client_email) return false;
           const emails = room.client_email
@@ -35,16 +33,13 @@
           return emails.includes(userEmail);
         };
 
-        // ADMIN FILTER logic
         if (isAdmin) {
           if (adminFilterMode === 'my_chats') {
             return rooms.filter(isUserParticipant);
           }
-          // 'all' mode returns every room in database
           return rooms;
         }
 
-        // CLIENT FILTER logic: Always restrict to rooms where client_email includes their email
         return rooms.filter(isUserParticipant);
 
       } catch (err) {
@@ -53,7 +48,7 @@
       }
     },
 
-    // Create a new room mapped to 'name', 'client_name', and 'client_email'
+    // Create room with fallback verification
     async createRoom(roomName, clientName, clientEmail) {
       const db = window.supabaseClient;
       if (!db) return null;
@@ -79,7 +74,7 @@
       }
     },
 
-    // Persist updated participants list to public.chat_rooms
+    // Persist updated participants
     async updateRoomMembers(roomId, clientEmailStr, clientNameStr) {
       const db = window.supabaseClient;
       if (!db || !roomId) return false;
@@ -128,7 +123,7 @@
       }
     },
 
-    // Realtime channel subscription for active room
+    // Realtime subscription
     subscribeToRoom(roomId, callback) {
       const db = window.supabaseClient;
       if (!db || !roomId) return;
