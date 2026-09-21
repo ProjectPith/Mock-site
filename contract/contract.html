@@ -14,10 +14,10 @@
 
   <div id="site-header-container"></div>
 
-  <!-- Insert right above <main class="contract-page-wrapper"> in contract.html -->
+  <!-- STAGE REVIEW BANNER -->
   <div id="review-banner" class="review-banner hidden">
     <div class="banner-content">
-      <span>📋 <strong>Contract Draft Review:</strong> Please review your auto-generated draft below. If anything looks incorrect, click <strong>Edit Intake</strong> to adjust.</span>
+      <span>📋 <strong>Contract Draft Review:</strong> Please review your auto-generated draft below. If anything needs adjusting, click <strong>Edit Intake</strong>.</span>
       <div class="banner-actions">
         <button id="btn-edit-intake" class="btn-secondary-sm">✏️ Edit Intake</button>
         <button id="btn-submit-to-admin" class="btn-primary-sm">🚀 Send to Provider for Review</button>
@@ -26,16 +26,14 @@
   </div>
 
   <main class="contract-page-wrapper">
-    <!-- Top Bar Actions -->
     <div class="contract-actions-bar">
       <button id="btn-download-preview" class="btn-secondary">Download PDF Preview</button>
-      <span class="status-indicator" id="contract-status-badge">Pending E-Signature</span>
+      <span class="status-indicator" id="contract-status-badge">Pending Provider Review</span>
     </div>
 
-    <!-- DOCUMENT CONTAINER (Rendered into PDF) -->
+    <!-- DOCUMENT CONTAINER -->
     <div id="contract-document" class="contract-document">
       
-      <!-- DOCUMENT HEADER -->
       <div class="doc-header">
         <h1 class="brand-title">LUNARCRAFT</h1>
         <h2>WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
@@ -52,35 +50,35 @@
         <table class="terms-table">
           <tr>
             <td class="td-label">Client Full Name(s)</td>
-            <td class="td-val" id="val-client-names">[ Loading... ]</td>
+            <td class="td-val" id="val-client-names">Loading profile data...</td>
           </tr>
           <tr>
             <td class="td-label">Project Name</td>
-            <td class="td-val" id="val-project-name">[ Loading... ]</td>
+            <td class="td-val" id="val-project-name">Loading...</td>
           </tr>
           <tr>
             <td class="td-label">Domain Name</td>
-            <td class="td-val" id="val-domain-name">[ None / Pending ]</td>
+            <td class="td-val" id="val-domain-name">Pending / None</td>
           </tr>
           <tr>
             <td class="td-label">Site Build Total Cost</td>
-            <td class="td-val" id="val-total-cost">$0.00</td>
+            <td class="td-val" id="val-total-cost">TBD upon Provider Review</td>
           </tr>
           <tr>
             <td class="td-label">Deposit Amount</td>
-            <td class="td-val" id="val-deposit">$0.00</td>
+            <td class="td-val" id="val-deposit">TBD upon Provider Review</td>
           </tr>
           <tr>
             <td class="td-label">Site Build Monthly Payment</td>
-            <td class="td-val" id="val-build-monthly">$0.00 / mo for 0 months</td>
+            <td class="td-val" id="val-build-monthly">TBD upon Provider Review</td>
           </tr>
           <tr>
             <td class="td-label">Monthly Maintenance Cost</td>
-            <td class="td-val" id="val-maintenance-cost">$0.00 / month</td>
+            <td class="td-val" id="val-maintenance-cost">TBD upon Provider Review</td>
           </tr>
           <tr>
             <td class="td-label">Scope of Maintenance</td>
-            <td class="td-val" id="val-maintenance-scope">[ Loading Maintenance Notes... ]</td>
+            <td class="td-val" id="val-maintenance-scope">Loading...</td>
           </tr>
         </table>
       </section>
@@ -107,7 +105,6 @@
         <p><strong>Maintenance Terms:</strong> Client agrees to pay the recurring Monthly Maintenance Fee outlined in Section 1 for continuous updates, monitoring, and administrative upkeep.</p>
       </section>
 
-      <!-- PAGE BREAK FOR CLEAN 2-PAGE LAYOUT -->
       <div class="html2pdf__page-break"></div>
 
       <!-- 5. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY -->
@@ -135,32 +132,24 @@
           <!-- PROVIDER BLOCK -->
           <div class="sig-block">
             <h4>PROVIDER (LUNARCRAFT)</h4>
-            <div class="sig-line"><strong>Signature:</strong> <span class="sig-font">LunarCraft Dev</span></div>
+            <div class="sig-placeholder-box">
+              <span>Signature Pending Final Review</span>
+            </div>
             <div class="sig-line"><strong>Printed Name:</strong> Owner / Lead Developer</div>
             <div class="sig-line"><strong>Title:</strong> Owner / Developer</div>
-            <div class="sig-line"><strong>Date:</strong> <span id="val-provider-date">2026-09-21</span></div>
+            <div class="sig-line"><strong>Date:</strong> Pending</div>
             <div class="sig-tag">[ Digitally Signed via E-Signature Platform ]</div>
           </div>
 
-          <!-- CLIENT E-SIGN BLOCK -->
+          <!-- CLIENT BLOCK -->
           <div class="sig-block">
             <h4>CLIENT</h4>
-            <div class="sig-line">
-              <strong>Signature:</strong>
-              <div id="canvas-wrap" class="canvas-wrap">
-                <canvas id="signature-pad" width="300" height="70"></canvas>
-                <button type="button" id="btn-clear-sig" class="btn-clear">&times;</button>
-              </div>
+            <div class="sig-placeholder-box">
+              <span>Signature Pending Final Approval</span>
             </div>
-            <div class="sig-input-group">
-              <label>Printed Name:</label>
-              <input type="text" id="input-printed-name" required placeholder="Type full name">
-            </div>
-            <div class="sig-input-group">
-              <label>Title:</label>
-              <input type="text" id="input-client-title" placeholder="e.g. Owner / Client">
-            </div>
-            <div class="sig-line"><strong>Date:</strong> <span id="val-client-date">Pending</span></div>
+            <div class="sig-line"><strong>Printed Name(s):</strong> <span id="sig-client-printed">[ Pending Profile Sync ]</span></div>
+            <div class="sig-line"><strong>Title:</strong> Client / Authorized Representative</div>
+            <div class="sig-line"><strong>Date:</strong> Pending</div>
             <div class="sig-tag">[ Digitally Signed via E-Signature Platform ]</div>
           </div>
         </div>
@@ -171,11 +160,7 @@
       </div>
     </div>
 
-    <!-- SUBMIT ACTION -->
-    <div class="contract-submit-bar">
-      <button id="btn-submit-signature" class="btn-primary-lg">Execute & Finalize Signed Agreement</button>
-      <div id="contract-msg" class="status-msg"></div>
-    </div>
+    <div id="contract-msg" class="status-msg"></div>
   </main>
 
   <script src="contract.js"></script>
