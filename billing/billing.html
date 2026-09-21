@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LunarCraft | Billing & Projects</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="/billing/billing.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div id="site-header-container"></div>
+
+  <main class="billing-container">
+    <!-- LEFT WIDGET: Payment History (1/3 Width on Desktop) -->
+    <section class="widget widget-history">
+      <div class="widget-header">
+        <h3>Payment History</h3>
+      </div>
+      <div class="history-list" id="history-list">
+        <div class="loading-text">Loading history...</div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN (2/3 Width on Desktop) -->
+    <div class="billing-right-col">
+      <!-- TOP WIDGET: Balance & Recurring Payment (1/3 Height) -->
+      <section class="widget widget-balance">
+        <div class="balance-main">
+          <span class="widget-label">Total Outstanding Balance</span>
+          <h1 class="balance-amount" id="total-balance">$0.00</h1>
+        </div>
+        <div class="recurring-box" id="recurring-box">
+          <span class="recurring-text" id="recurring-text">No active recurring billing</span>
+        </div>
+      </section>
+
+      <!-- BOTTOM WIDGET: Projects Overview (2/3 Height) -->
+      <section class="widget widget-projects">
+        <div class="widget-header">
+          <h3>Your Projects & Investments</h3>
+        </div>
+        <div class="projects-grid" id="projects-grid">
+          <div class="loading-text">Loading projects...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Project Breakdown Overlay Modal -->
+  <div id="project-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-project-title">Project Transactions</h3>
+        <button type="button" id="close-modal-btn" class="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-project-summary">
+        <div>
+          <small>Total Bill</small>
+          <strong id="modal-project-total">$0.00</strong>
+        </div>
+        <div>
+          <small>Your Contribution</small>
+          <strong id="modal-user-paid">$0.00</strong>
+        </div>
+        <div>
+          <small>Remaining Group Balance</small>
+          <strong id="modal-project-remaining">$0.00</strong>
+        </div>
+      </div>
+
+      <h4>Your Transactions for this Project</h4>
+      <div class="modal-tx-list" id="modal-tx-list">
+        <!-- Project specific transactions render here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/billing/billing.js"></script>
+  <script src="/nav.js"></script>
+</body>
+</html>
