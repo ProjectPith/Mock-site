@@ -1,19 +1,19 @@
 // messages.js - Safe RPC Name Lookup & Complete Room Management
 
 let activeRoomId = null;
-const DEV_DEFAULT_EMAIL = "hkmartin08@gnail.com";
+const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
 // Helper: Fetch account name safely using RPC or Session
 async function fetchAccountNameByEmail(email) {
   const db = window.supabaseClient;
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanEmail = email ? email.trim().toLowerCase() : "";
   if (!cleanEmail) return "Guest";
 
   const fallbackName = cleanEmail.split('@')[0];
   if (!db) return fallbackName;
 
   try {
-    // 1. Check current logged-in session user first (instant local check)
+    // 1. Check current logged-in session user first
     const { data: sessionData } = await db.auth.getSession();
     const currentUser = sessionData?.session?.user;
     if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
@@ -141,41 +141,56 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and render list of rooms
-async function loadRoomsList() {
-  if (!window.ChatEngine) return;
-
-  const rooms = await window.ChatEngine.fetchRooms();
-  const roomsListEl = document.getElementById("rooms-list");
-  if (!roomsListEl) return;
-
-  roomsListEl.innerHTML = "";
-
-  if (!rooms || rooms.length === 0) {
-    roomsListEl.innerHTML = `<div class="empty-chat-state rooms-empty-padding">No active chats.</div>`;
+// Fetch and render list of rooms globally accessible
+window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
+  if (!window.ChatEngine) {
+    if (retryCount < 10) {
+      setTimeout(() => window.loadRoomsList(retryCount + 1), 200);
+    }
     return;
   }
 
-  rooms.forEach((room) => {
-    const card = document.createElement("div");
-    card.className = "room-card";
-    card.setAttribute("data-room-id", room.id);
+  try {
+    const rooms = await window.ChatEngine.fetchRooms();
+    const roomsListEl = document.getElementById("rooms-list");
+    if (!roomsListEl) return;
 
-    const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
-    const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
+    roomsListEl.innerHTML = "";
 
-    card.innerHTML = `
-      <h4>${escapeHtml(displayName)}</h4>
-      ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
-    `;
+    if (!rooms || rooms.length === 0) {
+      roomsListEl.innerHTML = `<div class="empty-chat-state rooms-empty-padding">No active chats.</div>`;
+      return;
+    }
 
-    card.addEventListener("click", () => {
-      window.selectRoom(room.id, displayName, room.client_email);
+    rooms.forEach((room) => {
+      const card = document.createElement("div");
+      card.className = "room-card";
+      card.setAttribute("data-room-id", room.id);
+
+      const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
+      const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
+
+      card.innerHTML = `
+        <h4>${escapeHtml(displayName)}</h4>
+        ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
+      `;
+
+      card.addEventListener("click", () => {
+        window.selectRoom(room.id, displayName, room.client_email);
+      });
+
+      roomsListEl.appendChild(card);
     });
+  } catch (err) {
+    console.warn("Failed to load rooms list:", err);
+  }
 
-    roomsListEl.appendChild(card);
-  });
-}
+  const newChatBtn = document.getElementById("new-chat-btn");
+  const modal = document.getElementById("create-room-modal");
+  if (newChatBtn && modal) {
+    newChatBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+  }
+};
 
 // Set up UI Event Listeners
 function setupUIEventListeners() {
@@ -210,7 +225,6 @@ function setupUIEventListeners() {
   }
 
   // Modal Handlers
-  const newChatBtn = document.getElementById("new-chat-btn");
   const modal = document.getElementById("create-room-modal");
   const cancelModalBtn = document.getElementById("cancel-modal-btn");
   const createRoomForm = document.getElementById("create-room-form");
@@ -219,16 +233,12 @@ function setupUIEventListeners() {
   const roomNameInput = document.getElementById("modal-room-name");
   const clientEmailInput = document.getElementById("modal-client-email");
 
-  if (newChatBtn && modal) {
-    newChatBtn.addEventListener("click", () => modal.classList.remove("hidden"));
-  }
-
   if (cancelModalBtn && modal) {
     cancelModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
   }
 
   // Developer Checkbox Event Listener
-  if (devCheckbox) {
+  if (devCheckbox && clientEmailInput) {
     devCheckbox.addEventListener("change", (e) => {
       let currentEmails = clientEmailInput.value
         .split(',')
@@ -236,7 +246,7 @@ function setupUIEventListeners() {
         .filter(Boolean);
 
       if (e.target.checked) {
-        if (!roomNameInput.value) {
+        if (roomNameInput && !roomNameInput.value) {
           roomNameInput.value = "Support Ticket";
         }
         if (!currentEmails.includes(DEV_DEFAULT_EMAIL)) {
@@ -275,7 +285,7 @@ function setupUIEventListeners() {
         createRoomForm.reset();
         if (devCheckbox) devCheckbox.checked = false;
 
-        await loadRoomsList();
+        await window.loadRoomsList();
         if (newRoom && newRoom.id) {
           window.selectRoom(newRoom.id, newRoom.name || newRoom.room_name, newRoom.client_email);
         }
@@ -286,5 +296,5 @@ function setupUIEventListeners() {
 
 document.addEventListener("DOMContentLoaded", () => {
   setupUIEventListeners();
-  loadRoomsList();
+  window.loadRoomsList();
 });
