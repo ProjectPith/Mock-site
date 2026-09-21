@@ -1,106 +1,137 @@
-// chatEngine.js
-window.ChatEngine = {
-  // 1. Manual Creation (For now, via Email / Name)
-  async createRoom({ name, clientName, clientEmail, projectId = null }) {
-    const db = window.supabaseClient;
-    if (!db) {
-      console.warn("Supabase client not initialized yet.");
-      return null;
+// chatEngine.js - Supabase Engine with Persistent Room Creation & Member Updates
+
+(function () {
+  const ChatEngine = {
+    // Fetch all active chat rooms
+    async fetchRooms() {
+      const db = window.supabaseClient;
+      if (!db) return [];
+
+      try {
+        const { data, error } = await db
+          .from('chat_rooms')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+      } catch (err) {
+        console.error("Error fetching rooms:", err);
+        return [];
+      }
+    },
+
+    // Create a new room in public.chat_rooms
+    async createRoom(roomName, clientName, clientEmail) {
+      const db = window.supabaseClient;
+      if (!db) return null;
+
+      try {
+        const { data, error } = await db
+          .from('chat_rooms')
+          .insert([
+            {
+              room_name: roomName,
+              client_name: clientName,
+              client_email: clientEmail
+            }
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error("Error creating chat room:", err);
+        return null;
+      }
+    },
+
+    // Persist updated participants list to public.chat_rooms
+    async updateRoomMembers(roomId, clientEmailStr, clientNameStr) {
+      const db = window.supabaseClient;
+      if (!db || !roomId) return false;
+
+      try {
+        const { error } = await db
+          .from('chat_rooms')
+          .update({
+            client_email: clientEmailStr,
+            client_name: clientNameStr
+          })
+          .eq('id', roomId);
+
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        console.error("Error updating room members:", err);
+        return false;
+      }
+    },
+
+    // Send message to public.messages
+    async sendMessage(roomId, senderType, senderName, content) {
+      const db = window.supabaseClient;
+      if (!db || !roomId) return null;
+
+      try {
+        const { data, error } = await db
+          .from('messages')
+          .insert([
+            {
+              room_id: roomId,
+              sender_type: senderType,
+              sender_name: senderName,
+              content: content
+            }
+          ])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error("Error sending message:", err);
+        return null;
+      }
+    },
+
+    // Realtime channel subscription for active room
+    subscribeToRoom(roomId, callback) {
+      const db = window.supabaseClient;
+      if (!db || !roomId) return;
+
+      // 1. Initial load of existing messages
+      db.from('messages')
+        .select('*')
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: true })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            callback(data, true);
+          }
+        });
+
+      // 2. Realtime listener for incoming messages
+      return db
+        .channel(`room:${roomId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `room_id=eq.${roomId}`
+          },
+          (payload) => {
+            if (payload.new) {
+              callback([payload.new], false);
+            }
+          }
+        )
+        .subscribe();
     }
-    
-    // Check if room already exists for this client/project
-    let query = db.from('chat_rooms').select('*');
-    if (projectId) {
-      query = query.eq('project_id', projectId);
-    } else if (clientEmail) {
-      query = query.eq('client_email', clientEmail);
-    }
+  };
 
-    const { data: existing } = await query.maybeSingle();
-    if (existing) return existing;
-
-    // Create new room if it doesn't exist
-    const { data: newRoom, error } = await db
-      .from('chat_rooms')
-      .insert([{
-        name: name,
-        client_name: clientName,
-        client_email: clientEmail,
-        project_id: projectId
-      }])
-      .select()
-      .single();
-
-    if (error) console.error("Error creating chat room:", error);
-    return newRoom;
-  },
-
-  // 2. Fetch all active chat rooms for the admin panel
-  async fetchRooms() {
-    const db = window.supabaseClient;
-    if (!db) {
-      console.warn("Supabase client not initialized yet.");
-      return [];
-    }
-
-    const { data, error } = await db.from('chat_rooms').select('*');
-    if (error) {
-      console.error("Error fetching rooms:", error);
-      return [];
-    }
-    return data;
-  },
-
-  // 3. Listen to Realtime updates in a room
-  subscribeToRoom(roomId, onNewMessage) {
-    const db = window.supabaseClient;
-    if (!db) return;
-
-    // Fetch historical messages
-    db.from('messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (error) console.error("Error fetching messages:", error);
-        if (onNewMessage) onNewMessage(data || [], true);
-      });
-
-    // Create a unique channel name to prevent channel collision
-    const channel = db.channel(`room-changes-${roomId}-${Date.now()}`);
-
-    channel
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `room_id=eq.${roomId}`
-        },
-        (payload) => {
-          if (onNewMessage) onNewMessage([payload.new], false);
-        }
-      )
-      .subscribe();
-
-    return channel;
-  },
-
-  // 4. Send a Message
-  async sendMessage(roomId, senderType, senderName, content) {
-    const db = window.supabaseClient;
-    if (!db) return;
-
-    const { error } = await db
-      .from('messages')
-      .insert([{
-        room_id: roomId,
-        sender_type: senderType,
-        sender_name: senderName,
-        content: content
-      }]);
-
-    if (error) console.error("Error sending message:", error);
-  }
-};
+  window.ChatEngine = ChatEngine;
+})();
