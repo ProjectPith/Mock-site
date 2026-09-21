@@ -35,6 +35,8 @@ async function loadRoomsList() {
 window.selectRoom = function(roomId, roomName, clientEmail) {
   activeRoomId = roomId;
 
+  document.querySelector(".chat-layout").classList.add("room-active");
+
   // UI state swap
   document.getElementById("no-chat-selected").classList.add("hidden");
   document.getElementById("active-chat-container").classList.remove("hidden");
@@ -112,4 +114,8 @@ document.getElementById("message-form").addEventListener("submit", async (e) => 
     userRole.name,  // Uses actual user's full name/email
     content
   );
+
+  document.getElementById("mobile-back-btn")?.addEventListener("click", () => {
+    document.querySelector(".chat-layout").classList.remove("room-active");
+  });
 });
