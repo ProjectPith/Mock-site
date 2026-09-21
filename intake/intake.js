@@ -98,13 +98,14 @@ window.toggleSiteType = function (type) {
 };
 
 // Submit to Supabase
+// Add or replace the submit logic in intake.js
 function setupFormSubmission() {
   const form = document.getElementById("intake-form");
   const msgEl = document.getElementById("intake-msg");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    msgEl.textContent = "Submitting intake specs...";
+    msgEl.textContent = "Processing intake specifications...";
     msgEl.style.color = "#87ceeb";
 
     const emailInputs = document.querySelectorAll(".party-email");
@@ -134,30 +135,42 @@ function setupFormSubmission() {
       features = Array.from(checkedBoxes).map(cb => cb.value);
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const existingIntakeId = urlParams.get("intake_id");
+
     const payload = {
       project_name: document.getElementById("project-name").value,
       client_emails: emails,
       all_accounts_created: document.getElementById("confirm-accounts").checked,
-      custom_domain: document.getElementById("custom-domain").value.trim() || null, // Included here
+      custom_domain: document.getElementById("custom-domain").value.trim() || null,
       project_description: document.getElementById("project-description").value,
       color_mode: colorMethod,
       color_details: colorDetails,
       site_type: siteType,
       selected_features: features,
       maintenance_needs: document.getElementById("maintenance-notes").value,
-      extra_notes: document.getElementById("extra-notes").value
+      extra_notes: document.getElementById("extra-notes").value,
+      status: 'draft_client'
     };
 
     const db = window.supabaseClient;
-    const { data, error } = await db.from('project_intakes').insert([payload]);
+    let recordId = existingIntakeId;
 
-    if (error) {
-      msgEl.textContent = "Error submitting intake: " + error.message;
-      msgEl.style.color = "#ff6b6b";
+    if (existingIntakeId) {
+      const { error } = await db.from('project_intakes').update(payload).eq('id', existingIntakeId);
+      if (error) return showError(error.message);
     } else {
-      msgEl.textContent = "Intake submitted successfully! Ready for contract drafting.";
-      msgEl.style.color = "#4ed1a0";
-      form.reset();
+      const { data, error } = await db.from('project_intakes').insert([payload]).select('id').single();
+      if (error) return showError(error.message);
+      recordId = data.id;
     }
+
+    // Redirect client directly to contract draft review before submitting to admin
+    window.location.href = `/contract/contract.html?intake_id=${recordId}&mode=review`;
   });
+
+  function showError(msg) {
+    msgEl.textContent = "Error saving intake: " + msg;
+    msgEl.style.color = "#ff6b6b";
+  }
 }
