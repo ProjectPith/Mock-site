@@ -17,42 +17,53 @@
 
   <div id="site-header-container"></div>
 
-  <div class="chat-layout">
-    <!-- Sidebar: Room List -->
+  <div class="chat-layout" id="chat-layout">
+    <!-- Left Sidebar -->
     <aside class="chat-sidebar">
       <div class="sidebar-header">
         <h3>Messages</h3>
-        <button id="open-new-chat-modal" class="btn btn-primary btn-sm">+ New Chat</button>
+        <button id="new-chat-btn" class="btn btn-sm">+ New Chat</button>
       </div>
-      <div id="rooms-list" class="rooms-list">
-        <!-- Room cards render here -->
+      <div class="rooms-list" id="rooms-list">
+        <!-- .room-card elements render here -->
       </div>
     </aside>
 
-    <!-- Main Chat Container -->
+    <!-- Main Active Chat Area -->
     <main class="chat-main">
-      <!-- Placeholder before selection -->
-      <div class="empty-chat-state">Select a client conversation or start a new chat.</div>
+      <div class="empty-chat-state" id="empty-chat-state">
+        Select a client conversation or start a new chat.
+      </div>
 
-      <!-- Active Chat Interface -->
-      <div class="active-chat-container hidden">
+      <div class="active-chat-container hidden" id="active-chat-container">
         <div class="chat-header">
-          <h2 id="active-room-title">Chat</h2>
-          <small id="active-room-subtitle"></small>
+          <!-- Mobile Back Button -->
+          <button type="button" class="mobile-back-btn" id="mobile-back-btn" aria-label="Back to conversations">
+            <div class="back-circle-outer">
+              <div class="back-circle-inner">&lsaquo;</div>
+            </div>
+          </button>
+
+          <div class="chat-header-info">
+            <h2 id="active-room-title">Chat</h2>
+            <small id="active-room-subtitle"></small>
+          </div>
         </div>
 
+        <!-- Messages Feed (Scrolls independently) -->
         <div class="messages-feed" id="messages-feed">
           <!-- Bubbles render here -->
         </div>
 
+        <!-- Input Bar (Pinned at bottom) -->
         <form class="chat-input-container" id="chat-form">
-          <input type="text" id="message-input" placeholder="Type a message..." required />
+          <input type="text" id="message-input" placeholder="Type a message..." required autocomplete="off" />
           <button type="submit" class="btn">Send</button>
         </form>
       </div>
     </main>
   </div>
-
+  
   <!-- New Chat Modal -->
   <div id="new-chat-modal" class="modal hidden">
     <div class="modal-content">
