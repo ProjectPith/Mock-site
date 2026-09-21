@@ -1,104 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LunarCraft | Messages</title>
-  <link rel="stylesheet" href="/global.css">
-  <link rel="stylesheet" href="/messages/messages.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co"; 
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTYyMzA0MywiZXhwIjoyMTA1MTk5MDQzfQ.b-QuyXcDsSF0heCqbs29Rp8whNxGqsA8ASTtlm6_HHk"; 
-    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  </script>
-</head>
-<body>
-
-  <div id="site-header-container"></div>
-
-  <div class="chat-layout" id="chat-layout">
-    <!-- Left Sidebar -->
-    <aside class="chat-sidebar">
-      <div class="sidebar-header">
-        <h3>Messages</h3>
-        <button id="new-chat-btn" class="btn btn-sm">+ New Chat</button>
-      </div>
-      <div class="rooms-list" id="rooms-list">
-        <!-- .room-card elements render here -->
-      </div>
-    </aside>
-
-    <!-- Main Active Chat Area -->
-    <main class="chat-main">
-      <div class="empty-chat-state" id="empty-chat-state">
-        Select a client conversation or start a new chat.
+<!-- New Chat Modal -->
+<div id="create-room-modal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Start New Chat</h3>
+    <form id="create-room-form">
+      
+      <!-- Developer Quick Checkbox -->
+      <div class="form-group checkbox-group">
+        <label for="modal-dev-checkbox" class="checkbox-label">
+          <input type="checkbox" id="modal-dev-checkbox">
+          <span>Include Developer Support (LunarCraft)</span>
+        </label>
       </div>
 
-      <div class="active-chat-container hidden" id="active-chat-container">
-        <div class="chat-header">
-          <!-- Mobile Back Button -->
-          <button type="button" class="mobile-back-btn" id="mobile-back-btn" aria-label="Back to conversations">
-            <div class="back-circle-outer">
-              <div class="back-circle-inner">&lsaquo;</div>
-            </div>
-          </button>
-
-          <div class="chat-header-info">
-            <h2 id="active-room-title">Chat</h2>
-            <small id="active-room-subtitle"></small>
-          </div>
-        </div>
-
-        <!-- Messages Feed -->
-        <div class="messages-feed" id="messages-feed">
-          <!-- Bubbles render here -->
-        </div>
-
-        <!-- Input Bar (Pinned at bottom) -->
-        <form class="chat-input-container" id="message-form">
-          <input type="text" id="message-input" placeholder="Type a message..." required autocomplete="off" />
-          <button type="submit" class="btn">Send</button>
-        </form>
+      <div class="form-group">
+        <label for="modal-room-name">Project / Room Name</label>
+        <input type="text" id="modal-room-name" placeholder="e.g. Website Overhaul" required>
       </div>
-    </main>
+
+      <div class="form-group">
+        <label for="modal-client-email">Involved Emails (comma-separated)</label>
+        <input type="text" id="modal-client-email" placeholder="client@example.com, partner@example.com" required>
+        <small class="form-hint">Names will be automatically fetched from active Supabase accounts.</small>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Room</button>
+      </div>
+    </form>
   </div>
-  
-  <!-- New Chat Modal -->
-  <div id="create-room-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Start New Chat</h3>
-      <form id="create-room-form">
-        
-        <!-- Developer Quick Checkbox -->
-        <div class="form-group checkbox-group">
-          <label for="modal-dev-checkbox" class="checkbox-label">
-            <input type="checkbox" id="modal-dev-checkbox">
-            <span>Direct Chat with Developer (LunarCraft)</span>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label for="modal-room-name">Room / Project Name</label>
-          <input type="text" id="modal-room-name" placeholder="e.g. Website Inquiry" required>
-        </div>
-        <div class="form-group">
-          <label for="modal-client-name">Your Name / Client Name</label>
-          <input type="text" id="modal-client-name" placeholder="John Doe" required>
-        </div>
-        <div class="form-group">
-          <label for="modal-client-email">Email Address</label>
-          <input type="email" id="modal-client-email" placeholder="john@example.com" required>
-        </div>
-        
-        <div class="modal-actions">
-          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary">Create Room</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
+</div>
   <script src="/chatEngine.js"></script>
   <script src="/messages/messages.js"></script>
   <script src="/nav.js"></script>
