@@ -1,11 +1,43 @@
-// messages.js - Clean Script without Inline Styles
+// messages.js - Account-Linked Name Resolution & Multi-Party Rooms
 
 let activeRoomId = null;
-
-// Developer default email
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Determine sender role (admin vs client) dynamically from Supabase session
+// Helper: Fetch account name from Supabase by email
+async function fetchAccountNameByEmail(email) {
+  const db = window.supabaseClient;
+  const cleanEmail = email.trim().toLowerCase();
+  if (!db || !cleanEmail) return cleanEmail.split('@')[0];
+
+  try {
+    // 1. Check user profiles table
+    const { data: profile } = await db
+      .from('profiles')
+      .select('full_name, name, display_name')
+      .eq('email', cleanEmail)
+      .maybeSingle();
+
+    if (profile) {
+      const resolvedName = profile.full_name || profile.name || profile.display_name;
+      if (resolvedName) return resolvedName;
+    }
+
+    // 2. Check current active session metadata if it matches
+    const { data: sessionData } = await db.auth.getSession();
+    const currentUser = sessionData?.session?.user;
+    if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
+      const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
+      if (metaName) return metaName;
+    }
+  } catch (err) {
+    console.warn("Could not fetch account profile for:", cleanEmail, err);
+  }
+
+  // Fallback to email username if no Supabase account profile found
+  return cleanEmail.split('@')[0];
+}
+
+// Determine sender role dynamically
 async function getCurrentUserRole() {
   const db = window.supabaseClient;
   if (!db) return { type: 'client', name: 'Client' };
@@ -22,31 +54,24 @@ async function getCurrentUserRole() {
   const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
   const senderName = user.user_metadata?.full_name || user.email || (isAdmin ? 'Admin' : 'Client');
 
-  return {
-    type: isAdmin ? 'admin' : 'client',
-    name: senderName
-  };
+  return { type: isAdmin ? 'admin' : 'client', name: senderName };
 }
 
-// Select a chat room and render messages
+// Select a chat room
 window.selectRoom = function (roomId, roomName, clientEmail) {
   activeRoomId = roomId;
 
-  // Mobile layout switch
   document.querySelector(".chat-layout")?.classList.add("room-active");
 
-  // Update room header titles
   const titleEl = document.getElementById("active-room-title");
   const subtitleEl = document.getElementById("active-room-subtitle");
-  if (titleEl) titleEl.textContent = roomName || clientEmail || "Chat";
+  if (titleEl) titleEl.textContent = roomName || "Chat";
   if (subtitleEl) subtitleEl.textContent = clientEmail || "";
 
-  // Highlight card in sidebar
   document.querySelectorAll(".room-card").forEach((el) => el.classList.remove("active"));
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
   if (selectedItem) selectedItem.classList.add("active");
 
-  // Reveal main chat container immediately
   const emptyState = document.getElementById("empty-chat-state");
   const chatContainer = document.getElementById("active-chat-container");
   if (emptyState) emptyState.classList.add("hidden");
@@ -63,7 +88,7 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
   }
 };
 
-// Render messages to feed
+// Render messages
 function renderMessages(messages) {
   const emptyState = document.getElementById("empty-chat-state");
   const chatContainer = document.getElementById("active-chat-container");
@@ -80,14 +105,10 @@ function renderMessages(messages) {
     return;
   }
 
-  messages.forEach((msg) => {
-    appendMessageToFeed(msg);
-  });
-
+  messages.forEach((msg) => appendMessageToFeed(msg));
   feedEl.scrollTop = feedEl.scrollHeight;
 }
 
-// Append single message bubble
 function appendMessageToFeed(msg) {
   const feed = document.getElementById("messages-feed");
   if (!feed) return;
@@ -158,7 +179,6 @@ async function loadRoomsList() {
 
 // Set up UI Event Listeners
 function setupUIEventListeners() {
-  // --- Message Submit Event ---
   const messageForm = document.getElementById("message-form");
   if (messageForm) {
     messageForm.addEventListener("submit", async (e) => {
@@ -182,7 +202,6 @@ function setupUIEventListeners() {
     });
   }
 
-  // --- Mobile Back Button Event ---
   const backBtn = document.getElementById("mobile-back-btn");
   if (backBtn) {
     backBtn.addEventListener("click", () => {
@@ -190,7 +209,7 @@ function setupUIEventListeners() {
     });
   }
 
-  // --- New Chat Modal Handlers ---
+  // Modal Handlers
   const newChatBtn = document.getElementById("new-chat-btn");
   const modal = document.getElementById("create-room-modal");
   const cancelModalBtn = document.getElementById("cancel-modal-btn");
@@ -198,51 +217,67 @@ function setupUIEventListeners() {
   const devCheckbox = document.getElementById("modal-dev-checkbox");
 
   const roomNameInput = document.getElementById("modal-room-name");
-  const clientNameInput = document.getElementById("modal-client-name");
   const clientEmailInput = document.getElementById("modal-client-email");
 
   if (newChatBtn && modal) {
-    newChatBtn.addEventListener("click", () => {
-      modal.classList.remove("hidden");
-    });
+    newChatBtn.addEventListener("click", () => modal.classList.remove("hidden"));
   }
 
   if (cancelModalBtn && modal) {
-    cancelModalBtn.addEventListener("click", () => {
-      modal.classList.add("hidden");
-    });
+    cancelModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
   }
 
-  // Handle Developer Checkbox Toggle
+  // Developer Checkbox Event Listener
   if (devCheckbox) {
     devCheckbox.addEventListener("change", (e) => {
+      let currentEmails = clientEmailInput.value
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
       if (e.target.checked) {
-        clientEmailInput.value = DEV_DEFAULT_EMAIL;
-        clientEmailInput.readOnly = true;
-        if (!roomNameInput.value) roomNameInput.value = "Developer Inquiry";
-        if (!clientNameInput.value) clientNameInput.value = "Client Support Chat";
+        // Default title to Support Ticket if blank
+        if (!roomNameInput.value) {
+          roomNameInput.value = "Support Ticket";
+        }
+        // Append developer email if not present
+        if (!currentEmails.includes(DEV_DEFAULT_EMAIL)) {
+          currentEmails.push(DEV_DEFAULT_EMAIL);
+        }
       } else {
-        clientEmailInput.readOnly = false;
-        clientEmailInput.value = "";
+        // Remove developer email if unchecked
+        currentEmails = currentEmails.filter(email => email !== DEV_DEFAULT_EMAIL);
       }
+
+      clientEmailInput.value = currentEmails.join(", ");
     });
   }
 
+  // Create Room Submission
   if (createRoomForm && modal) {
     createRoomForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const roomName = roomNameInput?.value.trim();
-      const clientName = clientNameInput?.value.trim();
-      const clientEmail = clientEmailInput?.value.trim();
+      const rawEmails = clientEmailInput?.value.trim();
 
-      if (!roomName || !clientEmail) return;
+      if (!roomName || !rawEmails) return;
+
+      // Parse comma-separated emails
+      const emailList = rawEmails.split(',').map(e => e.trim()).filter(Boolean);
+
+      // Fetch corresponding account names from Supabase
+      const resolvedNames = await Promise.all(
+        emailList.map(email => fetchAccountNameByEmail(email))
+      );
+
+      const clientEmailStr = emailList.join(", ");
+      const clientNameStr = resolvedNames.join(", ");
 
       if (window.ChatEngine) {
-        const newRoom = await window.ChatEngine.createRoom(roomName, clientName, clientEmail);
+        const newRoom = await window.ChatEngine.createRoom(roomName, clientNameStr, clientEmailStr);
         modal.classList.add("hidden");
         createRoomForm.reset();
         if (devCheckbox) devCheckbox.checked = false;
-        if (clientEmailInput) clientEmailInput.readOnly = false;
 
         await loadRoomsList();
         if (newRoom && newRoom.id) {
