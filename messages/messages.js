@@ -4,6 +4,7 @@ let activeRoomId = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
 // Helper: Fetch account name safely using service_role or session
+// Helper: Fetch account name safely using standard client read
 async function fetchAccountNameByEmail(email) {
   const db = window.supabaseClient;
   const cleanEmail = email ? email.trim().toLowerCase() : "";
@@ -33,7 +34,7 @@ async function fetchAccountNameByEmail(email) {
       if (resolvedName) return resolvedName;
     }
   } catch (err) {
-    // Ignore query errors
+    // Suppress network errors silently
   }
 
   return fallbackName;
