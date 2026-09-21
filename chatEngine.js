@@ -1,18 +1,36 @@
-// chatEngine.js - Fixed Schema Column Mapping (name, client_name, client_email)
+// chatEngine.js - Role-Based Room Filtering & Realtime Chat Engine
 
 (function () {
   const ChatEngine = {
-    // Fetch all active chat rooms
-    async fetchRooms() {
+    // Fetch active chat rooms filtered by user role and active filter state
+    async fetchRooms(adminFilterMode = 'all') {
       const db = window.supabaseClient;
       if (!db) return [];
 
       try {
-        const { data, error } = await db
-          .from('chat_rooms')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const { data: sessionData } = await db.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user) return [];
 
+        const userEmail = (user.email || "").toLowerCase();
+        const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
+        const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
+        const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
+
+        let query = db.from('chat_rooms').select('*').order('created_at', { ascending: false });
+
+        if (isAdmin) {
+          // If admin chooses "my_chats", filter rooms containing admin's email
+          if (adminFilterMode === 'my_chats') {
+            query = query.ilike('client_email', `%${userEmail}%`);
+          }
+          // If adminFilterMode === 'all', no filter is applied
+        } else {
+          // STRICT CLIENT FILTER: Only return rooms containing this specific client's email
+          query = query.ilike('client_email', `%${userEmail}%`);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         return data || [];
       } catch (err) {
@@ -31,9 +49,9 @@
           .from('chat_rooms')
           .insert([
             {
-              name: roomName,           // Fixed: schema uses 'name'
-              client_name: clientName,   // Fixed: schema uses 'client_name'
-              client_email: clientEmail  // Fixed: schema uses 'client_email'
+              name: roomName,
+              client_name: clientName,
+              client_email: clientEmail
             }
           ])
           .select()
@@ -101,7 +119,6 @@
       const db = window.supabaseClient;
       if (!db || !roomId) return;
 
-      // 1. Initial load of existing messages
       db.from('messages')
         .select('*')
         .eq('room_id', roomId)
@@ -112,7 +129,6 @@
           }
         });
 
-      // 2. Realtime listener for incoming messages
       return db
         .channel(`room:${roomId}`)
         .on(
