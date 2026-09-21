@@ -358,6 +358,12 @@ body {
   font-weight: bold;
 }
 
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
 /* Mobile Layout Rules */
 @media (max-width: 768px) {
   .mobile-back-btn {
@@ -379,9 +385,5 @@ body {
 
   .chat-main {
     width: 100%;
-  }
-
-  .chat-input-container {
-    padding: 0.75rem 1rem;
   }
 }
