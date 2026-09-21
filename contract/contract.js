@@ -1,5 +1,3 @@
-// contract.js - Auto-fill, Signature Pad, PDF Compiler & Supabase Upload
-
 (function () {
   if (!window.supabaseClient && window.supabase) {
     const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -8,78 +6,103 @@
   }
 })();
 
-let signaturePad;
 let currentIntakeId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
+  currentIntakeId = urlParams.get("intake_id");
   const mode = urlParams.get("mode");
-  const intakeId = urlParams.get("intake_id");
 
   if (mode === 'review') {
     document.getElementById("review-banner")?.classList.remove("hidden");
   }
 
-  // Handle "Edit Intake" button action
+  if (currentIntakeId) {
+    await loadIntakeAndProfileData(currentIntakeId);
+  }
+
   document.getElementById("btn-edit-intake")?.addEventListener("click", () => {
-    window.location.href = `/intake/intake.html?intake_id=${intakeId}`;
+    window.location.href = `/intake.html?intake_id=${currentIntakeId}`;
   });
 
-  // Handle "Send to Provider for Review" action
-  document.getElementById("btn-submit-to-admin")?.addEventListener("click", async () => {
-    const msgEl = document.getElementById("contract-msg");
-    msgEl.textContent = "Submitting intake and contract draft to provider...";
-    msgEl.style.color = "#87ceeb";
-
-    const db = window.supabaseClient;
-    const { error } = await db
-      .from('project_intakes')
-      .update({ status: 'pending_admin_review' })
-      .eq('id', intakeId);
-
-    if (error) {
-      msgEl.textContent = "Error submitting: " + error.message;
-      msgEl.style.color = "#ff6b6b";
-    } else {
-      msgEl.textContent = "Submitted successfully! Your provider will review and respond shortly.";
-      msgEl.style.color = "#4ed1a0";
-      setTimeout(() => {
-        window.location.href = "/dashboard.html";
-      }, 2000);
-    }
-  });
+  document.getElementById("btn-submit-to-admin")?.addEventListener("click", handleSendToAdmin);
+  document.getElementById("btn-download-preview")?.addEventListener("click", generatePDFPreview);
 });
 
-function initSignaturePad() {
-  const canvas = document.getElementById("signature-pad");
-  if (canvas) {
-    signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgb(255, 255, 255)',
-      penColor: 'rgb(15, 28, 46)'
-    });
+async function loadIntakeAndProfileData(intakeId) {
+  const db = window.supabaseClient;
 
-    document.getElementById("btn-clear-sig")?.addEventListener("click", () => signaturePad.clear());
+  // 1. Fetch Intake Record
+  const { data: intake, error: intakeErr } = await db
+    .from('project_intakes')
+    .select('*')
+    .eq('id', intakeId)
+    .single();
+
+  if (intakeErr || !intake) {
+    console.error("Error fetching intake:", intakeErr);
+    return;
+  }
+
+  // Populate Intake Content
+  document.getElementById("val-project-name").textContent = intake.project_name || "Custom Web Project";
+  document.getElementById("val-domain-name").textContent = intake.custom_domain || "Pending / Not Provided";
+  document.getElementById("val-maintenance-scope").textContent = intake.maintenance_needs || "Ongoing Updates";
+
+  // Financial values if pre-populated in contract_terms JSONB
+  if (intake.contract_terms) {
+    if (intake.contract_terms.total_cost) document.getElementById("val-total-cost").textContent = `$${intake.contract_terms.total_cost}`;
+    if (intake.contract_terms.deposit) document.getElementById("val-deposit").textContent = `$${intake.contract_terms.deposit}`;
+    if (intake.contract_terms.monthly_build) document.getElementById("val-build-monthly").textContent = intake.contract_terms.monthly_build;
+    if (intake.contract_terms.monthly_maint) document.getElementById("val-maintenance-cost").textContent = `$${intake.contract_terms.monthly_maint} / month`;
+  }
+
+  // 2. Fetch Client Names from Profiles Table
+  const emails = intake.client_emails || [];
+  if (emails.length > 0) {
+    const { data: profiles, error: profileErr } = await db
+      .from('profiles')
+      .select('email, full_name, first_name, last_name')
+      .in('email', emails);
+
+    if (!profileErr && profiles && profiles.length > 0) {
+      const resolvedNames = emails.map(email => {
+        const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
+        if (match) {
+          if (match.full_name) return match.full_name;
+          if (match.first_name || match.last_name) return `${match.first_name || ''} ${match.last_name || ''}`.trim();
+        }
+        return email; // Fallback to email if user has no set name in profile
+      });
+
+      const nameDisplay = resolvedNames.join(", ");
+      document.getElementById("val-client-names").textContent = nameDisplay;
+      document.getElementById("sig-client-printed").textContent = nameDisplay;
+    } else {
+      // Fallback if profiles query returns empty
+      document.getElementById("val-client-names").textContent = emails.join(", ");
+      document.getElementById("sig-client-printed").textContent = emails.join(", ");
+    }
   }
 }
 
-async function parseQueryParamsAndLoadData() {
-  const urlParams = new URLSearchParams(window.location.search);
-  currentIntakeId = urlParams.get("intake_id");
-
-  if (!currentIntakeId) return;
+async function handleSendToAdmin() {
+  const msgEl = document.getElementById("contract-msg");
+  msgEl.textContent = "Submitting intake and contract draft to provider for review...";
+  msgEl.style.color = "#87ceeb";
 
   const db = window.supabaseClient;
-  const { data: intake } = await db.from('project_intakes').select('*').eq('id', currentIntakeId).single();
+  const { error } = await db
+    .from('project_intakes')
+    .update({ status: 'pending_admin_review' })
+    .eq('id', currentIntakeId);
 
-  if (intake) {
-    // Populate Document Fields
-    document.getElementById("val-client-names").textContent = (intake.client_emails || []).join(", ");
-    document.getElementById("val-project-name").textContent = intake.project_name || "Custom Web App";
-    document.getElementById("val-domain-name").textContent = intake.custom_domain || "Pending Client Selection";
-    document.getElementById("val-maintenance-scope").textContent = intake.maintenance_needs || "Ongoing Updates";
-    
-    // Auto fill date
-    document.getElementById("val-provider-date").textContent = new Date().toISOString().split('T')[0];
+  if (error) {
+    msgEl.textContent = "Error submitting: " + error.message;
+    msgEl.style.color = "#ff6b6b";
+  } else {
+    msgEl.textContent = "Submitted! Provider will review financial terms and respond shortly.";
+    msgEl.style.color = "#4ed1a0";
   }
 }
 
@@ -87,68 +110,11 @@ function generatePDFPreview() {
   const element = document.getElementById("contract-document");
   const opt = {
     margin: [0.3, 0.3, 0.3, 0.3],
-    filename: 'LunarCraft_Agreement_Preview.pdf',
+    filename: 'LunarCraft_Agreement_Draft.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
   html2pdf().set(opt).from(element).save();
-}
-
-async function handleExecuteContract() {
-  const msgEl = document.getElementById("contract-msg");
-  const printedName = document.getElementById("input-printed-name").value.trim();
-
-  if (signaturePad.isEmpty() || !printedName) {
-    msgEl.textContent = "Please provide both a signature and your printed name.";
-    msgEl.style.color = "#ff6b6b";
-    return;
-  }
-
-  msgEl.textContent = "Compiling signed contract and uploading PDF...";
-  msgEl.style.color = "#87ceeb";
-
-  // Set sign date
-  document.getElementById("val-client-date").textContent = new Date().toISOString().split('T')[0];
-
-  // Hide clear button for PDF rendering
-  document.getElementById("btn-clear-sig").style.display = "none";
-
-  const element = document.getElementById("contract-document");
-  const opt = {
-    margin: [0.3, 0.3, 0.3, 0.3],
-    filename: `LunarCraft_Agreement_${Date.now()}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-  };
-
-  // Generate PDF Blob
-  const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-
-  // Upload to Supabase Storage Bucket
-  const db = window.supabaseClient;
-  const fileName = `contracts/intake-${currentIntakeId || Date.now()}.pdf`;
-
-  const { data: storageData, error: storageErr } = await db.storage
-    .from('contracts')
-    .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true });
-
-  if (storageErr) {
-    msgEl.textContent = "Error saving PDF: " + storageErr.message;
-    msgEl.style.color = "#ff6b6b";
-    document.getElementById("btn-clear-sig").style.display = "block";
-    return;
-  }
-
-  const { data: publicUrlData } = db.storage.from('contracts').getPublicUrl(fileName);
-
-  // Update Status Badge
-  document.getElementById("contract-status-badge").textContent = "Executed & Filed";
-  document.getElementById("contract-status-badge").style.background = "rgba(78, 209, 160, 0.2)";
-  document.getElementById("contract-status-badge").style.color = "#4ed1a0";
-
-  msgEl.textContent = "Agreement executed successfully! PDF attached to project file.";
-  msgEl.style.color = "#4ed1a0";
 }
