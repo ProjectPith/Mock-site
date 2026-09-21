@@ -1,12 +1,13 @@
 /* --- Main Layout --- */
 .chat-layout {
   display: flex;
-  height: 100vh;
-  width: 100vh;
-  overflow: hidden;
+  /* Subtracts the top navigation bar height (adjust 60px if your header is taller/shorter) */
+  height: calc(100vh - 60px);
+  width: 100%;
+  overflow: hidden; /* Stops whole page body scrolling */
   background-color: var(--bg-main);
   color: var(--text-main);
-  postion: relative;
+  position: relative;
 }
 
 /* --- Sidebar Room Navigation --- */
@@ -26,6 +27,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .sidebar-header h3 {
@@ -74,7 +76,7 @@
   flex-direction: column;
   height: 100%;
   min-width: 0;
-  overflow: hidden;
+  overflow: hidden; /* Keeps internal header & form pinned */
   background-color: var(--bg-main);
   position: relative;
 }
@@ -103,7 +105,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-shrink: 0;
+  flex-shrink: 0; /* Prevents header from collapsing */
 }
 
 .chat-header h2 {
@@ -118,11 +120,11 @@
   font-size: 0.85rem;
 }
 
-/* --- Realtime Message Feed --- */
+/* --- Realtime Message Feed (The only element that scrolls) --- */
 .messages-feed {
   flex: 1;
   padding: 1.5rem;
-  overflow-y: auto;
+  overflow-y: auto; /* Handles inner scrolling strictly for messages */
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -156,14 +158,14 @@
   opacity: 0.75;
 }
 
-/* --- Chat Form Input Area --- */
+/* --- Chat Form Input Area (Pinned to Bottom) --- */
 .chat-input-container {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: 0.75rem;
   background-color: var(--bg-surface);
-  flex-shrink: 0;
+  flex-shrink: 0; /* Ensures input bar never gets squeezed or pushed down */
 }
 
 .chat-input-container input[type="text"] {
@@ -289,7 +291,7 @@
     display: block;
   }
 
-  /* Sidebar covers full screen on phone */
+  /* Sidebar covers full screen on phone below nav */
   .chat-sidebar {
     width: 100%;
     height: 100%;
