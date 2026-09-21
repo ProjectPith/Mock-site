@@ -201,8 +201,7 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
 
 // Safely update room client_email and client_name list
 async function updateRoomParticipants(roomId, emailList) {
-  const db = window.supabaseClient;
-  if (!db || !roomId) return;
+  if (!roomId || !window.ChatEngine) return;
 
   const resolvedNames = await Promise.all(
     emailList.map(email => fetchAccountNameByEmail(email))
@@ -211,20 +210,16 @@ async function updateRoomParticipants(roomId, emailList) {
   const clientEmailStr = emailList.join(", ");
   const clientNameStr = resolvedNames.join(", ");
 
-  const { error } = await db
-    .from('chat_rooms')
-    .update({ 
-      client_email: clientEmailStr, 
-      client_name: clientNameStr 
-    })
-    .eq('id', roomId);
+  const success = await window.ChatEngine.updateRoomMembers(roomId, clientEmailStr, clientNameStr);
 
-  if (!error) {
+  if (success) {
     if (activeRoomData) {
       activeRoomData.client_email = clientEmailStr;
       activeRoomData.client_name = clientNameStr;
     }
     await window.loadRoomsList();
+  } else {
+    alert("Could not update participants. Check database permissions or RLS policies.");
   }
 }
 
