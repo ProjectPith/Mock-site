@@ -1,4 +1,4 @@
-// chatEngine.js - Supabase Engine with Persistent Room Creation & Member Updates
+// chatEngine.js - Fixed Schema Column Mapping (name, client_name, client_email)
 
 (function () {
   const ChatEngine = {
@@ -21,7 +21,7 @@
       }
     },
 
-    // Create a new room in public.chat_rooms
+    // Create a new room mapped to 'name', 'client_name', and 'client_email'
     async createRoom(roomName, clientName, clientEmail) {
       const db = window.supabaseClient;
       if (!db) return null;
@@ -31,9 +31,9 @@
           .from('chat_rooms')
           .insert([
             {
-              room_name: roomName,
-              client_name: clientName,
-              client_email: clientEmail
+              name: roomName,           // Fixed: schema uses 'name'
+              client_name: clientName,   // Fixed: schema uses 'client_name'
+              client_email: clientEmail  // Fixed: schema uses 'client_email'
             }
           ])
           .select()
