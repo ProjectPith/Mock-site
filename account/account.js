@@ -374,7 +374,7 @@
         } else if (btnText.includes("Billing") || btnText.includes("Invoicing")) {
           window.location.href = "billing.html";
         } else if (btnText.includes("Project Communications")) {
-          window.location.href = "messages/messages.html";
+          window.location.href = "/messages/messages.html";
         }
         // Add more route conditions here as you build out additional pages!
       }
