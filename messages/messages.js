@@ -1,40 +1,39 @@
-// messages.js - Account-Linked Name Resolution & Multi-Party Rooms
+// messages.js - Safe RPC Name Lookup & Complete Room Management
 
 let activeRoomId = null;
-const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
+const DEV_DEFAULT_EMAIL = "hkmartin08@gnail.com";
 
-// Helper: Fetch account name from Supabase by email
+// Helper: Fetch account name safely using RPC or Session
 async function fetchAccountNameByEmail(email) {
   const db = window.supabaseClient;
   const cleanEmail = email.trim().toLowerCase();
-  if (!db || !cleanEmail) return cleanEmail.split('@')[0];
+  if (!cleanEmail) return "Guest";
+
+  const fallbackName = cleanEmail.split('@')[0];
+  if (!db) return fallbackName;
 
   try {
-    // 1. Check user profiles table
-    const { data: profile } = await db
-      .from('profiles')
-      .select('full_name, name, display_name')
-      .eq('email', cleanEmail)
-      .maybeSingle();
-
-    if (profile) {
-      const resolvedName = profile.full_name || profile.name || profile.display_name;
-      if (resolvedName) return resolvedName;
-    }
-
-    // 2. Check current active session metadata if it matches
+    // 1. Check current logged-in session user first (instant local check)
     const { data: sessionData } = await db.auth.getSession();
     const currentUser = sessionData?.session?.user;
     if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
       const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
       if (metaName) return metaName;
     }
+
+    // 2. Call secure RPC function
+    const { data: resolvedName, error } = await db.rpc('get_user_name_by_email', {
+      user_email: cleanEmail
+    });
+
+    if (!error && resolvedName) {
+      return resolvedName;
+    }
   } catch (err) {
-    console.warn("Could not fetch account profile for:", cleanEmail, err);
+    // Suppress errors and fall back cleanly
   }
 
-  // Fallback to email username if no Supabase account profile found
-  return cleanEmail.split('@')[0];
+  return fallbackName;
 }
 
 // Determine sender role dynamically
@@ -88,7 +87,7 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
   }
 };
 
-// Render messages
+// Render messages feed
 function renderMessages(messages) {
   const emptyState = document.getElementById("empty-chat-state");
   const chatContainer = document.getElementById("active-chat-container");
@@ -109,6 +108,7 @@ function renderMessages(messages) {
   feedEl.scrollTop = feedEl.scrollHeight;
 }
 
+// Append bubble to feed
 function appendMessageToFeed(msg) {
   const feed = document.getElementById("messages-feed");
   if (!feed) return;
@@ -141,37 +141,40 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and load initial list of rooms
-async function fetchAccountNameByEmail(email) {
-  const db = window.supabaseClient;
-  const cleanEmail = email.trim().toLowerCase();
-  if (!cleanEmail) return "Guest";
+// Fetch and render list of rooms
+async function loadRoomsList() {
+  if (!window.ChatEngine) return;
 
-  const fallbackName = cleanEmail.split('@')[0];
-  if (!db) return fallbackName;
+  const rooms = await window.ChatEngine.fetchRooms();
+  const roomsListEl = document.getElementById("rooms-list");
+  if (!roomsListEl) return;
 
-  try {
-    // 1. Check current logged-in session user first (instant local check)
-    const { data: sessionData } = await db.auth.getSession();
-    const currentUser = sessionData?.session?.user;
-    if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
-      const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
-      if (metaName) return metaName;
-    }
+  roomsListEl.innerHTML = "";
 
-    // 2. Call secure RPC function
-    const { data: resolvedName, error } = await db.rpc('get_user_name_by_email', {
-      user_email: cleanEmail
-    });
-
-    if (!error && resolvedName) {
-      return resolvedName;
-    }
-  } catch (err) {
-    // Fallback quietly if network drops
+  if (!rooms || rooms.length === 0) {
+    roomsListEl.innerHTML = `<div class="empty-chat-state rooms-empty-padding">No active chats.</div>`;
+    return;
   }
 
-  return fallbackName;
+  rooms.forEach((room) => {
+    const card = document.createElement("div");
+    card.className = "room-card";
+    card.setAttribute("data-room-id", room.id);
+
+    const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
+    const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
+
+    card.innerHTML = `
+      <h4>${escapeHtml(displayName)}</h4>
+      ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
+    `;
+
+    card.addEventListener("click", () => {
+      window.selectRoom(room.id, displayName, room.client_email);
+    });
+
+    roomsListEl.appendChild(card);
+  });
 }
 
 // Set up UI Event Listeners
@@ -233,16 +236,13 @@ function setupUIEventListeners() {
         .filter(Boolean);
 
       if (e.target.checked) {
-        // Default title to Support Ticket if blank
         if (!roomNameInput.value) {
           roomNameInput.value = "Support Ticket";
         }
-        // Append developer email if not present
         if (!currentEmails.includes(DEV_DEFAULT_EMAIL)) {
           currentEmails.push(DEV_DEFAULT_EMAIL);
         }
       } else {
-        // Remove developer email if unchecked
         currentEmails = currentEmails.filter(email => email !== DEV_DEFAULT_EMAIL);
       }
 
@@ -259,10 +259,9 @@ function setupUIEventListeners() {
 
       if (!roomName || !rawEmails) return;
 
-      // Parse comma-separated emails
       const emailList = rawEmails.split(',').map(e => e.trim()).filter(Boolean);
 
-      // Fetch corresponding account names from Supabase
+      // Fetch corresponding account names from Supabase safely
       const resolvedNames = await Promise.all(
         emailList.map(email => fetchAccountNameByEmail(email))
       );
