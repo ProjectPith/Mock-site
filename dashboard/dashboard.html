@@ -6,15 +6,16 @@
   <title>Dev Dashboard | LunarCraft</title>
   <link rel="stylesheet" href="../global.css">
   <link rel="stylesheet" href="/dashboard/dashboard.css">
-  <!-- Supabase JS Client -->
+  <!-- Supabase JS Client & Engine -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/chat/chat-engine.js"></script>
 </head>
 <body class="dashboard-body">
   
   <div id="site-header-container"></div>
 
   <div class="dashboard-layout">
-    <!-- LEFT SIDEBAR: Dynamic Tool Bookmarks -->
+    <!-- LEFT SIDEBAR: Hidden on Mobile via CSS -->
     <aside class="sidebar-tools">
       <div class="sidebar-header">
         <h3>Tool Bookmarks</h3>
@@ -28,22 +29,22 @@
     <!-- MAIN DASHBOARD CONTENT AREA -->
     <main class="dashboard-main">
       
-      <!-- CENTER COLUMN (2/3): Active Projects Table -->
+      <!-- LEFT / CENTER WIDGET: Active Projects -->
       <section class="projects-container">
         <div class="section-header">
           <h2>Active Projects</h2>
-          <button id="start-contract-btn" class="btn btn-primary">+ Start New Contract</button>
+          <button id="start-contract-btn" class="btn btn-primary">+ New Contract</button>
         </div>
 
         <div class="table-wrapper">
           <table class="dashboard-table">
             <thead>
               <tr>
-                <th>Project Name</th>
-                <th>Client</th>
+                <th>Project</th>
+                <th class="hide-mobile">Client</th>
                 <th>Status</th>
-                <th>Repository / Links</th>
-                <th>Action</th>
+                <th class="hide-mobile">Links</th>
+                <th class="hide-mobile">Action</th>
               </tr>
             </thead>
             <tbody id="projects-table-body">
@@ -53,10 +54,10 @@
         </div>
       </section>
 
-      <!-- RIGHT COLUMN: Financial Overview (1/4) + Recent Messages (3/4) -->
+      <!-- RIGHT WIDGET: Income Overview + Interactive Client Chat -->
       <aside class="right-column">
   
-        <!-- ESTIMATED PAYOUT WIDGET (Clickable -> Bookkeeping Page) -->
+        <!-- ESTIMATED PAYOUT WIDGET -->
         <a href="../bookkeeping/bookkeeping.html" class="payout-container-link">
           <div id="payout-card" class="payout-container">
             <div class="payout-header">
@@ -71,16 +72,26 @@
           </div>
         </a>
 
-        <!-- RECENT MESSAGES STREAM -->
+        <!-- INTERACTIVE RECENT MESSAGES WIDGET -->
         <div class="messages-container">
-          <div class="section-header">
+          <div class="section-header messages-widget-header">
             <h3>Recent Messages</h3>
+            <select id="dash-room-select" class="dash-room-select">
+              <option value="">Select Room...</option>
+            </select>
           </div>
+          
           <div id="messages-list" class="messages-list">
             <div class="message-placeholder">
-              <p>Messaging stream will connect here.</p>
+              <p>Loading active client chats...</p>
             </div>
           </div>
+
+          <!-- Inline Quick Reply Form -->
+          <form id="dash-chat-form" class="dash-chat-form">
+            <input type="text" id="dash-chat-input" placeholder="Quick reply..." disabled required autocomplete="off" />
+            <button type="submit" id="dash-chat-send" class="btn btn-sm" disabled>Send</button>
+          </form>
         </div>
 
       </aside>
@@ -95,7 +106,7 @@
       <form id="add-tool-form">
         <div class="form-group">
           <label for="tool-name">Tool Name</label>
-          <input type="text" id="tool-name" placeholder="e.g. Supabase, GitHub, Figma" required>
+          <input type="text" id="tool-name" placeholder="e.g. Supabase, GitHub" required>
         </div>
         <div class="form-group">
           <label for="tool-url">Tool URL</label>
