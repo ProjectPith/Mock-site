@@ -17,7 +17,14 @@
     <!-- Left Sidebar -->
     <aside class="chat-sidebar">
       <div class="sidebar-header">
-        <h3>Messages</h3>
+        <div>
+          <h3>Messages</h3>
+          <!-- Admin View Filter Dropdown (Hidden for standard clients) -->
+          <select id="admin-room-filter" class="hidden" style="margin-top: 4px; padding: 2px 6px; font-size: 0.75rem; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-subtle); border-radius: 4px; outline: none;">
+            <option value="my_chats">My Chats</option>
+            <option value="all">All Conversations</option>
+          </select>
+        </div>
         <button id="new-chat-btn" class="btn btn-sm">+ New Chat</button>
       </div>
       <div class="rooms-list" id="rooms-list">
@@ -28,14 +35,13 @@
     <!-- Main Active Chat Area -->
     <main class="chat-main">
       <div class="empty-chat-state" id="empty-chat-state">
-        Select a client conversation or start a new chat.
+        Select a conversation or start a new chat.
       </div>
 
       <div class="active-chat-container hidden" id="active-chat-container">
         <!-- Slim Active Header Bar -->
         <div class="chat-header">
           <div class="chat-header-left">
-            <!-- Mobile Back Button -->
             <button type="button" class="mobile-back-btn" id="mobile-back-btn" aria-label="Back to conversations">
               <div class="back-circle-outer">
                 <div class="back-circle-inner">&lsaquo;</div>
@@ -45,7 +51,6 @@
             <small id="active-room-subtitle"></small>
           </div>
 
-          <!-- Button pushed to far right -->
           <button id="manage-members-btn" class="btn btn-secondary btn-sm">
             Members
           </button>
@@ -70,7 +75,6 @@
     <div class="modal-content">
       <h3>Start New Chat</h3>
       <form id="create-room-form">
-        <!-- Developer Quick Checkbox -->
         <div class="form-group checkbox-group">
           <label for="modal-dev-checkbox" class="checkbox-label">
             <input type="checkbox" id="modal-dev-checkbox">
@@ -97,12 +101,17 @@
     </div>
   </div>
 
-  <!-- Manage Group Members Modal (Placed at Root Level) -->
+  <!-- Manage Group Members Modal -->
   <div id="members-modal" class="modal hidden">
-    <div class="modal-content" style="max-width: 400px; width: 90%;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div class="modal-content" style="max-width: 420px; width: 90%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
         <h3 style="margin: 0;">Group Participants</h3>
         <button id="close-members-modal-btn" type="button" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: inherit;">&times;</button>
+      </div>
+
+      <!-- Privacy & Access Disclaimer Notice -->
+      <div style="background: var(--sky-blue-subtle, rgba(135,206,235,0.1)); border: 1px solid var(--sky-blue, #87ceeb); border-radius: 6px; padding: 8px 12px; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-main); line-height: 1.35;">
+        <strong>🔒 Privacy Notice:</strong> This conversation is private to listed participants and LunarCraft Workspace Administration for support and oversight purposes.
       </div>
 
       <!-- Active List -->
