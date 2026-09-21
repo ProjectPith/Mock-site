@@ -138,6 +138,7 @@ function setupFormSubmission() {
       project_name: document.getElementById("project-name").value,
       client_emails: emails,
       all_accounts_created: document.getElementById("confirm-accounts").checked,
+      custom_domain: document.getElementById("custom-domain").value.trim() || null, // Included here
       project_description: document.getElementById("project-description").value,
       color_mode: colorMethod,
       color_details: colorDetails,
