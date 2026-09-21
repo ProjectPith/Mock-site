@@ -1,9 +1,9 @@
-// messages.js - Standardized Client & Room Management with Group Member Editing
+// messages.js - Standardized Client & Room Management with Dynamic Role Filtering
 
 (function () {
   if (!window.supabaseClient && window.supabase) {
     const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTYyMzA0MywiZXhwIjoyMTA1MTk5MDQzfQ.b-QuyXcDsSF0heCqbs29Rp8whNxGqsA8ASTtlm6_HHk";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZipqspbdbanobjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 })();
@@ -48,12 +48,12 @@ async function fetchAccountNameByEmail(email) {
 // Determine sender role dynamically
 async function getCurrentUserRole() {
   const db = window.supabaseClient;
-  if (!db) return { type: 'client', name: 'Client' };
+  if (!db) return { type: 'client', name: 'Client', isAdmin: false };
 
   const { data } = await db.auth.getSession();
   const user = data?.session?.user;
 
-  if (!user) return { type: 'client', name: 'Guest Client' };
+  if (!user) return { type: 'client', name: 'Guest Client', isAdmin: false };
 
   const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
   const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
@@ -62,7 +62,7 @@ async function getCurrentUserRole() {
   const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
   const senderName = user.user_metadata?.full_name || user.email || (isAdmin ? 'Admin' : 'Client');
 
-  return { type: isAdmin ? 'admin' : 'client', name: senderName };
+  return { type: isAdmin ? 'admin' : 'client', name: senderName, isAdmin };
 }
 
 // Select a chat room
@@ -162,7 +162,16 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   }
 
   try {
-    const rooms = await window.ChatEngine.fetchRooms();
+    const userRole = await getCurrentUserRole();
+    const filterSelect = document.getElementById("admin-room-filter");
+    
+    // Unhide filter dropdown if admin
+    if (userRole.isAdmin && filterSelect) {
+      filterSelect.classList.remove("hidden");
+    }
+
+    const adminFilterMode = filterSelect ? filterSelect.value : 'my_chats';
+    const rooms = await window.ChatEngine.fetchRooms(adminFilterMode);
     const roomsListEl = document.getElementById("rooms-list");
     if (!roomsListEl) return;
 
@@ -178,7 +187,7 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
       card.className = "room-card";
       card.setAttribute("data-room-id", room.id);
 
-      const displayName = room.name || room.room_name || room.client_name || "Chat";
+      const displayName = room.name || room.client_name || "Chat";
 
       card.innerHTML = `<h4>${escapeHtml(displayName)}</h4>`;
 
@@ -199,7 +208,7 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   }
 };
 
-// Safely update room client_email and client_name list
+// Update room client_email and client_name list in Supabase
 async function updateRoomParticipants(roomId, emailList) {
   if (!roomId || !window.ChatEngine) return;
 
@@ -218,13 +227,18 @@ async function updateRoomParticipants(roomId, emailList) {
       activeRoomData.client_name = clientNameStr;
     }
     await window.loadRoomsList();
-  } else {
-    alert("Could not update participants. Check database permissions or RLS policies.");
   }
 }
 
 // UI Event Handlers
 function setupUIEventListeners() {
+  const filterSelect = document.getElementById("admin-room-filter");
+  if (filterSelect) {
+    filterSelect.addEventListener("change", () => {
+      window.loadRoomsList();
+    });
+  }
+
   const messageForm = document.getElementById("message-form");
   if (messageForm) {
     messageForm.addEventListener("submit", async (e) => {
@@ -284,7 +298,6 @@ function setupUIEventListeners() {
       .filter(Boolean);
   }
 
-  // Asynchronous Member List Renderer: Fetches Display Name + Email
   async function renderMembersList() {
     if (!membersListContainer) return;
     const emails = getActiveEmailList();
@@ -295,7 +308,6 @@ function setupUIEventListeners() {
       return;
     }
 
-    // Resolve name lookups in parallel
     const memberDetails = await Promise.all(
       emails.map(async (email) => {
         const name = await fetchAccountNameByEmail(email);
@@ -406,7 +418,7 @@ function setupUIEventListeners() {
 
         await window.loadRoomsList();
         if (newRoom && newRoom.id) {
-          window.selectRoom(newRoom.id, newRoom.name || newRoom.room_name, newRoom);
+          window.selectRoom(newRoom.id, newRoom.name || newRoom.client_name, newRoom);
         }
       }
     });
