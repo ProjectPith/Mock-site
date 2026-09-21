@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LunarCraft | Project Intake Form</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="intake.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div id="site-header-container"></div>
+
+  <main class="intake-wrapper">
+    <div class="intake-card">
+      <h2>Streamlined Project Intake</h2>
+      <p class="intake-subtitle">Provide your core project parameters to kick off contract setup.</p>
+
+      <form id="intake-form">
+        <!-- 1. PROJECT NAME -->
+        <div class="form-group">
+          <label for="project-name">Project Name *</label>
+          <input type="text" id="project-name" required placeholder="e.g. Apex Studio Workspace">
+        </div>
+
+        <!-- 2. INVOLVED PARTIES -->
+        <div class="form-group">
+          <label>Involved Client Parties (Emails) *</label>
+          <div id="parties-container" class="parties-list">
+            <div class="party-row">
+              <input type="email" class="party-email" required placeholder="client@example.com">
+              <button type="button" class="btn-remove-party" onclick="removePartyRow(this)">&times;</button>
+            </div>
+          </div>
+          <button type="button" id="btn-add-party" class="btn-secondary-sm">+ Add Another Email</button>
+          
+          <div class="checkbox-confirm-wrap">
+            <label class="custom-checkbox-label">
+              <input type="checkbox" id="confirm-accounts" required>
+              <span>I confirm that all listed parties have created an account on this site. *</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. DESCRIPTION -->
+        <div class="form-group">
+          <label for="project-description">Project Description & Goal *</label>
+          <textarea id="project-description" rows="4" required placeholder="Describe what the site is for, who it targets, and key deliverables..."></textarea>
+        </div>
+
+        <!-- 4. COLOR SELECTION (1 OF 3 CHOICES) -->
+        <div class="form-group">
+          <label>Color Scheme Method * <small>(Select one option to configure)</small></label>
+          
+          <div class="color-method-tabs">
+            <label class="method-tab">
+              <input type="radio" name="color_method" value="hex" checked onchange="switchColorMethod('hex')">
+              <span>Specific Hex Codes</span>
+            </label>
+            <label class="method-tab">
+              <input type="radio" name="color_method" value="preset" onchange="switchColorMethod('preset')">
+              <span>Preset Color Themes</span>
+            </label>
+            <label class="method-tab">
+              <input type="radio" name="color_method" value="vibe" onchange="switchColorMethod('vibe')">
+              <span>General Vibe</span>
+            </label>
+          </div>
+
+          <!-- OPTION A: HEX CODES -->
+          <div id="color-sec-hex" class="color-panel active-panel">
+            <div class="hex-grid">
+              <div class="hex-field">
+                <span class="field-sublabel">Primary Color</span>
+                <div class="hex-input-wrap">
+                  <input type="text" id="hex-primary" placeholder="#12161A" maxlength="7">
+                  <input type="color" id="picker-primary" class="shade-picker" value="#12161A">
+                </div>
+              </div>
+              <div class="hex-field">
+                <span class="field-sublabel">Accent / Sky Blue</span>
+                <div class="hex-input-wrap">
+                  <input type="text" id="hex-accent" placeholder="#87CEEB" maxlength="7">
+                  <input type="color" id="picker-accent" class="shade-picker" value="#87CEEB">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPTION B: PRESET THEMES -->
+          <div id="color-sec-preset" class="color-panel hidden">
+            <div class="preset-grid">
+              <label class="preset-card">
+                <input type="radio" name="preset_theme" value="forest">
+                <div class="preset-box">
+                  <strong>Forest Green</strong>
+                  <div class="swatch-row">
+                    <span style="background: #1b2e23;"></span>
+                    <span style="background: #2d5a3f;"></span>
+                    <span style="background: #80c499;"></span>
+                  </div>
+                </div>
+              </label>
+              <label class="preset-card">
+                <input type="radio" name="preset_theme" value="ocean">
+                <div class="preset-box">
+                  <strong>Ocean Deep</strong>
+                  <div class="swatch-row">
+                    <span style="background: #0f1c2e;"></span>
+                    <span style="background: #1f4068;"></span>
+                    <span style="background: #00d2d3;"></span>
+                  </div>
+                </div>
+              </label>
+              <label class="preset-card">
+                <input type="radio" name="preset_theme" value="charcoal">
+                <div class="preset-box">
+                  <strong>Ethereal Charcoal</strong>
+                  <div class="swatch-row">
+                    <span style="background: #12161a;"></span>
+                    <span style="background: #252d35;"></span>
+                    <span style="background: #87ceeb;"></span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- OPTION C: GENERAL VIBE -->
+          <div id="color-sec-vibe" class="color-panel hidden">
+            <input type="text" id="vibe-text" placeholder="e.g. Modern minimalist, warm luxury, neon cyberpunk, clean pastel...">
+          </div>
+        </div>
+
+        <!-- 5. SITE FEATURES & TYPE -->
+        <div class="form-group">
+          <label>Site Type & Complexity *</label>
+          <div class="site-type-selector">
+            <label class="type-card">
+              <input type="radio" name="site_type" value="static" checked onchange="toggleSiteType('static')">
+              <div class="type-box">
+                <strong>Static Web Presence</strong>
+                <p>Standard responsive layout, informational sections, contact form, static assets.</p>
+              </div>
+            </label>
+
+            <label class="type-card">
+              <input type="radio" name="site_type" value="dynamic" onchange="toggleSiteType('dynamic')">
+              <div class="type-box">
+                <strong>Non-Static / Dynamic App</strong>
+                <p>Interactive features, backend integration, custom web tools, dynamic pricing.</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- DYNAMIC FEATURES SUB-PANEL -->
+          <div id="dynamic-features-panel" class="features-panel hidden">
+            <span class="field-sublabel">Select Included Dynamic Modules:</span>
+            <div class="features-grid">
+              <label class="feature-checkbox">
+                <input type="checkbox" name="feature_opt" value="Price Estimator">
+                <span>Interactive Price Estimator</span>
+              </label>
+              <label class="feature-checkbox">
+                <input type="checkbox" name="feature_opt" value="E-Commerce Store">
+                <span>Printify / E-Commerce Store & Checkout</span>
+              </label>
+              <label class="feature-checkbox">
+                <input type="checkbox" name="feature_opt" value="Client Portal Overlay">
+                <span>Side Panel / Account Navigation Overlays</span>
+              </label>
+              <label class="feature-checkbox">
+                <input type="checkbox" name="feature_opt" value="Booking & Calendar">
+                <span>Embedded Booking / Call Scheduling</span>
+              </label>
+              <label class="feature-checkbox">
+                <input type="checkbox" name="feature_opt" value="Stripe Embedded Checkout">
+                <span>Embedded Stripe Payments</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. EXTRA NOTES -->
+        <div class="form-group">
+          <label for="extra-notes">Extra Notes & Special Requests</label>
+          <textarea id="extra-notes" rows="3" placeholder="Specify any bespoke requirements, custom APIs, third-party integrations, or non-listed features..."></textarea>
+        </div>
+
+        <!-- SUBMIT BUTTON -->
+        <button type="submit" id="btn-submit-intake" class="btn-primary-lg">Submit Intake Specifications</button>
+        <div id="intake-msg" class="intake-status-msg"></div>
+      </form>
+    </div>
+  </main>
+
+  <script src="intake.js"></script>
+  <script src="/nav.js"></script>
+</body>
+</html>
