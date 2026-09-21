@@ -1,9 +1,9 @@
-// chatEngine.js - Fixed Multi-Room Email Matching
+// chatEngine.js - Fixed Multi-Room Email & Participant Matching
 
 (function () {
   const ChatEngine = {
     // Fetch active chat rooms filtered by user role and active filter state
-    async fetchRooms(adminFilterMode = 'all') {
+    async fetchRooms(adminFilterMode = 'my_chats') {
       const db = window.supabaseClient;
       if (!db) return [];
 
@@ -17,7 +17,7 @@
         const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
         const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
 
-        // Query all chat rooms ordered by newest first
+        // Fetch all rooms sorted by newest
         const { data: rooms, error } = await db
           .from('chat_rooms')
           .select('*')
@@ -26,24 +26,26 @@
         if (error) throw error;
         if (!rooms) return [];
 
-        // Admin Filter handling
+        // Helper function to check if current email is in client_email list
+        const isUserParticipant = (room) => {
+          if (!room.client_email) return false;
+          const emails = room.client_email
+            .split(',')
+            .map(e => e.trim().toLowerCase());
+          return emails.includes(userEmail);
+        };
+
+        // ADMIN FILTER logic
         if (isAdmin) {
           if (adminFilterMode === 'my_chats') {
-            return rooms.filter(room => {
-              if (!room.client_email) return false;
-              return room.client_email.toLowerCase().includes(userEmail);
-            });
+            return rooms.filter(isUserParticipant);
           }
-          // 'all' mode returns every room in the database
+          // 'all' mode returns every room in database
           return rooms;
         }
 
-        // CLIENT FILTER: Return ANY room where client_email contains the client's email address
-        return rooms.filter(room => {
-          if (!room.client_email) return false;
-          // Flexible partial match check across comma-separated strings
-          return room.client_email.toLowerCase().includes(userEmail);
-        });
+        // CLIENT FILTER logic: Always restrict to rooms where client_email includes their email
+        return rooms.filter(isUserParticipant);
 
       } catch (err) {
         console.error("Error fetching rooms:", err);
