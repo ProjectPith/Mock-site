@@ -371,8 +371,10 @@
           window.location.href = "/orders/orders.html";
         } else if (btnText.includes("Developer Dashboard")) {
           window.location.href = "/dashboard/dashboard.html";
-        } else if (btnText.includes("Billing") || btnText.includes("Invoicing")) {
+        } else if (btnText.includes("Billing & Payments") || btnText.includes("Invoicing")) {
           window.location.href = "/billing/billing.html";
+        } else if (btnText.includes("Client Invoicing")) {
+          window.location.href = "/admin-billing/admin-billing.html";
         } else if (btnText.includes("Project Communications")) {
           window.location.href = "/messages/messages.html";
         }
