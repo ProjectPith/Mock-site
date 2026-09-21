@@ -71,40 +71,45 @@ window.selectRoom = function(roomId, roomName, clientEmail) {
   loadRoomsList(); // Refresh active highlighting in sidebar
 };
 
-// Handle Event Listeners & Modals
-function setupUIEventListeners() {
-  const modal = document.getElementById("new-chat-modal");
-  
-  document.getElementById("open-new-chat-modal").addEventListener("click", () => modal.classList.remove("hidden"));
-  document.getElementById("close-modal-btn").addEventListener("click", () => modal.classList.add("hidden"));
+async function getCurrentUserRole() {
+  const db = window.supabaseClient;
+  if (!db) return { type: 'client', name: 'Client' };
 
-  // Manual Chat Creation Form
-  document.getElementById("new-chat-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("modal-room-name").value;
-    const clientName = document.getElementById("modal-client-name").value;
-    const clientEmail = document.getElementById("modal-client-email").value;
+  const { data } = await db.auth.getSession();
+  const user = data?.session?.user;
 
-    const newRoom = await window.ChatEngine.createRoom({ name, clientName, clientEmail });
-    
-    document.getElementById("new-chat-form").reset();
-    modal.classList.add("hidden");
+  if (!user) return { type: 'client', name: 'Guest Client' };
 
-    if (newRoom) {
-      await loadRoomsList();
-      window.selectRoom(newRoom.id, newRoom.name, newRoom.client_email);
-    }
-  });
+  // Primary admin check or metadata check
+  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
+  const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
+  const userEmail = (user.email || "").toLowerCase();
 
-  // Message Send Form
-  document.getElementById("message-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const input = document.getElementById("message-input");
-    const content = input.value.trim();
+  const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
+  const senderName = user.user_metadata?.full_name || user.email || (isAdmin ? 'Admin' : 'Client');
 
-    if (!content || !activeRoomId) return;
-
-    input.value = "";
-    await window.ChatEngine.sendMessage(activeRoomId, "admin", "Admin", content);
-  });
+  return {
+    type: isAdmin ? 'admin' : 'client',
+    name: senderName
+  };
 }
+
+// Update the Message Send event listener inside setupUIEventListeners():
+document.getElementById("message-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("message-input");
+  const content = input.value.trim();
+
+  if (!content || !activeRoomId) return;
+
+  // Dynamically determine sender role and name
+  const userRole = await getCurrentUserRole();
+
+  input.value = "";
+  await window.ChatEngine.sendMessage(
+    activeRoomId, 
+    userRole.type,  // Sends 'admin' or 'client' automatically
+    userRole.name,  // Uses actual user's full name/email
+    content
+  );
+});
