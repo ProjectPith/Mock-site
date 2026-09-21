@@ -148,6 +148,12 @@ input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
   gap: 14px;
 }
 
+#color-sec-vibe textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
 .field-sublabel {
   font-size: 0.78rem;
   color: var(--text-muted, #8b949e);
