@@ -29,27 +29,32 @@ async function getCurrentUserRole() {
 window.selectRoom = function (roomId, roomName, clientEmail) {
   activeRoomId = roomId;
 
-  // Toggle responsive layout state for mobile
+  // Mobile layout switch
   document.querySelector(".chat-layout")?.classList.add("room-active");
 
+  // Update room header titles
   const titleEl = document.getElementById("active-room-title");
   const subtitleEl = document.getElementById("active-room-subtitle");
   if (titleEl) titleEl.textContent = roomName || clientEmail || "Chat";
   if (subtitleEl) subtitleEl.textContent = clientEmail || "";
 
-  // Highlight selected room card in list (matching .room-card.active in CSS)
+  // Highlight card in sidebar
   document.querySelectorAll(".room-card").forEach((el) => el.classList.remove("active"));
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
   if (selectedItem) selectedItem.classList.add("active");
+
+  // Reveal main chat container immediately in case room has no messages
+  const emptyState = document.querySelector(".empty-chat-state");
+  const chatContainer = document.querySelector(".active-chat-container");
+  if (emptyState) emptyState.classList.add("hidden");
+  if (chatContainer) chatContainer.classList.remove("hidden");
 
   if (window.ChatEngine) {
     window.ChatEngine.subscribeToRoom(roomId, (messages, isInitialLoad) => {
       if (isInitialLoad) {
         renderMessages(messages);
-      } else {
-        if (messages && messages[0]) {
-          appendMessageToFeed(messages[0]);
-        }
+      } else if (messages && messages[0]) {
+        appendMessageToFeed(messages[0]);
       }
     });
   }
@@ -57,16 +62,28 @@ window.selectRoom = function (roomId, roomName, clientEmail) {
 
 // Render messages to feed
 function renderMessages(messages) {
-  const feed = document.getElementById("messages-feed");
-  if (!feed) return;
+  const emptyState = document.querySelector(".empty-chat-state");
+  const chatContainer = document.querySelector(".active-chat-container");
+  const feedEl = document.getElementById("messages-feed");
 
-  feed.innerHTML = "";
+  // Show active container and hide empty placeholder
+  if (emptyState) emptyState.classList.add("hidden");
+  if (chatContainer) chatContainer.classList.remove("hidden");
+
+  if (!feedEl) return;
+  feedEl.innerHTML = "";
+
+  if (!messages || messages.length === 0) {
+    feedEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No messages yet in this room.</div>`;
+    return;
+  }
 
   messages.forEach((msg) => {
     appendMessageToFeed(msg);
   });
 
-  feed.scrollTop = feed.scrollHeight;
+  // Scroll feed to bottom
+  feedEl.scrollTop = feedEl.scrollHeight;
 }
 
 // Append single message bubble
