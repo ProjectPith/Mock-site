@@ -204,3 +204,27 @@
   margin-top: 10px;
   font-weight: 600;
 }
+
+.review-banner {
+  background: #19232d;
+  border-bottom: 2px solid #87ceeb;
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.banner-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 10px;
+}
