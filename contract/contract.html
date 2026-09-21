@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LunarCraft | Web Design & Digital Services Agreement</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="contract.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+</head>
+<body>
+
+  <div id="site-header-container"></div>
+
+  <main class="contract-page-wrapper">
+    <!-- Top Bar Actions -->
+    <div class="contract-actions-bar">
+      <button id="btn-download-preview" class="btn-secondary">Download PDF Preview</button>
+      <span class="status-indicator" id="contract-status-badge">Pending E-Signature</span>
+    </div>
+
+    <!-- DOCUMENT CONTAINER (Rendered into PDF) -->
+    <div id="contract-document" class="contract-document">
+      
+      <!-- DOCUMENT HEADER -->
+      <div class="doc-header">
+        <h1 class="brand-title">LUNARCRAFT</h1>
+        <h2>WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
+        <p class="doc-subtitle">MASTER SERVICE TEMPLATE</p>
+      </div>
+
+      <p class="intro-paragraph">
+        This Web Design & Services Agreement ("Agreement") is entered into as of the date of final electronic signature ("Effective Date"), by and between <strong>LunarCraft</strong> ("Provider"), and the Client identified below ("Client").
+      </p>
+
+      <!-- 1. PROJECT DETAILS & FINANCIAL TERMS -->
+      <section class="doc-section">
+        <h3>1. PROJECT DETAILS & FINANCIAL TERMS</h3>
+        <table class="terms-table">
+          <tr>
+            <td class="td-label">Client Full Name(s)</td>
+            <td class="td-val" id="val-client-names">[ Loading... ]</td>
+          </tr>
+          <tr>
+            <td class="td-label">Project Name</td>
+            <td class="td-val" id="val-project-name">[ Loading... ]</td>
+          </tr>
+          <tr>
+            <td class="td-label">Domain Name</td>
+            <td class="td-val" id="val-domain-name">[ None / Pending ]</td>
+          </tr>
+          <tr>
+            <td class="td-label">Site Build Total Cost</td>
+            <td class="td-val" id="val-total-cost">$0.00</td>
+          </tr>
+          <tr>
+            <td class="td-label">Deposit Amount</td>
+            <td class="td-val" id="val-deposit">$0.00</td>
+          </tr>
+          <tr>
+            <td class="td-label">Site Build Monthly Payment</td>
+            <td class="td-val" id="val-build-monthly">$0.00 / mo for 0 months</td>
+          </tr>
+          <tr>
+            <td class="td-label">Monthly Maintenance Cost</td>
+            <td class="td-val" id="val-maintenance-cost">$0.00 / month</td>
+          </tr>
+          <tr>
+            <td class="td-label">Scope of Maintenance</td>
+            <td class="td-val" id="val-maintenance-scope">[ Loading Maintenance Notes... ]</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- 2. DEVELOPMENT & SITE ACCESS -->
+      <section class="doc-section">
+        <h3>2. DEVELOPMENT & SITE ACCESS</h3>
+        <p><strong>Deposit & Start Date:</strong> The site build process will officially commence only upon receipt and clearance of the initial deposit by the Provider.</p>
+        <p><strong>Site Delivery & Access:</strong> Full access to and deployment of the completed website will be granted upon payment of the total build fee, unless a monthly payment schedule is specified in Section 1. Under a monthly payment schedule, Client access is contingent upon remaining fully current on all payments.</p>
+      </section>
+
+      <!-- 3. INTELLECTUAL PROPERTY & CODE OWNERSHIP -->
+      <section class="doc-section">
+        <h3>3. INTELLECTUAL PROPERTY & CODE OWNERSHIP</h3>
+        <p><strong>Source Code Ownership:</strong> Provider (LunarCraft) retains full ownership of all source code, design assets, and custom scripts created for the project until the site build cost is paid in full.</p>
+        <p><strong>Payment Plans:</strong> If operating under a payment plan, ownership of all source code remains strictly with the Provider until the balance is cleared in full, regardless of active deployment.</p>
+        <p><strong>Transfer upon Full Payment & Termination:</strong> Upon full payment of all outstanding build fees and formal contract termination, ownership of the site source code and repository will be transferred to the Client. The Client will assume sole management of third-party services (including Stripe, hosting, and API accounts).</p>
+      </section>
+
+      <!-- 4. ONGOING SITE MANAGEMENT & MAINTENANCE -->
+      <section class="doc-section">
+        <h3>4. ONGOING SITE MANAGEMENT & MAINTENANCE</h3>
+        <p><strong>Management Rights:</strong> Provider will host, maintain, and manage the website until this Agreement is terminated in accordance with Section 6.</p>
+        <p><strong>Maintenance Terms:</strong> Client agrees to pay the recurring Monthly Maintenance Fee outlined in Section 1 for continuous updates, monitoring, and administrative upkeep.</p>
+      </section>
+
+      <!-- PAGE BREAK FOR CLEAN 2-PAGE LAYOUT -->
+      <div class="html2pdf__page-break"></div>
+
+      <!-- 5. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY -->
+      <section class="doc-section">
+        <h3>5. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY</h3>
+        <p><strong>Post-Delivery Window:</strong> Client is granted a two (2) week window following site delivery to request minor aesthetic adjustments and simple corrections at no additional charge.</p>
+        <p><strong>Paid Add-Ons:</strong> Requested revisions involving new features, expanded functionality, or work beyond the initial scope are treated as paid add-ons and require an updated contract. Any deposit previously paid will be deducted from the revised total balance.</p>
+        <p><strong>Provider Code Warranty:</strong> Any bugs or technical errors originating directly from Provider's original code carry no time limit and will be fixed at no extra charge.</p>
+        <p><strong>Tamper Fee (Client / Third-Party Interference):</strong> Any bugs, errors, or outages caused by Client intervention, unauthorized modifications, or third-party interference will incur a repair fee of $150 per incident OR $75/hour, whichever is greater.</p>
+      </section>
+
+      <!-- 6. TERMINATION & REFUND POLICY -->
+      <section class="doc-section">
+        <h3>6. TERMINATION & REFUND POLICY</h3>
+        <p><strong>Termination for Misconduct:</strong> Provider reserves the right to terminate this Agreement immediately for client misconduct, harassment, or disrespectful behavior. If terminated for misconduct prior to site handoff, the Client will receive a refund of payments made, but Provider retains 100% ownership of the website and code. If the Client was using the site under an active payment plan, site access will be immediately revoked upon termination.</p>
+        <p><strong>Client-Initiated Termination:</strong> If the Client chooses to terminate this Agreement prior to paying off the full build balance, no refunds will be issued for any deposits or payments previously made.</p>
+      </section>
+
+      <!-- 7. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT -->
+      <section class="doc-section">
+        <h3>7. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT</h3>
+        <p>By signing electronically below, both parties agree to all terms and conditions of this Agreement. The parties acknowledge that electronic signatures executed via an authorized e-signature platform carry full legal weight and enforceability.</p>
+
+        <div class="signatures-grid">
+          <!-- PROVIDER BLOCK -->
+          <div class="sig-block">
+            <h4>PROVIDER (LUNARCRAFT)</h4>
+            <div class="sig-line"><strong>Signature:</strong> <span class="sig-font">LunarCraft Dev</span></div>
+            <div class="sig-line"><strong>Printed Name:</strong> Owner / Lead Developer</div>
+            <div class="sig-line"><strong>Title:</strong> Owner / Developer</div>
+            <div class="sig-line"><strong>Date:</strong> <span id="val-provider-date">2026-09-21</span></div>
+            <div class="sig-tag">[ Digitally Signed via E-Signature Platform ]</div>
+          </div>
+
+          <!-- CLIENT E-SIGN BLOCK -->
+          <div class="sig-block">
+            <h4>CLIENT</h4>
+            <div class="sig-line">
+              <strong>Signature:</strong>
+              <div id="canvas-wrap" class="canvas-wrap">
+                <canvas id="signature-pad" width="300" height="70"></canvas>
+                <button type="button" id="btn-clear-sig" class="btn-clear">&times;</button>
+              </div>
+            </div>
+            <div class="sig-input-group">
+              <label>Printed Name:</label>
+              <input type="text" id="input-printed-name" required placeholder="Type full name">
+            </div>
+            <div class="sig-input-group">
+              <label>Title:</label>
+              <input type="text" id="input-client-title" placeholder="e.g. Owner / Client">
+            </div>
+            <div class="sig-line"><strong>Date:</strong> <span id="val-client-date">Pending</span></div>
+            <div class="sig-tag">[ Digitally Signed via E-Signature Platform ]</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="doc-footer">
+        <span>LunarCraft Web Design & Services Agreement</span>
+      </div>
+    </div>
+
+    <!-- SUBMIT ACTION -->
+    <div class="contract-submit-bar">
+      <button id="btn-submit-signature" class="btn-primary-lg">Execute & Finalize Signed Agreement</button>
+      <div id="contract-msg" class="status-msg"></div>
+    </div>
+  </main>
+
+  <script src="contract.js"></script>
+  <script src="/nav.js"></script>
+</body>
+</html>
