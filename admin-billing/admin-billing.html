@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LunarCraft | Admin Billing Dashboard</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="/admin-billing/admin-billing.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div id="site-header-container"></div>
+
+  <main class="admin-billing-container">
+    <!-- LEFT WIDGET: Global Payment History (1/3 Width) -->
+    <section class="widget widget-history">
+      <div class="widget-header">
+        <h3>Global Payment History</h3>
+      </div>
+      <div class="history-list" id="global-history-list">
+        <div class="loading-text">Loading global history...</div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN (2/3 Width) -->
+    <div class="admin-right-col">
+      <!-- TOP RIGHT: Awaiting Payments (1/3 Space) -->
+      <section class="widget widget-awaiting">
+        <div class="awaiting-main">
+          <span class="widget-label">Total Awaiting Payments</span>
+          <h1 class="awaiting-amount" id="total-awaiting-amount">$0.00</h1>
+        </div>
+        <div class="awaiting-summary-box" id="awaiting-summary-box">
+          <span class="summary-text" id="awaiting-summary-text">Calculating uncollected balances...</span>
+        </div>
+      </section>
+
+      <!-- BOTTOM RIGHT: Managed Projects Grid (2/3 Space) -->
+      <section class="widget widget-projects">
+        <div class="widget-header admin-projects-header">
+          <h3>Projects & Billing Records</h3>
+          
+          <!-- Admin Filter Controls -->
+          <div class="admin-filter-controls">
+            <!-- Filter 1: Upcoming vs Recent Payments -->
+            <select id="filter-timeline" class="admin-select-filter">
+              <option value="all">All Timelines</option>
+              <option value="upcoming">Upcoming Payments</option>
+              <option value="recent">Recent Payments</option>
+            </select>
+
+            <!-- Filter 2: Maintenance vs Build Payouts -->
+            <select id="filter-type" class="admin-select-filter">
+              <option value="both">Both (All Types)</option>
+              <option value="build">Build Payouts</option>
+              <option value="maintenance">Maintenance Fees</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="projects-grid" id="admin-projects-grid">
+          <div class="loading-text">Loading project records...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Admin Project Detail Overlay Modal -->
+  <div id="admin-project-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="admin-modal-project-title">Project Audit</h3>
+        <button type="button" id="admin-close-modal-btn" class="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-project-summary">
+        <div>
+          <small>Total Bill</small>
+          <strong id="admin-modal-total">$0.00</strong>
+        </div>
+        <div>
+          <small>Total Collected</small>
+          <strong id="admin-modal-collected" style="color: #4ed1a0;">$0.00</strong>
+        </div>
+        <div>
+          <small>Remaining Due</small>
+          <strong id="admin-modal-remaining" style="color: #ff6b6b;">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="modal-client-list">
+        <small class="widget-label">Assigned Accounts</small>
+        <div id="admin-modal-clients" class="client-tags"></div>
+      </div>
+
+      <h4 style="margin-top: 16px;">All Payments Received</h4>
+      <div class="modal-tx-list" id="admin-modal-tx-list"></div>
+    </div>
+  </div>
+
+  <script src="/admin-billing/admin-billing.js"></script>
+  <script src="/nav.js"></script>
+</body>
+</html>
