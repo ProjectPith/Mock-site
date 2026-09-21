@@ -39,24 +39,52 @@ window.removePartyRow = function (btn) {
 
 // Sync Shade Picker buttons to Hex Text Inputs
 function setupShadePickers() {
-  const primaryText = document.getElementById("hex-primary");
-  const primaryPicker = document.getElementById("picker-primary");
-  const accentText = document.getElementById("hex-accent");
-  const accentPicker = document.getElementById("picker-accent");
+  const fields = [
+    { text: "hex-bg", picker: "picker-bg" },
+    { text: "hex-primary", picker: "picker-primary" },
+    { text: "hex-accent-1", picker: "picker-accent-1" },
+    { text: "hex-accent-2", picker: "picker-accent-2" }
+  ];
 
-  primaryPicker.addEventListener("input", (e) => primaryText.value = e.target.value.toUpperCase());
-  accentPicker.addEventListener("input", (e) => accentText.value = e.target.value.toUpperCase());
+  fields.forEach(({ text, picker }) => {
+    const textEl = document.getElementById(text);
+    const pickerEl = document.getElementById(picker);
+
+    if (textEl && pickerEl) {
+      pickerEl.addEventListener("input", (e) => {
+        textEl.value = e.target.value.toUpperCase();
+      });
+      textEl.addEventListener("input", (e) => {
+        if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+          pickerEl.value = e.target.value;
+        }
+      });
+    }
+  });
 }
 
-// Switch between 3 Color Scheme Options
 window.switchColorMethod = function (method) {
-  document.getElementById("color-sec-hex").classList.add("hidden");
-  document.getElementById("color-sec-preset").classList.add("hidden");
-  document.getElementById("color-sec-vibe").classList.add("hidden");
+  const hexSec = document.getElementById("color-sec-hex");
+  const presetSec = document.getElementById("color-sec-preset");
+  const vibeSec = document.getElementById("color-sec-vibe");
 
-  if (method === 'hex') document.getElementById("color-sec-hex").classList.remove("hidden");
-  if (method === 'preset') document.getElementById("color-sec-preset").classList.remove("hidden");
-  if (method === 'vibe') document.getElementById("color-sec-vibe").classList.remove("hidden");
+  hexSec.classList.add("hidden");
+  presetSec.classList.add("hidden");
+  vibeSec.classList.add("hidden");
+
+  const hexBg = document.getElementById("hex-bg");
+  const hexPrimary = document.getElementById("hex-primary");
+
+  if (method === 'hex') {
+    hexSec.classList.remove("hidden");
+    hexBg.required = true;
+    hexPrimary.required = true;
+  } else {
+    hexBg.required = false;
+    hexPrimary.required = false;
+    if (method === 'preset') presetSec.classList.remove("hidden");
+    if (method === 'vibe') vibeSec.classList.remove("hidden");
+  }
 };
 
 // Toggle Static vs Dynamic features panel
@@ -79,18 +107,18 @@ function setupFormSubmission() {
     msgEl.textContent = "Submitting intake specs...";
     msgEl.style.color = "#87ceeb";
 
-    // Gather Parties
     const emailInputs = document.querySelectorAll(".party-email");
     const emails = Array.from(emailInputs).map(i => i.value.trim()).filter(Boolean);
 
-    // Color Details
     const colorMethod = document.querySelector("input[name='color_method']:checked").value;
     let colorDetails = {};
 
     if (colorMethod === 'hex') {
       colorDetails = {
-        primary: document.getElementById("hex-primary").value || '#12161A',
-        accent: document.getElementById("hex-accent").value || '#87CEEB'
+        background: document.getElementById("hex-bg").value,
+        primary: document.getElementById("hex-primary").value,
+        accent1: document.getElementById("hex-accent-1").value || null,
+        accent2: document.getElementById("hex-accent-2").value || null
       };
     } else if (colorMethod === 'preset') {
       const selectedPreset = document.querySelector("input[name='preset_theme']:checked");
@@ -99,7 +127,6 @@ function setupFormSubmission() {
       colorDetails = { vibe: document.getElementById("vibe-text").value };
     }
 
-    // Features
     const siteType = document.querySelector("input[name='site_type']:checked").value;
     let features = [];
     if (siteType === 'dynamic') {
@@ -116,6 +143,7 @@ function setupFormSubmission() {
       color_details: colorDetails,
       site_type: siteType,
       selected_features: features,
+      maintenance_needs: document.getElementById("maintenance-notes").value,
       extra_notes: document.getElementById("extra-notes").value
     };
 
