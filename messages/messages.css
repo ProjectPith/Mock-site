@@ -124,8 +124,7 @@
 .message-bubble.admin {
   align-self: flex-end;
   background-color: var(--sky-blue);
-  color: #101216; /* Low glare dark text on sky blue */
-  font-weight: 500;
+  color: #101216;
 }
 
 .message-bubble.client {
