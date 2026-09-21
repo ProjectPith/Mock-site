@@ -1,6 +1,5 @@
-// messages.js - Standardized Client & Room Management
+// messages.js - Standardized Client & Room Management with Group Member Editing
 
-// 1. Standardized Supabase Client Initialization
 (function () {
   if (!window.supabaseClient && window.supabase) {
     const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -10,6 +9,7 @@
 })();
 
 let activeRoomId = null;
+let activeRoomData = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
 // Helper: Resolve name locally or via direct profiles query
@@ -22,7 +22,13 @@ async function fetchAccountNameByEmail(email) {
   if (!db) return fallbackName;
 
   try {
-    // Direct table query on public.profiles (Only requesting full_name)
+    const { data: sessionData } = await db.auth.getSession();
+    const currentUser = sessionData?.session?.user;
+    if (currentUser && currentUser.email?.toLowerCase() === cleanEmail) {
+      const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
+      if (metaName) return metaName;
+    }
+
     const { data: profile } = await db
       .from('profiles')
       .select('full_name')
@@ -33,7 +39,7 @@ async function fetchAccountNameByEmail(email) {
       return profile.full_name;
     }
   } catch (err) {
-    // Ignore error silently
+    // Suppress network errors
   }
 
   return fallbackName;
@@ -59,16 +65,18 @@ async function getCurrentUserRole() {
   return { type: isAdmin ? 'admin' : 'client', name: senderName };
 }
 
-// Select a chat room
-window.selectRoom = function (roomId, roomName, clientEmail) {
+// Select a chat room (Cleaner header - no sub-text email)
+window.selectRoom = function (roomId, roomName, roomData) {
   activeRoomId = roomId;
+  activeRoomData = roomData || {};
 
   document.querySelector(".chat-layout")?.classList.add("room-active");
 
   const titleEl = document.getElementById("active-room-title");
   const subtitleEl = document.getElementById("active-room-subtitle");
+  
   if (titleEl) titleEl.textContent = roomName || "Chat";
-  if (subtitleEl) subtitleEl.textContent = clientEmail || "";
+  if (subtitleEl) subtitleEl.textContent = ""; // Stripped subtext email
 
   document.querySelectorAll(".room-card").forEach((el) => el.classList.remove("active"));
   const selectedItem = document.querySelector(`[data-room-id="${roomId}"]`);
@@ -144,7 +152,7 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Fetch and render list of rooms
+// Fetch and render list of rooms (Sidebar cards display title only)
 window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
   if (!window.ChatEngine) {
     if (retryCount < 10) {
@@ -170,16 +178,13 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
       card.className = "room-card";
       card.setAttribute("data-room-id", room.id);
 
-      const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
-      const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
+      const displayName = room.name || room.room_name || room.client_name || "Chat";
 
-      card.innerHTML = `
-        <h4>${escapeHtml(displayName)}</h4>
-        ${subText ? `<small>${escapeHtml(subText)}</small>` : ""}
-      `;
+      // Render room name only without sub-text email
+      card.innerHTML = `<h4>${escapeHtml(displayName)}</h4>`;
 
       card.addEventListener("click", () => {
-        window.selectRoom(room.id, displayName, room.client_email);
+        window.selectRoom(room.id, displayName, room);
       });
 
       roomsListEl.appendChild(card);
@@ -194,6 +199,35 @@ window.loadRoomsList = async function loadRoomsList(retryCount = 0) {
     newChatBtn.addEventListener("click", () => modal.classList.remove("hidden"));
   }
 };
+
+// Safely update room client_email and client_name list
+async function updateRoomParticipants(roomId, emailList) {
+  const db = window.supabaseClient;
+  if (!db || !roomId) return;
+
+  const resolvedNames = await Promise.all(
+    emailList.map(email => fetchAccountNameByEmail(email))
+  );
+
+  const clientEmailStr = emailList.join(", ");
+  const clientNameStr = resolvedNames.join(", ");
+
+  const { error } = await db
+    .from('chat_rooms')
+    .update({ 
+      client_email: clientEmailStr, 
+      client_name: clientNameStr 
+    })
+    .eq('id', roomId);
+
+  if (!error) {
+    if (activeRoomData) {
+      activeRoomData.client_email = clientEmailStr;
+      activeRoomData.client_name = clientNameStr;
+    }
+    await window.loadRoomsList();
+  }
+}
 
 // UI Event Handlers
 function setupUIEventListeners() {
@@ -227,7 +261,86 @@ function setupUIEventListeners() {
     });
   }
 
-  // Modal Handlers
+  // Manage Group Members Modal Logic
+  const membersBtn = document.getElementById("manage-members-btn");
+  const membersModal = document.getElementById("members-modal");
+  const closeMembersBtn = document.getElementById("close-members-modal-btn");
+  const membersListContainer = document.getElementById("members-list-container");
+  const addMemberForm = document.getElementById("add-member-form");
+  const newMemberEmailInput = document.getElementById("new-member-email");
+
+  if (membersBtn && membersModal) {
+    membersBtn.addEventListener("click", () => {
+      if (!activeRoomId || !activeRoomData) return;
+
+      renderMembersList();
+      membersModal.classList.remove("hidden");
+    });
+  }
+
+  if (closeMembersBtn && membersModal) {
+    closeMembersBtn.addEventListener("click", () => membersModal.classList.add("hidden"));
+  }
+
+  function getActiveEmailList() {
+    if (!activeRoomData || !activeRoomData.client_email) return [];
+    return activeRoomData.client_email
+      .split(',')
+      .map(e => e.trim())
+      .filter(Boolean);
+  }
+
+  function renderMembersList() {
+    if (!membersListContainer) return;
+    const emails = getActiveEmailList();
+    membersListContainer.innerHTML = "";
+
+    if (emails.length === 0) {
+      membersListContainer.innerHTML = `<div class="empty-chat-state">No members attached.</div>`;
+      return;
+    }
+
+    emails.forEach((email) => {
+      const row = document.createElement("div");
+      row.className = "member-item-row";
+      row.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);";
+
+      row.innerHTML = `
+        <span>${escapeHtml(email)}</span>
+        <button type="button" class="btn-remove-member" data-email="${escapeHtml(email)}" style="background: none; border: none; color: #ff6b6b; cursor: pointer;">Remove</button>
+      `;
+
+      row.querySelector(".btn-remove-member").addEventListener("click", async (e) => {
+        const emailToRemove = e.target.getAttribute("data-email");
+        const currentList = getActiveEmailList();
+        const updatedList = currentList.filter(e => e.toLowerCase() !== emailToRemove.toLowerCase());
+
+        await updateRoomParticipants(activeRoomId, updatedList);
+        renderMembersList();
+      });
+
+      membersListContainer.appendChild(row);
+    });
+  }
+
+  if (addMemberForm && newMemberEmailInput) {
+    addMemberForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const emailToAdd = newMemberEmailInput.value.trim().toLowerCase();
+      if (!emailToAdd || !activeRoomId) return;
+
+      const currentList = getActiveEmailList();
+      if (!currentList.map(e => e.toLowerCase()).includes(emailToAdd)) {
+        currentList.push(emailToAdd);
+        await updateRoomParticipants(activeRoomId, currentList);
+      }
+
+      newMemberEmailInput.value = "";
+      renderMembersList();
+    });
+  }
+
+  // Create Room Modal Handlers
   const modal = document.getElementById("create-room-modal");
   const cancelModalBtn = document.getElementById("cancel-modal-btn");
   const createRoomForm = document.getElementById("create-room-form");
@@ -287,7 +400,7 @@ function setupUIEventListeners() {
 
         await window.loadRoomsList();
         if (newRoom && newRoom.id) {
-          window.selectRoom(newRoom.id, newRoom.name || newRoom.room_name, newRoom.client_email);
+          window.selectRoom(newRoom.id, newRoom.name || newRoom.room_name, newRoom);
         }
       }
     });
