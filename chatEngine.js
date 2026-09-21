@@ -56,22 +56,30 @@ window.ChatEngine = {
     const db = window.supabaseClient;
     if (!db) return;
 
-    // Fetch historical messages first
+    // Fetch historical messages
     db.from('messages')
       .select('*')
       .eq('room_id', roomId)
       .order('created_at', { ascending: true })
-      .then(({ data }) => onNewMessage(data || [], true));
+      .then(({ data, error }) => {
+        if (error) console.error("Error fetching messages:", error);
+        if (onNewMessage) onNewMessage(data || [], true);
+      });
 
-    // Chain .on BEFORE .subscribe()
-    const channel = db.channel(`room:${roomId}`);
+    // Create a unique channel name to prevent channel collision
+    const channel = db.channel(`room-changes-${roomId}-${Date.now()}`);
 
     channel
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `room_id=eq.${roomId}`
+        },
         (payload) => {
-          onNewMessage([payload.new], false);
+          if (onNewMessage) onNewMessage([payload.new], false);
         }
       )
       .subscribe();
