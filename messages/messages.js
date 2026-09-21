@@ -1,9 +1,18 @@
-// messages.js - Clean Room Management without RPC dependencies
+// messages.js - Standardized Client & Room Management
+
+// 1. Standardized Supabase Client Initialization
+(function () {
+  if (!window.supabaseClient && window.supabase) {
+    const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0";
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+})();
 
 let activeRoomId = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Helper: Resolve name locally or via direct table query (No RPC required)
+// Helper: Resolve name locally or via direct profiles query (No RPC required)
 async function fetchAccountNameByEmail(email) {
   const cleanEmail = email ? email.trim().toLowerCase() : "";
   if (!cleanEmail) return "Guest";
@@ -21,7 +30,7 @@ async function fetchAccountNameByEmail(email) {
       if (metaName) return metaName;
     }
 
-    // 2. Direct table check on profiles
+    // 2. Direct table query on profiles
     const { data: profile } = await db
       .from('profiles')
       .select('full_name, name, display_name')
@@ -32,7 +41,7 @@ async function fetchAccountNameByEmail(email) {
       return profile.full_name || profile.name || profile.display_name || fallbackName;
     }
   } catch (err) {
-    // Silently continue to fallback name on any network failure
+    // Suppress network errors
   }
 
   return fallbackName;
