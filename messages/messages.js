@@ -26,7 +26,7 @@ async function getCurrentUserRole() {
 }
 
 // Select a chat room and render messages
-window.selectRoom = async function (roomId, roomName, clientEmail) {
+window.selectRoom = function (roomId, roomName, clientEmail) {
   activeRoomId = roomId;
 
   // Toggle responsive layout state for mobile
@@ -34,7 +34,7 @@ window.selectRoom = async function (roomId, roomName, clientEmail) {
 
   const titleEl = document.getElementById("active-room-title");
   const subtitleEl = document.getElementById("active-room-subtitle");
-  if (titleEl) titleEl.textContent = roomName;
+  if (titleEl) titleEl.textContent = roomName || clientEmail || "Chat";
   if (subtitleEl) subtitleEl.textContent = clientEmail || "";
 
   // Highlight selected room item in list
@@ -43,8 +43,17 @@ window.selectRoom = async function (roomId, roomName, clientEmail) {
   if (selectedItem) selectedItem.classList.add("active");
 
   if (window.ChatEngine) {
-    await window.ChatEngine.loadMessages(roomId, renderMessages);
-    window.ChatEngine.subscribeToRoom(roomId, handleNewMessage);
+    // Subscribe handles both loading initial messages AND realtime updates
+    window.ChatEngine.subscribeToRoom(roomId, (messages, isInitialLoad) => {
+      if (isInitialLoad) {
+        renderMessages(messages);
+      } else {
+        // Append new realtime message
+        if (messages && messages[0]) {
+          appendMessageToFeed(messages[0]);
+        }
+      }
+    });
   }
 };
 
@@ -110,7 +119,7 @@ async function loadRoomsList() {
   roomsListEl.innerHTML = "";
 
   if (!rooms || rooms.length === 0) {
-    roomsListEl.innerHTML = `<div class="empty-state">No active chats.</div>`;
+    roomsListEl.innerHTML = `<div class="empty-state" style="padding: 1rem; opacity: 0.7;">No active chats.</div>`;
     return;
   }
 
@@ -119,13 +128,17 @@ async function loadRoomsList() {
     item.className = "room-item";
     item.setAttribute("data-room-id", room.id);
 
+    // Displays name, or falls back to client_name or client_email
+    const displayName = room.name || room.room_name || room.client_name || room.client_email || "Chat";
+    const subText = room.client_email && displayName !== room.client_email ? room.client_email : "";
+
     item.innerHTML = `
-      <div class="room-item-name">${escapeHtml(room.room_name)}</div>
-      <div class="room-item-sub">${escapeHtml(room.client_email || "Client")}</div>
+      <div class="room-item-name" style="font-weight: 600;">${escapeHtml(displayName)}</div>
+      ${subText ? `<div class="room-item-sub" style="font-size: 0.85rem; opacity: 0.7;">${escapeHtml(subText)}</div>` : ''}
     `;
 
     item.addEventListener("click", () => {
-      window.selectRoom(room.id, room.room_name, room.client_email);
+      window.selectRoom(room.id, displayName, room.client_email);
     });
 
     roomsListEl.appendChild(item);
