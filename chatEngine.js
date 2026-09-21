@@ -34,14 +34,18 @@ window.ChatEngine = {
   // 2. Fetch all active chat rooms for the admin panel
   async fetchRooms() {
     const db = window.supabaseClient;
-    const { data, error } = await db
-      .from('chat_rooms')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) console.error("Error fetching rooms:", error);
-    return data || [];
-  },
+    if (!db) {
+      console.warn("Supabase client not initialized yet.");
+      return [];
+    }
+
+    const { data, error } = await db.from('chat_rooms').select('*');
+    if (error) {
+      console.error("Error fetching rooms:", error);
+      return [];
+    }
+    return data;
+  }
 
   // 3. Listen to Realtime updates in a room
   subscribeToRoom(roomId, onNewMessage) {
