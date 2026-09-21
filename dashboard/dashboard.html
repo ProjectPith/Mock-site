@@ -8,14 +8,14 @@
   <link rel="stylesheet" href="/dashboard/dashboard.css">
   <!-- Supabase JS Client & Engine -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/chatEngine.js"></script>
+  <script src="/chat/chat-engine.js"></script>
 </head>
 <body class="dashboard-body">
   
   <div id="site-header-container"></div>
 
   <div class="dashboard-layout">
-    <!-- LEFT SIDEBAR: Hidden on Mobile via CSS -->
+    <!-- LEFT SIDEBAR: Hidden on Mobile -->
     <aside class="sidebar-tools">
       <div class="sidebar-header">
         <h3>Tool Bookmarks</h3>
@@ -29,11 +29,11 @@
     <!-- MAIN DASHBOARD CONTENT AREA -->
     <main class="dashboard-main">
       
-      <!-- LEFT / CENTER WIDGET: Active Projects -->
+      <!-- ACTIVE PROJECTS SECTION -->
       <section class="projects-container">
         <div class="section-header">
           <h2>Active Projects</h2>
-          <button id="start-contract-btn" class="btn btn-primary">+ New Contract</button>
+          <button id="start-contract-btn" class="btn btn-primary hide-mobile">+ New Contract</button>
         </div>
 
         <div class="table-wrapper">
@@ -54,7 +54,7 @@
         </div>
       </section>
 
-      <!-- RIGHT WIDGET: Income Overview + Interactive Client Chat -->
+      <!-- RIGHT COLUMN: Payout & Chat -->
       <aside class="right-column">
   
         <!-- ESTIMATED PAYOUT WIDGET -->
