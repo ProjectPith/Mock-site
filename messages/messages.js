@@ -3,7 +3,7 @@
 let activeRoomId = null;
 const DEV_DEFAULT_EMAIL = "hkmartin08@gmail.com";
 
-// Helper: Fetch account name safely using RPC or Session
+// Helper: Fetch account name safely using service_role or session
 async function fetchAccountNameByEmail(email) {
   const db = window.supabaseClient;
   const cleanEmail = email ? email.trim().toLowerCase() : "";
@@ -21,16 +21,19 @@ async function fetchAccountNameByEmail(email) {
       if (metaName) return metaName;
     }
 
-    // 2. Call secure RPC function
-    const { data: resolvedName, error } = await db.rpc('get_user_name_by_email', {
-      user_email: cleanEmail
-    });
+    // 2. Query profiles table directly
+    const { data: profile } = await db
+      .from('profiles')
+      .select('full_name, name, display_name')
+      .ilike('email', cleanEmail)
+      .maybeSingle();
 
-    if (!error && resolvedName) {
-      return resolvedName;
+    if (profile) {
+      const resolvedName = profile.full_name || profile.name || profile.display_name;
+      if (resolvedName) return resolvedName;
     }
   } catch (err) {
-    // Suppress errors and fall back cleanly
+    // Ignore query errors
   }
 
   return fallbackName;
