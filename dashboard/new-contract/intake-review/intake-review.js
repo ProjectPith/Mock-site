@@ -796,7 +796,7 @@ function setupEventListeners() {
   });
 
   document.getElementById("btn-action-esign-initiate")?.addEventListener("click", executeProjectSequence);
-}
+});
 
 function setFeedback(msg, color) {
   const el = document.getElementById("status-feedback-msg");
