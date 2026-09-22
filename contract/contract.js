@@ -109,7 +109,6 @@ async function loadIntakeAndProfileData(intakeId) {
         const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
         if (match) {
           if (match.full_name) return match.full_name;
-          if (match.first_name || match.last_name) return `${match.first_name || ''} ${match.last_name || ''}`.trim();
         }
         return email;
       });
