@@ -264,6 +264,31 @@ async function fetchPendingIntakes() {
 }
 
 // ==========================================
+// HELPER: PARSE COLOR SPECS UNIFORMLY
+// ==========================================
+function parseColorSpecs(data) {
+  if (!data || !data.color_details) return "None Specified";
+  
+  let cd = data.color_details;
+  if (typeof cd === "string" && (cd.startsWith("{") || cd.startsWith("["))) {
+    try { cd = JSON.parse(cd); } catch (e) {}
+  }
+
+  if (typeof cd === "object" && cd !== null) {
+    if (data.color_mode === 'hex') {
+      return `BG: ${cd.background || 'N/A'} | Primary: ${cd.primary || 'N/A'} | Accent 1: ${cd.accent1 || 'N/A'} | Accent 2: ${cd.accent2 || 'N/A'}`;
+    } else if (data.color_mode === 'preset') {
+      return `Preset Theme: ${cd.preset || cd.preset_theme || 'N/A'}`;
+    } else if (data.color_mode === 'vibe') {
+      return `Vibe: ${cd.vibe || cd.vibe_text || 'N/A'}`;
+    } else {
+      return JSON.stringify(cd);
+    }
+  }
+  return String(cd);
+}
+
+// ==========================================
 // 4. INTAKE PDF GENERATOR & VIEWER
 // ==========================================
 function buildIntakePdfHtml(data) {
@@ -281,28 +306,7 @@ function buildIntakePdfHtml(data) {
 
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
 
-  // Parse and display color_details based on color_mode
-  let colorDisplay = "<em>None Specified</em>";
-  if (data.color_details) {
-    let cd = data.color_details;
-    if (typeof cd === "string" && (cd.startsWith("{") || cd.startsWith("["))) {
-      try { cd = JSON.parse(cd); } catch (e) {}
-    }
-
-    if (typeof cd === "object" && cd !== null) {
-      if (data.color_mode === 'hex') {
-        colorDisplay = `Background: ${cd.background || 'N/A'}, Primary: ${cd.primary || 'N/A'}, Accent 1: ${cd.accent1 || 'N/A'}, Accent 2: ${cd.accent2 || 'N/A'}`;
-      } else if (data.color_mode === 'preset') {
-        colorDisplay = `Preset Theme: ${cd.preset || cd.preset_theme || 'N/A'}`;
-      } else if (data.color_mode === 'vibe') {
-        colorDisplay = `Vibe: ${cd.vibe || cd.vibe_text || 'N/A'}`;
-      } else {
-        colorDisplay = escapeHtml(JSON.stringify(cd));
-      }
-    } else {
-      colorDisplay = escapeHtml(cd);
-    }
-  }
+  const colorDisplay = escapeHtml(parseColorSpecs(data));
 
   const recurrenceDisplay = data.maintenance_recurrence 
     ? data.maintenance_recurrence.charAt(0).toUpperCase() + data.maintenance_recurrence.slice(1) 
@@ -405,13 +409,8 @@ function renderContractPreview() {
   const maintNeeds = activeIntake.maintenance_needs || "";
   const customSpecs = activeIntake.custom_specifications || activeIntake.extra_notes || "";
   
-  let colorDisplay = "";
-  if (activeIntake.color_details) {
-    colorDisplay = typeof activeIntake.color_details === 'object' 
-      ? JSON.stringify(activeIntake.color_details) 
-      : activeIntake.color_details;
-  }
-
+  // Extract and format color scheme safely so HTML input tags don't cut off JSON quotes
+  const colorDisplay = parseColorSpecs(activeIntake);
   const selectedFeatures = (activeIntake.selected_features || []).join(", ");
 
   doc.innerHTML = `
