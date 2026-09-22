@@ -1,4 +1,4 @@
-// intake.js - Widget Intake Form Handling
+// intake.js - Widget Intake Form Handling & Mobile Accordion Toggle
 
 (function () {
   if (!window.supabaseClient && window.supabase) {
@@ -9,10 +9,33 @@
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupAccordionDropdowns();
   setupDynamicParties();
   setupShadePickers();
   setupFormSubmission();
 });
+
+/* Mobile Accordion Dropdown Setup */
+function setupAccordionDropdowns() {
+  const widgetBoxes = document.querySelectorAll(".intake-widget-box");
+
+  // Default: keep Box 1 open on mobile load so users know it's interactive
+  if (window.innerWidth <= 820 && widgetBoxes.length > 0) {
+    widgetBoxes[0].classList.add("is-open");
+  }
+
+  widgetBoxes.forEach((box) => {
+    const header = box.querySelector(".widget-header");
+    if (!header) return;
+
+    header.addEventListener("click", () => {
+      // Toggle dropdown only on mobile screens
+      if (window.innerWidth <= 820) {
+        box.classList.toggle("is-open");
+      }
+    });
+  });
+}
 
 function setupDynamicParties() {
   const addBtn = document.getElementById("btn-add-party");
