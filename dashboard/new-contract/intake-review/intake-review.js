@@ -156,7 +156,7 @@ async function handleCreateOrOpenChat() {
 
   const primaryEmail = clientEmails[0] || 'client@example.com';
   const allEmailsCombined = clientEmails.join(', ');
-  let primaryName = activeIntake.client_name || primaryEmail;
+  let primaryName = primaryEmail;
 
   const { data: existingRooms, error: searchErr } = await db
     .from("chat_rooms")
@@ -213,7 +213,6 @@ async function fetchPendingIntakes() {
   if (!grid) return;
   const db = getDb();
 
-  // Querying project_intakes. Adjust status string if your DB uses 'pending' or 'submitted'
   const { data: intakes, error } = await db
     .from("project_intakes")
     .select("*")
@@ -264,13 +263,15 @@ async function fetchPendingIntakes() {
   }).join("");
 }
 
+// ==========================================
+// 4. INTAKE PDF GENERATOR & VIEWER
+// ==========================================
 function buildIntakePdfHtml(data) {
   if (!data) return "";
 
   const title = escapeHtml(data.project_name || "Untitled Project");
   const createdDate = data.created_at ? new Date(data.created_at).toLocaleString() : new Date().toLocaleString();
   
-  // Format helper that handles empty strings, null, undefined, and preserves line breaks
   const formatVal = (val) => {
     if (val !== undefined && val !== null && String(val).trim() !== "") {
       return escapeHtml(val).replace(/\n/g, "<br>");
@@ -280,7 +281,7 @@ function buildIntakePdfHtml(data) {
 
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
 
-  // Color Scheme Formatting based on color_mode and color_details
+  // Parse and display color_details based on color_mode
   let colorDisplay = "<em>None Specified</em>";
   if (data.color_details) {
     let cd = data.color_details;
@@ -308,120 +309,44 @@ function buildIntakePdfHtml(data) {
     : "None";
 
   return `
-    <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5; background: #fff;">
-      <div style="border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px;">
-        <h1 style="margin: 0; font-size: 18pt; text-transform: uppercase;">Project Specification: ${title}</h1>
-        <p style="margin: 4px 0 0 0; font-size: 10pt; color: #555;"><strong>Date Created:</strong> ${createdDate}</p>
+    <div class="pdf-doc-container">
+      <div class="pdf-doc-header">
+        <h1>Project Specification: ${title}</h1>
+        <p><strong>Date Created:</strong> ${createdDate}</p>
       </div>
 
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">1. Project Identification</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Name</td><td style="padding:6px; border:1px solid #ddd;">${title}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Company Name</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.company_name)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Involved Party Emails</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.client_emails)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Custom Domain</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_domain)}</td></tr>
+      <h3 class="pdf-section-title">1. Project Identification</h3>
+      <table class="pdf-table">
+        <tr><td class="label-col">Project Name</td><td>${title}</td></tr>
+        <tr><td class="label-col">Company Name</td><td>${formatVal(data.company_name)}</td></tr>
+        <tr><td class="label-col">Involved Party Emails</td><td>${formatList(data.client_emails)}</td></tr>
+        <tr><td class="label-col">Custom Domain</td><td>${formatVal(data.custom_domain)}</td></tr>
       </table>
 
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">2. Overview & Details</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Description</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.project_description)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Target Audience</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.target_audience)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Custom Specifications</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Extra Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.extra_notes)}</td></tr>
+      <h3 class="pdf-section-title">2. Overview & Details</h3>
+      <table class="pdf-table">
+        <tr><td class="label-col">Project Description</td><td>${formatVal(data.project_description)}</td></tr>
+        <tr><td class="label-col">Target Audience</td><td>${formatVal(data.target_audience)}</td></tr>
+        <tr><td class="label-col">Custom Specifications</td><td>${formatVal(data.custom_specifications)}</td></tr>
+        <tr><td class="label-col">Extra Notes</td><td>${formatVal(data.extra_notes)}</td></tr>
       </table>
 
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(recurrenceDisplay)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Needs</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_needs)}</td></tr>
+      <h3 class="pdf-section-title">3. Maintenance Schedule</h3>
+      <table class="pdf-table">
+        <tr><td class="label-col">Recurrence Cycle</td><td>${formatVal(recurrenceDisplay)}</td></tr>
+        <tr><td class="label-col">Maintenance Needs</td><td>${formatVal(data.maintenance_needs)}</td></tr>
       </table>
 
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">4. Aesthetic & Color Scheme</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Mode</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.color_mode)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Details</td><td style="padding:6px; border:1px solid #ddd;">${colorDisplay}</td></tr>
+      <h3 class="pdf-section-title">4. Aesthetic & Color Scheme</h3>
+      <table class="pdf-table">
+        <tr><td class="label-col">Color Mode</td><td>${formatVal(data.color_mode)}</td></tr>
+        <tr><td class="label-col">Color Details</td><td>${colorDisplay}</td></tr>
       </table>
 
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">5. Build Type & Modules</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Site Build Type</td><td style="padding:6px; border:1px solid #ddd;">${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Features</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
-      </table>
-    </div>
-  `;
-}
-
-// ==========================================
-// 4. INTAKE PDF GENERATOR & VIEWER
-// ==========================================
-function buildIntakePdfHtml(data) {
-  if (!data) return "";
-
-  const title = escapeHtml(data.project_name || "Untitled Project");
-  const createdDate = data.created_at ? new Date(data.created_at).toLocaleString() : new Date().toLocaleString();
-  
-  // Revised helper: checks null/undefined/empty strings cleanly so values like '0' or 'none' aren't hidden
-  const formatVal = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? escapeHtml(val) : "<em>N/A</em>";
-  const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
-
-  // Handles color_mode and color_details structure
-  let colorDetails = "<em>None Specified</em>";
-  if (data.color_details) {
-    const c = data.color_details;
-    const mode = data.color_mode || c.method;
-
-    if (mode === 'hex') {
-      colorDetails = `Background: ${c.hex_bg || c.background || 'N/A'}, Primary Text: ${c.hex_primary || c.primary || 'N/A'}, Accent 1: ${c.hex_accent1 || c.accent1 || 'N/A'}, Accent 2: ${c.hex_accent2 || c.accent2 || 'N/A'}`;
-    } else if (mode === 'preset') {
-      colorDetails = `Preset Theme: ${c.preset_theme || c.preset || 'N/A'}`;
-    } else if (mode === 'vibe') {
-      colorDetails = `Vibe Description: ${c.vibe_text || c.vibe || 'N/A'}`;
-    } else if (typeof c === 'string') {
-      colorDetails = escapeHtml(c);
-    }
-  }
-
-  // Capitalize or clean up maintenance recurrence display
-  const rawRecurrence = data.maintenance_recurrence || data.maint_recurrence || "";
-  const displayRecurrence = rawRecurrence ? rawRecurrence.charAt(0).toUpperCase() + rawRecurrence.slice(1) : "";
-
-  return `
-    <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5; background: #fff;">
-      <div style="border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px;">
-        <h1 style="margin: 0; font-size: 18pt; text-transform: uppercase;">Project Specification: ${title}</h1>
-        <p style="margin: 4px 0 0 0; font-size: 10pt; color: #555;"><strong>Date Created:</strong> ${createdDate}</p>
-      </div>
-
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">1. Project Identification</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Name</td><td style="padding:6px; border:1px solid #ddd;">${title}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Company Name</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.company_name)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Involved Party Emails</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.client_emails)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Custom Domain</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_domain)}</td></tr>
-      </table>
-
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">2. Overview & Details</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Description</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.project_description)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Target Audience</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.target_audience)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Additional Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
-      </table>
-
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(displayRecurrence)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_needs)}</td></tr>
-      </table>
-
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">4. Aesthetic & Color Scheme</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Configuration</td><td style="padding:6px; border:1px solid #ddd;">${colorDetails}</td></tr>
-      </table>
-
-      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">5. Build Type & Modules</h3>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Site Build Type</td><td style="padding:6px; border:1px solid #ddd;">${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Dynamic Modules</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
+      <h3 class="pdf-section-title">5. Build Type & Modules</h3>
+      <table class="pdf-table">
+        <tr><td class="label-col">Site Build Type</td><td>${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
+        <tr><td class="label-col">Included Features</td><td>${formatList(data.selected_features)}</td></tr>
       </table>
     </div>
   `;
@@ -469,89 +394,78 @@ function renderContractPreview() {
   const doc = document.getElementById("contract-mini-doc");
   if (!doc || !activeIntake) return;
 
-  // Extract intake data with defaults
   const projName = activeIntake.project_name || "Custom Web Build";
   const compName = activeIntake.company_name || "";
   const customDomain = activeIntake.custom_domain || "";
   const rawEmails = activeIntake.client_emails || [];
-  const clientEmailsStr = Array.isArray(rawEmails) ? rawEmails.join(", ") : (activeIntake.client_email || "");
-  const defaultCost = activeIntake.estimated_price || (activeIntake.site_type === 'dynamic' ? '300' : '150');
+  const clientEmailsStr = Array.isArray(rawEmails) ? rawEmails.join(", ") : "";
+  const defaultCost = activeIntake.site_type === 'dynamic' ? '300' : '150';
   const defaultDeposit = Math.round(defaultCost / 2);
-  const maintRecurrence = activeIntake.maintenance_recurrence || activeIntake.maint_recurrence || "none";
-  const maintNeeds = activeIntake.maintenance_needs || activeIntake.maint_scope || "";
-  const customSpecs = activeIntake.custom_specifications || activeIntake.extra_notes || activeIntake.additional_notes || "";
+  const maintRecurrence = activeIntake.maintenance_recurrence || "none";
+  const maintNeeds = activeIntake.maintenance_needs || "";
+  const customSpecs = activeIntake.custom_specifications || activeIntake.extra_notes || "";
   
-  // Format color details string
   let colorDisplay = "";
-  if (activeIntake.color_scheme) {
-    const cs = activeIntake.color_scheme;
-    if (cs.method === 'hex') {
-      colorDisplay = `Custom Hex: BG ${cs.hex_bg || '#12161A'}, Primary ${cs.hex_primary || '#FFFFFF'}, Accent1 ${cs.hex_accent1 || '#87CEEB'}, Accent2 ${cs.hex_accent2 || '#4ED1A0'}`;
-    } else if (cs.method === 'preset') {
-      colorDisplay = `Preset: ${cs.preset_theme || 'Ethereal Charcoal'}`;
-    } else if (cs.method === 'vibe') {
-      colorDisplay = `Vibe: ${cs.vibe_text || ''}`;
-    }
-  } else {
-    colorDisplay = activeIntake.color_details || "Standard Brand Aesthetic";
+  if (activeIntake.color_details) {
+    colorDisplay = typeof activeIntake.color_details === 'object' 
+      ? JSON.stringify(activeIntake.color_details) 
+      : activeIntake.color_details;
   }
 
-  const selectedFeatures = (activeIntake.selected_features || activeIntake.dynamic_features || []).join(", ");
+  const selectedFeatures = (activeIntake.selected_features || []).join(", ");
 
   doc.innerHTML = `
-    <div class="contract-document" style="background:#fff; color:#1a1a1a; padding:30px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.5;">
+    <div class="contract-document">
       
-      <!-- HEADER -->
-      <div class="doc-header" style="text-align:center; border-bottom:2px solid #1a1a1a; padding-bottom:10px; margin-bottom:20px;">
-        <h1 style="font-size:18pt; margin:0; letter-spacing:2px; color:#000;">LUNARCRAFT</h1>
-        <h2 style="font-size:12pt; margin:4px 0 0 0; font-weight:700;">WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
-        <p style="font-size:9pt; margin:2px 0 0 0; color:#555; letter-spacing:1px;">MASTER SERVICE TEMPLATE</p>
+      <div class="contract-header">
+        <h1>LUNARCRAFT</h1>
+        <h2>WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
+        <p>MASTER SERVICE TEMPLATE</p>
       </div>
 
-      <p style="font-size:10pt; margin-bottom:20px;">
+      <p>
         This Web Design & Services Agreement ("Agreement") is entered into as of the date of final electronic signature ("Effective Date"), by and between <strong>LunarCraft</strong> ("Provider"), and the Client identified below ("Client").
       </p>
 
-      <!-- 1. PROJECT DETAILS & FINANCIAL TERMS -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">1. PROJECT DETAILS & FINANCIAL TERMS</h3>
-        <table class="terms-table" style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+      <section class="contract-section">
+        <h3>1. PROJECT DETAILS & FINANCIAL TERMS</h3>
+        <table class="terms-table">
           <tr>
-            <td style="width:35%; border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Client Full Name(s) / Email(s)</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-client-names" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(clientEmailsStr)}"></td>
+            <td class="label-col">Client Full Name(s) / Email(s)</td>
+            <td><input type="text" id="edit-client-names" class="doc-input doc-table-input" value="${escapeHtml(clientEmailsStr)}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Business / Company Name</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-company-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(compName)}"></td>
+            <td class="label-col">Business / Company Name</td>
+            <td><input type="text" id="edit-company-name" class="doc-input doc-table-input" value="${escapeHtml(compName)}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Project Name</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-project-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(projName)}"></td>
+            <td class="label-col">Project Name</td>
+            <td><input type="text" id="edit-project-name" class="doc-input doc-table-input" value="${escapeHtml(projName)}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Domain Name</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-domain-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(customDomain)}"></td>
+            <td class="label-col">Domain Name</td>
+            <td><input type="text" id="edit-domain-name" class="doc-input doc-table-input" value="${escapeHtml(customDomain)}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Build Total Cost ($)</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="number" id="edit-total-cost" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${defaultCost}"></td>
+            <td class="label-col">Site Build Total Cost ($)</td>
+            <td><input type="number" id="edit-total-cost" class="doc-input doc-table-input" value="${defaultCost}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Deposit Amount ($)</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="number" id="edit-deposit" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${defaultDeposit}"></td>
+            <td class="label-col">Deposit Amount ($)</td>
+            <td><input type="number" id="edit-deposit" class="doc-input doc-table-input" value="${defaultDeposit}"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Build Monthly Payment</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-build-monthly" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="N/A" placeholder="e.g. $50/mo for 6 mos"></td>
+            <td class="label-col">Site Build Monthly Payment</td>
+            <td><input type="text" id="edit-build-monthly" class="doc-input doc-table-input" value="N/A" placeholder="e.g. $50/mo for 6 mos"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Monthly Maintenance Cost</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-maint-cost" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="$30 / month"></td>
+            <td class="label-col">Monthly Maintenance Cost</td>
+            <td><input type="text" id="edit-maint-cost" class="doc-input doc-table-input" value="$30 / month"></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Maintenance Frequency</td>
-            <td style="border:1px solid #ddd; padding:4px;">
-              <select id="edit-maint-recurrence" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">
+            <td class="label-col">Maintenance Frequency</td>
+            <td>
+              <select id="edit-maint-recurrence" class="doc-input doc-table-input">
                 <option value="none" ${maintRecurrence === 'none' ? 'selected' : ''}>No Ongoing Maintenance</option>
                 <option value="weekly" ${maintRecurrence === 'weekly' ? 'selected' : ''}>Weekly</option>
                 <option value="biweekly" ${maintRecurrence === 'biweekly' ? 'selected' : ''}>Bi-Weekly</option>
@@ -560,98 +474,88 @@ function renderContractPreview() {
             </td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Scope of Maintenance</td>
-            <td style="border:1px solid #ddd; padding:4px;"><textarea id="edit-maint-scope" class="doc-input" rows="2" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">${escapeHtml(maintNeeds)}</textarea></td>
+            <td class="label-col">Scope of Maintenance</td>
+            <td><textarea id="edit-maint-scope" class="doc-input doc-table-input" rows="2">${escapeHtml(maintNeeds)}</textarea></td>
           </tr>
         </table>
       </section>
 
-      <!-- 2. DEVELOPMENT & SITE ACCESS -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">2. DEVELOPMENT & SITE ACCESS</h3>
-        <p style="margin:0 0 6px 0;"><strong>Deposit & Start Date:</strong> The site build process will officially commence only upon receipt and clearance of the initial deposit by the Provider.</p>
-        <p style="margin:0 0 6px 0;"><strong>Site Delivery & Access:</strong> Full access to and deployment of the completed website will be granted upon payment of the total build fee, unless a monthly payment schedule is specified in Section 1. Under a monthly payment schedule, Client access is contingent upon remaining fully current on all payments.</p>
+      <section class="contract-section">
+        <h3>2. DEVELOPMENT & SITE ACCESS</h3>
+        <p><strong>Deposit & Start Date:</strong> The site build process will officially commence only upon receipt and clearance of the initial deposit by the Provider.</p>
+        <p><strong>Site Delivery & Access:</strong> Full access to and deployment of the completed website will be granted upon payment of the total build fee, unless a monthly payment schedule is specified in Section 1. Under a monthly payment schedule, Client access is contingent upon remaining fully current on all payments.</p>
       </section>
 
-      <!-- 3. PROJECT SCOPE & TECHNICAL SPECS -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">3. PROJECT SCOPE & TECHNICAL SPECS</h3>
-        <table class="terms-table" style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+      <section class="contract-section">
+        <h3>3. PROJECT SCOPE & TECHNICAL SPECS</h3>
+        <table class="terms-table">
           <tr>
-            <td style="width:35%; border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Architecture</td>
-            <td style="border:1px solid #ddd; padding:4px;">
-              <select id="edit-site-type" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">
+            <td class="label-col">Site Architecture</td>
+            <td>
+              <select id="edit-site-type" class="doc-input doc-table-input">
                 <option value="static" ${activeIntake.site_type === 'static' ? 'selected' : ''}>Static Web Presence (Informational Responsive Layout)</option>
                 <option value="dynamic" ${activeIntake.site_type === 'dynamic' ? 'selected' : ''}>Dynamic Web Application (Interactive Backend & Custom Web Tools)</option>
               </select>
             </td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Included Modules & Features</td>
-            <td style="border:1px solid #ddd; padding:4px;"><textarea id="edit-selected-features" class="doc-input" rows="2" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">${escapeHtml(selectedFeatures)}</textarea></td>
+            <td class="label-col">Included Modules & Features</td>
+            <td><textarea id="edit-selected-features" class="doc-input doc-table-input" rows="2">${escapeHtml(selectedFeatures)}</textarea></td>
           </tr>
           <tr>
-            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Design & Color Scheme Specs</td>
-            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-color-specs" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(colorDisplay)}"></td>
+            <td class="label-col">Design & Color Scheme Specs</td>
+            <td><input type="text" id="edit-color-specs" class="doc-input doc-table-input" value="${escapeHtml(colorDisplay)}"></td>
           </tr>
         </table>
       </section>
 
-      <!-- 4. INTELLECTUAL PROPERTY & CODE OWNERSHIP -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">4. INTELLECTUAL PROPERTY & CODE OWNERSHIP</h3>
-        <p style="margin:0 0 6px 0;"><strong>Source Code Ownership:</strong> Provider (LunarCraft) retains full ownership of all source code, design assets, and custom scripts created for the project until the site build cost is paid in full.</p>
-        <p style="margin:0 0 6px 0;"><strong>Payment Plans:</strong> If operating under a payment plan, ownership of all source code remains strictly with the Provider until the balance is cleared in full, regardless of active deployment.</p>
-        <p style="margin:0 0 6px 0;"><strong>Transfer upon Full Payment & Termination:</strong> Upon full payment of all outstanding build fees and formal contract termination, ownership of the site source code and repository will be transferred to the Client. The Client will assume sole management of third-party services (including Stripe, hosting, and API accounts).</p>
+      <section class="contract-section">
+        <h3>4. INTELLECTUAL PROPERTY & CODE OWNERSHIP</h3>
+        <p><strong>Source Code Ownership:</strong> Provider (LunarCraft) retains full ownership of all source code, design assets, and custom scripts created for the project until the site build cost is paid in full.</p>
+        <p><strong>Payment Plans:</strong> If operating under a payment plan, ownership of all source code remains strictly with the Provider until the balance is cleared in full, regardless of active deployment.</p>
+        <p><strong>Transfer upon Full Payment & Termination:</strong> Upon full payment of all outstanding build fees and formal contract termination, ownership of the site source code and repository will be transferred to the Client. The Client will assume sole management of third-party services (including Stripe, hosting, and API accounts).</p>
       </section>
 
-      <!-- 5. ONGOING SITE MANAGEMENT & MAINTENANCE -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">5. ONGOING SITE MANAGEMENT & MAINTENANCE</h3>
-        <p style="margin:0 0 6px 0;"><strong>Management Rights:</strong> Provider will host, maintain, and manage the website until this Agreement is terminated in accordance with Section 7.</p>
-        <p style="margin:0 0 6px 0;"><strong>Maintenance Terms:</strong> Client agrees to pay the recurring Monthly Maintenance Fee outlined in Section 1 for continuous updates, monitoring, and administrative upkeep.</p>
+      <section class="contract-section">
+        <h3>5. ONGOING SITE MANAGEMENT & MAINTENANCE</h3>
+        <p><strong>Management Rights:</strong> Provider will host, maintain, and manage the website until this Agreement is terminated in accordance with Section 7.</p>
+        <p><strong>Maintenance Terms:</strong> Client agrees to pay the recurring Monthly Maintenance Fee outlined in Section 1 for continuous updates, monitoring, and administrative upkeep.</p>
       </section>
 
-      <!-- 6. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">6. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY</h3>
-        <p style="margin:0 0 6px 0;"><strong>Post-Delivery Window:</strong> Client is granted a two (2) week window following site delivery to request minor aesthetic adjustments and simple corrections at no additional charge.</p>
-        <p style="margin:0 0 6px 0;"><strong>Paid Add-Ons:</strong> Requested revisions involving new features, expanded functionality, or work beyond the initial scope are treated as paid add-ons and require an updated contract. Any deposit previously paid will be deducted from the revised total balance.</p>
-        <p style="margin:0 0 6px 0;"><strong>Provider Code Warranty:</strong> Any bugs or technical errors originating directly from Provider's original code carry no time limit and will be fixed at no extra charge.</p>
-        <p style="margin:0 0 6px 0;"><strong>Tamper Fee (Client / Third-Party Interference):</strong> Any bugs, errors, or outages caused by Client intervention, unauthorized modifications, or third-party interference will incur a repair fee of $150 per incident OR $75/hour, whichever is greater.</p>
+      <section class="contract-section">
+        <h3>6. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY</h3>
+        <p><strong>Post-Delivery Window:</strong> Client is granted a two (2) week window following site delivery to request minor aesthetic adjustments and simple corrections at no additional charge.</p>
+        <p><strong>Paid Add-Ons:</strong> Requested revisions involving new features, expanded functionality, or work beyond the initial scope are treated as paid add-ons and require an updated contract. Any deposit previously paid will be deducted from the revised total balance.</p>
+        <p><strong>Provider Code Warranty:</strong> Any bugs or technical errors originating directly from Provider's original code carry no time limit and will be fixed at no extra charge.</p>
+        <p><strong>Tamper Fee (Client / Third-Party Interference):</strong> Any bugs, errors, or outages caused by Client intervention, unauthorized modifications, or third-party interference will incur a repair fee of $150 per incident OR $75/hour, whichever is greater.</p>
       </section>
 
-      <!-- 7. TERMINATION & REFUND POLICY -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">7. TERMINATION & REFUND POLICY</h3>
-        <p style="margin:0 0 6px 0;"><strong>Termination for Misconduct:</strong> Provider reserves the right to terminate this Agreement immediately for client misconduct, harassment, or disrespectful behavior. If terminated for misconduct prior to site handoff, the Client will receive a refund of payments made, but Provider retains 100% ownership of the website and code.</p>
-        <p style="margin:0 0 6px 0;"><strong>Client-Initiated Termination:</strong> If the Client chooses to terminate this Agreement prior to paying off the full build balance, no refunds will be issued for any deposits or payments previously made.</p>
+      <section class="contract-section">
+        <h3>7. TERMINATION & REFUND POLICY</h3>
+        <p><strong>Termination for Misconduct:</strong> Provider reserves the right to terminate this Agreement immediately for client misconduct, harassment, or disrespectful behavior. If terminated for misconduct prior to site handoff, the Client will receive a refund of payments made, but Provider retains 100% ownership of the website and code.</p>
+        <p><strong>Client-Initiated Termination:</strong> If the Client chooses to terminate this Agreement prior to paying off the full build balance, no refunds will be issued for any deposits or payments previously made.</p>
       </section>
 
-      <!-- 8. SPECIAL OPERATIONAL AGREEMENTS & SPECIFICATIONS -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">8. SPECIAL OPERATIONAL AGREEMENTS & SPECIFICATIONS</h3>
-        <p style="font-size:9pt; color:#555; margin-bottom:6px;">The following non-standard terms, custom agreements, or operational exceptions have been agreed upon by both parties and override standard provisions where applicable:</p>
-        <textarea id="edit-custom-specs" class="doc-input" rows="3" style="width:100%; border:1px solid #ccc; padding:6px; border-radius:3px; background:#f8fafc; font-size:9.5pt;">${escapeHtml(customSpecs)}</textarea>
+      <section class="contract-section">
+        <h3>8. SPECIAL OPERATIONAL AGREEMENTS & SPECIFICATIONS</h3>
+        <p style="font-size:9pt; color:#555;">The following non-standard terms, custom agreements, or operational exceptions have been agreed upon by both parties and override standard provisions where applicable:</p>
+        <textarea id="edit-custom-specs" class="doc-input doc-table-input" rows="3">${escapeHtml(customSpecs)}</textarea>
       </section>
 
-      <!-- 9. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT -->
-      <section style="margin-bottom:20px;">
-        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">9. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT</h3>
-        <p style="font-size:9.5pt; margin-bottom:12px;">By signing electronically below, both parties agree to all terms and conditions of this Agreement.</p>
+      <section class="contract-section">
+        <h3>9. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT</h3>
+        <p style="font-size:9.5pt;">By signing electronically below, both parties agree to all terms and conditions of this Agreement.</p>
         
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:15px;">
-          <!-- PROVIDER BLOCK -->
-          <div style="border-top:1px solid #aaa; padding-top:8px;">
-            <h4 style="margin:0 0 6px 0; font-size:9.5pt;">PROVIDER (LUNARCRAFT)</h4>
-            <div style="border:1px dashed #a0aec0; border-radius:3px; padding:10px; text-align:center; background:#f8fafc; font-size:8pt; color:#718096; font-style:italic;">Signature Pending Final Review</div>
+        <div class="contract-sig-grid">
+          <div class="contract-sig-block">
+            <h4>PROVIDER (LUNARCRAFT)</h4>
+            <div class="contract-sig-box">Signature Pending Final Review</div>
             <div style="font-size:9pt; margin-top:6px;"><strong>Title:</strong> Owner / Developer</div>
           </div>
 
-          <!-- CLIENT BLOCK -->
-          <div style="border-top:1px solid #aaa; padding-top:8px;">
-            <h4 style="margin:0 0 6px 0; font-size:9.5pt;">CLIENT</h4>
-            <div style="border:1px dashed #a0aec0; border-radius:3px; padding:10px; text-align:center; background:#f8fafc; font-size:8pt; color:#718096; font-style:italic;">Signature Pending Final Approval</div>
+          <div class="contract-sig-block">
+            <h4>CLIENT</h4>
+            <div class="contract-sig-box">Signature Pending Final Approval</div>
             <div style="font-size:9pt; margin-top:6px;"><strong>Title:</strong> Client / Authorized Representative</div>
           </div>
         </div>
@@ -667,11 +571,10 @@ async function executeProjectSequence() {
   setFeedback("Processing project approval & generating documents...", "#88c0d0");
 
   const totalCost = document.getElementById("edit-total-cost")?.value || "300";
-  const primaryEmail = activeIntake.client_emails?.[0] || activeIntake.client_email || "client@example.com";
+  const primaryEmail = activeIntake.client_emails?.[0] || "client@example.com";
   const projName = document.getElementById("edit-project-name")?.value || activeIntake.project_name || "New Site Project";
 
   try {
-    // 1. Create project record
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
@@ -685,17 +588,13 @@ async function executeProjectSequence() {
 
     if (projErr) throw projErr;
 
-    // 2. Initialize chat connection
     await handleCreateOrOpenChat();
 
-    // 3. Render PDF DOM element containing exact intake form data
     const pdfContainer = document.createElement("div");
     pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
 
-    // 4. Convert DOM to PDF Blob
     const pdfBlob = await html2pdf().from(pdfContainer).output('blob');
 
-    // 5. Upload PDF file to project's document folder
     const filePath = `documents/project_${newProject.id}/intake_specifications.pdf`;
     const { error: uploadErr } = await db.storage.from("project-files").upload(filePath, pdfBlob);
 
@@ -703,7 +602,6 @@ async function executeProjectSequence() {
       console.warn("Storage upload error:", uploadErr.message);
     }
 
-    // 6. Delete intake form from project_intakes table
     const { error: deleteErr } = await db
       .from("project_intakes")
       .delete()
@@ -724,7 +622,6 @@ function setupEventListeners() {
   document.getElementById("btn-nav-back")?.addEventListener("click", () => switchViewStage("list"));
   document.getElementById("btn-create-or-open-chat")?.addEventListener("click", handleCreateOrOpenChat);
 
-  // REJECT WORKFLOW
   document.getElementById("btn-action-reject")?.addEventListener("click", async () => {
     if (!activeIntake || !confirm("Reject and remove this intake submission?")) return;
     const db = getDb();
@@ -735,7 +632,6 @@ function setupEventListeners() {
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // REQUEST REVISIONS
   document.getElementById("btn-action-review")?.addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
@@ -743,81 +639,19 @@ function setupEventListeners() {
     const db = getDb();
     await db.from("project_intakes").update({
       status: "awaiting_client_review",
-      admin_notes: note
+      revision_notes: note
     }).eq("id", activeIntake.id);
 
     setFeedback("Form returned to client dashboard for revisions.", "#f39c12");
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // APPROVE WORKFLOW
   document.getElementById("btn-action-approve")?.addEventListener("click", () => {
     switchViewStage("contract");
     renderContractPreview();
   });
 
-  // EXECUTE & GENERATE PDF
   document.getElementById("btn-action-esign-initiate")?.addEventListener("click", executeProjectSequence);
-}
-
-// APPROVAL EXECUTION: GENERATE PDF, ATTACH TO STORAGE, DELETE INTAKE FORM
-async function executeProjectSequence() {
-  if (!activeIntake) return;
-  const db = getDb();
-  setFeedback("Processing project approval & generating documents...", "#88c0d0");
-
-  const totalCost = document.getElementById("doc-total-cost")?.value || "300";
-  const primaryEmail = document.getElementById("doc-client-email")?.value || activeIntake.client_emails?.[0] || "client@example.com";
-  const projName = document.getElementById("doc-proj-name")?.value || activeIntake.project_name || "New Site Project";
-
-  try {
-    // 1. Create project record
-    const { data: newProject, error: projErr } = await db
-      .from("projects")
-      .insert({
-        name: projName,
-        client_email: primaryEmail,
-        status: "Active",
-        total_cost: parseFloat(totalCost)
-      })
-      .select()
-      .single();
-
-    if (projErr) throw projErr;
-
-    // 2. Initialize chat connection
-    await handleCreateOrOpenChat();
-
-    // 3. Render PDF DOM element containing exact intake form data
-    const pdfContainer = document.createElement("div");
-    pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
-
-    // 4. Convert DOM to PDF Blob
-    const pdfBlob = await html2pdf().from(pdfContainer).output('blob');
-
-    // 5. Upload PDF file to project's document folder
-    const filePath = `documents/project_${newProject.id}/intake_specifications.pdf`;
-    const { error: uploadErr } = await db.storage.from("project-files").upload(filePath, pdfBlob);
-
-    if (uploadErr) {
-      console.warn("Storage upload error:", uploadErr.message);
-    }
-
-    // 6. Delete intake form from project_intakes table
-    const { error: deleteErr } = await db
-      .from("project_intakes")
-      .delete()
-      .eq("id", activeIntake.id);
-
-    if (deleteErr) throw deleteErr;
-
-    setFeedback("Success! Project created, PDF attached to documents, and intake form removed.", "#4ed1a0");
-    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 2000);
-
-  } catch (err) {
-    console.error(err);
-    setFeedback("Error executing approval sequence: " + err.message, "#e74c3c");
-  }
 }
 
 function setFeedback(msg, color) {
