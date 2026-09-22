@@ -3,18 +3,22 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.toLowerCase().replace(/\/$/, ''); // Normalizes URL path
 
+    // Common CORS headers
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Content-Type': 'application/json',
+    };
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 1: STRIPE CHECKOUT SESSION
+    // ----------------------------------------------------
     if (path === '/api/create-checkout-session') {
-      const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Content-Type': 'application/json',
-      };
-
-      if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers });
-      }
-
       if (request.method === 'POST') {
         try {
           const body = await request.json().catch(() => ({}));
@@ -48,70 +52,70 @@ export default {
           const session = await stripeResponse.json();
 
           if (session.error) {
-            return new Response(JSON.stringify({ error: session.error.message }), { status: 400, headers });
+            return new Response(JSON.stringify({ error: session.error.message }), { status: 400, headers: corsHeaders });
           }
 
-          return new Response(JSON.stringify({ clientSecret: session.client_secret }), { status: 200, headers });
+          return new Response(JSON.stringify({ clientSecret: session.client_secret }), { status: 200, headers: corsHeaders });
         } catch (err) {
-          return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+          return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
         }
       }
 
-      return new Response('Method Not Allowed', { status: 405 });
+      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
     }
 
+    // ----------------------------------------------------
+    // ROUTE 2: REJECTION EMAIL (RESEND)
+    // ----------------------------------------------------
+    if (path === '/api/send-rejection-email' || path.endsWith('/send-rejection-email')) {
+      if (request.method === 'POST') {
+        try {
+          const { recipients, projectName, reason } = await request.json();
+
+          const apiKey = env.RESEND_API_KEY;
+
+          if (!apiKey) {
+            return new Response(JSON.stringify({ error: "Missing RESEND_API_KEY in environment secrets." }), { status: 500, headers: corsHeaders });
+          }
+
+          const resendRes = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              from: "LunarCraft <applications@lunarcraft.dev>",
+              to: recipients,
+              subject: `Update regarding your project intake: ${projectName}`,
+              html: `
+                <div style="font-family: Arial, sans-serif; color: #111; padding: 20px;">
+                  <h2>Project Intake Notice</h2>
+                  <p>Hello,</p>
+                  <p>Thank you for submitting a project intake for <strong>${projectName}</strong>.</p>
+                  <p>After reviewing the details, we regret to inform you that the submission has been declined.</p>
+                  <blockquote style="background: #f4f4f4; border-left: 4px solid #e74c3c; padding: 10px 15px; margin: 15px 0;">
+                    <strong>Reason / Note:</strong><br>${reason}
+                  </blockquote>
+                  <p>If you have any questions, please reply directly to this email.</p>
+                  <p>Best regards,<br><strong>LunarCraft</strong></p>
+                </div>
+              `
+            })
+          });
+
+          const data = await resendRes.json();
+          return new Response(JSON.stringify(data), { status: resendRes.status, headers: corsHeaders });
+
+        } catch (err) {
+          return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+        }
+      }
+
+      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
+    }
+
+    // Default fallback to static site assets
     return env.ASSETS.fetch(request);
   }
 };
-
-// Inside your existing export default { async fetch(request, env) { ... } }
-
-const url = new URL(request.url);
-
-// ADD THIS ROUTE CONDITION:
-if (url.pathname.endsWith("/send-rejection-email") && request.method === "POST") {
-  try {
-    const { recipients, projectName, reason } = await request.json();
-
-    // Uses the RESEND_API_KEY environment variable on Cloudflare
-    const apiKey = env.RESEND_API_KEY;
-
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "LunarCraft <applications@lunarcraft.dev>", // Replace with your domain once verified on Resend
-        to: recipients,
-        subject: `Update regarding your project intake: ${projectName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; color: #111; padding: 20px;">
-            <h2>Project Intake Notice</h2>
-            <p>Hello,</p>
-            <p>Thank you for submitting a project intake for <strong>${projectName}</strong>.</p>
-            <p>After reviewing the details, we regret to inform you that the submission has been declined.</p>
-            <blockquote style="background: #f4f4f4; border-left: 4px solid #e74c3c; padding: 10px 15px; margin: 15px 0;">
-              <strong>Reason / Note:</strong><br>${reason}
-            </blockquote>
-            <p>If you have any questions, please reply directly to this email.</p>
-            <p>Best regards,<br><strong>LunarCraft</strong></p>
-          </div>
-        `
-      })
-    });
-
-    const data = await resendRes.json();
-    return new Response(JSON.stringify(data), {
-      status: resendRes.status,
-      headers: { "Content-Type": "application/json" }
-    });
-
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-}
