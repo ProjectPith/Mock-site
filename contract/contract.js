@@ -101,7 +101,7 @@ async function loadIntakeAndProfileData(intakeId) {
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
-      .select('email, full_name, first_name, last_name')
+      .select('email, full_name')
       .in('email', emails);
 
     if (!profileErr && profiles && profiles.length > 0) {
