@@ -171,7 +171,7 @@ async function handleSendToAdmin() {
   const { error } = await db
     .from('project_intakes')
     .update({ 
-      status: 'pending_admin_review',
+      status: 'awaiting_admin_review',
       updated_at: new Date().toISOString()
     })
     .eq('id', currentIntakeId);
