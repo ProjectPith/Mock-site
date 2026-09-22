@@ -13,104 +13,163 @@
   <div id="site-header-container"></div>
 
   <main class="intake-wrapper">
-    <div class="intake-card">
-      <h2>Streamlined Project Intake</h2>
-      <p class="intake-subtitle">Provide your core project parameters to kick off contract setup.</p>
+    <div class="intake-header">
+      <h2>Project Intake Specifications</h2>
+      <p class="intake-subtitle">Configure your project parameters and preferences to set up your contract.</p>
+    </div>
 
-      <form id="intake-form">
-        <!-- 1. PROJECT NAME -->
-        <div class="form-group">
-          <label for="project-name">Project Name *</label>
-          <input type="text" id="project-name" required placeholder="e.g. Apex Studio Workspace">
+    <form id="intake-form" class="intake-widget-grid">
+      
+      <!-- BOX 1: CORE IDENTIFICATION -->
+      <div class="intake-widget-box">
+        <h3>1. Project Identification</h3>
+        
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="project-name">Project Name *</label>
+            <input type="text" id="project-name" required placeholder="e.g. Apex Studio Workspace">
+          </div>
+          <div class="form-group">
+            <label for="company-name">Company Name <small>(Optional)</small></label>
+            <input type="text" id="company-name" placeholder="e.g. Apex Media LLC">
+          </div>
         </div>
 
-        <!-- 2. INVOLVED PARTIES -->
         <div class="form-group">
-          <label>Involved Client Parties (Emails) *</label>
+          <label>Involved Party Emails *</label>
           <div id="parties-container" class="parties-list">
             <div class="party-row">
               <input type="email" class="party-email" required placeholder="client@example.com">
               <button type="button" class="btn-remove-party" onclick="removePartyRow(this)">&times;</button>
             </div>
           </div>
-          <button type="button" id="btn-add-party" class="btn-secondary-sm">+ Add Another Email</button>
+          <button type="button" id="btn-add-party" class="btn-secondary-sm">+ Add Email</button>
           
           <div class="checkbox-confirm-wrap">
             <label class="custom-checkbox-label">
               <input type="checkbox" id="confirm-accounts" required>
-              <span>I confirm that all listed parties have created an account on this site. *</span>
+              <span>I confirm all listed parties have created an account on this site. *</span>
             </label>
           </div>
         </div>
 
-        <!-- 3. OPTIONAL CUSTOM DOMAIN SLOT -->
         <div class="form-group">
-          <label for="custom-domain">Existing / Preferred Custom Domain <small>(Optional)</small></label>
-          <input type="text" id="custom-domain" placeholder="e.g. mybrand.com (Leave blank if you don't have one yet)">
+          <label for="custom-domain">Custom Domain <small>(Optional)</small></label>
+          <input type="text" id="custom-domain" placeholder="e.g. mybrand.com">
+        </div>
+      </div>
+
+      <!-- BOX 2: SCOPE & TARGET AUDIENCE -->
+      <div class="intake-widget-box">
+        <h3>2. Overview & Details</h3>
+        
+        <div class="form-group">
+          <label for="project-description">Project Description *</label>
+          <textarea id="project-description" rows="3" required placeholder="Core vision, purpose, and deliverables..."></textarea>
         </div>
 
-        <!-- 4. DESCRIPTION -->
         <div class="form-group">
-          <label for="project-description">Project Description & Goal *</label>
-          <textarea id="project-description" rows="4" required placeholder="Describe what the site is for, who it targets, and key deliverables..."></textarea>
+          <label for="target-audience">Target Audience *</label>
+          <input type="text" id="target-audience" required placeholder="e.g. Tech founders, local retail customers, agency owners">
         </div>
 
-        <!-- 5. COLOR SELECTION (1 OF 3 CHOICES) -->
         <div class="form-group">
-          <label>Color Scheme Method * <small>(Select one option to configure)</small></label>
-          
+          <label for="extra-notes">Additional Notes <small>(Optional)</small></label>
+          <textarea id="extra-notes" rows="3" placeholder="Bespoke integrations, design preferences, or deadline targets..."></textarea>
+        </div>
+      </div>
+
+      <!-- BOX 3: MAINTENANCE PLAN -->
+      <div class="intake-widget-box">
+        <h3>3. Maintenance Schedule</h3>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="maint-recurrence">Recurrence Cycle *</label>
+            <select id="maint-recurrence" class="styled-select" required>
+              <option value="none">No Ongoing Maintenance</option>
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Bi-Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="maint-scope">Per-Instance Maintenance Needs</label>
+          <textarea id="maint-scope" rows="3" placeholder="e.g. Up to 8 products changed per cycle, weekly news updates, monthly plugin & security audits..."></textarea>
+        </div>
+      </div>
+
+      <!-- BOX 4: BRAND COLOR SCHEME -->
+      <div class="intake-widget-box">
+        <h3>4. Aesthetic & Color Scheme</h3>
+        
+        <div class="form-group">
+          <label>Configuration Method *</label>
           <div class="color-method-tabs">
             <label class="method-tab">
               <input type="radio" name="color_method" value="hex" checked onchange="switchColorMethod('hex')">
-              <span>Specific Hex Codes</span>
+              <span>Hex Codes</span>
             </label>
             <label class="method-tab">
               <input type="radio" name="color_method" value="preset" onchange="switchColorMethod('preset')">
-              <span>Preset Color Themes</span>
+              <span>Presets</span>
             </label>
             <label class="method-tab">
               <input type="radio" name="color_method" value="vibe" onchange="switchColorMethod('vibe')">
-              <span>General Vibe</span>
+              <span>Vibe Description</span>
             </label>
           </div>
 
-          <!-- OPTION A: HEX CODES (4 Palette Pickers: Bg & Primary Required, Accent 1 & 2 Optional) -->
+          <!-- HEX PICKER -->
           <div id="color-sec-hex" class="color-panel active-panel">
             <div class="hex-grid">
               <div class="hex-field">
-                <span class="field-sublabel">Background Color *</span>
+                <span class="field-sublabel">Background *</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-bg" placeholder="#12161A" maxlength="7" required>
+                  <input type="text" id="hex-bg" value="#12161A" maxlength="7" required>
                   <input type="color" id="picker-bg" class="shade-picker" value="#12161A">
                 </div>
               </div>
               <div class="hex-field">
-                <span class="field-sublabel">Primary Color *</span>
+                <span class="field-sublabel">Primary Text/UI *</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-primary" placeholder="#FFFFFF" maxlength="7" required>
+                  <input type="text" id="hex-primary" value="#FFFFFF" maxlength="7" required>
                   <input type="color" id="picker-primary" class="shade-picker" value="#FFFFFF">
                 </div>
               </div>
               <div class="hex-field">
-                <span class="field-sublabel">Accent Color 1 <small>(Optional)</small></span>
+                <span class="field-sublabel">Accent 1</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-accent-1" placeholder="#87CEEB" maxlength="7">
+                  <input type="text" id="hex-accent-1" value="#87CEEB" maxlength="7">
                   <input type="color" id="picker-accent-1" class="shade-picker" value="#87CEEB">
                 </div>
               </div>
               <div class="hex-field">
-                <span class="field-sublabel">Accent Color 2 <small>(Optional)</small></span>
+                <span class="field-sublabel">Accent 2</span>
                 <div class="hex-input-wrap">
-                  <input type="text" id="hex-accent-2" placeholder="#4ED1A0" maxlength="7">
+                  <input type="text" id="hex-accent-2" value="#4ED1A0" maxlength="7">
                   <input type="color" id="picker-accent-2" class="shade-picker" value="#4ED1A0">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- OPTION B: PRESET THEMES -->
+          <!-- PRESETS -->
           <div id="color-sec-preset" class="color-panel hidden">
             <div class="preset-grid">
+              <label class="preset-card">
+                <input type="radio" name="preset_theme" value="charcoal" checked>
+                <div class="preset-box">
+                  <strong>Ethereal Charcoal</strong>
+                  <div class="swatch-row">
+                    <span style="background: #12161a;"></span>
+                    <span style="background: #252d35;"></span>
+                    <span style="background: #87ceeb;"></span>
+                  </div>
+                </div>
+              </label>
               <label class="preset-card">
                 <input type="radio" name="preset_theme" value="forest">
                 <div class="preset-box">
@@ -133,92 +192,72 @@
                   </div>
                 </div>
               </label>
-              <label class="preset-card">
-                <input type="radio" name="preset_theme" value="charcoal">
-                <div class="preset-box">
-                  <strong>Ethereal Charcoal</strong>
-                  <div class="swatch-row">
-                    <span style="background: #12161a;"></span>
-                    <span style="background: #252d35;"></span>
-                    <span style="background: #87ceeb;"></span>
-                  </div>
-                </div>
-              </label>
             </div>
           </div>
 
-          <!-- OPTION C: GENERAL VIBE (Expanded Textarea) -->
+          <!-- VIBE -->
           <div id="color-sec-vibe" class="color-panel hidden">
-            <textarea id="vibe-text" rows="4" placeholder="Describe the overall aesthetic, feel, or vibe (e.g. Modern minimalist with dark tones, warm luxury, neon cyberpunk, clean pastel look with soft low-contrast lighting)..."></textarea>
+            <textarea id="vibe-text" rows="3" placeholder="Describe aesthetic, light/dark contrast level, mood..."></textarea>
           </div>
         </div>
+      </div>
 
-        <!-- 6. SITE FEATURES & TYPE -->
-        <div class="form-group">
-          <label>Site Type & Complexity *</label>
-          <div class="site-type-selector">
-            <label class="type-card">
-              <input type="radio" name="site_type" value="static" checked onchange="toggleSiteType('static')">
-              <div class="type-box">
-                <strong>Static Web Presence</strong>
-                <p>Standard responsive layout, informational sections, contact form, static assets.</p>
-              </div>
-            </label>
-
-            <label class="type-card">
-              <input type="radio" name="site_type" value="dynamic" onchange="toggleSiteType('dynamic')">
-              <div class="type-box">
-                <strong>Non-Static / Dynamic App</strong>
-                <p>Interactive features, backend integration, custom web tools, dynamic pricing.</p>
-              </div>
-            </label>
-          </div>
-
-          <!-- DYNAMIC FEATURES SUB-PANEL -->
-          <div id="dynamic-features-panel" class="features-panel hidden">
-            <span class="field-sublabel">Select Included Dynamic Modules:</span>
-            <div class="features-grid">
-              <label class="feature-checkbox">
-                <input type="checkbox" name="feature_opt" value="Price Estimator">
-                <span>Interactive Price Estimator</span>
-              </label>
-              <label class="feature-checkbox">
-                <input type="checkbox" name="feature_opt" value="E-Commerce Store">
-                <span>Printify / E-Commerce Store & Checkout</span>
-              </label>
-              <label class="feature-checkbox">
-                <input type="checkbox" name="feature_opt" value="Client Portal Overlay">
-                <span>Side Panel / Account Navigation Overlays</span>
-              </label>
-              <label class="feature-checkbox">
-                <input type="checkbox" name="feature_opt" value="Booking & Calendar">
-                <span>Embedded Booking / Call Scheduling</span>
-              </label>
-              <label class="feature-checkbox">
-                <input type="checkbox" name="feature_opt" value="Stripe Embedded Checkout">
-                <span>Embedded Stripe Payments</span>
-              </label>
+      <!-- BOX 5: SITE BUILD TYPE & FEATURES (FULL WIDTH) -->
+      <div class="intake-widget-box full-width">
+        <h3>5. Build Type & Modules</h3>
+        
+        <div class="site-type-selector">
+          <label class="type-card">
+            <input type="radio" name="site_type" value="static" checked onchange="toggleSiteType('static')">
+            <div class="type-box">
+              <strong>Static Web Presence</strong>
+              <p>Standard responsive layout, brand presentation, contact form, static assets.</p>
             </div>
+          </label>
+
+          <label class="type-card">
+            <input type="radio" name="site_type" value="dynamic" onchange="toggleSiteType('dynamic')">
+            <div class="type-box">
+              <strong>Dynamic Web Application</strong>
+              <p>Interactive client features, backend workflows, custom dynamic widgets.</p>
+            </div>
+          </label>
+        </div>
+
+        <div id="dynamic-features-panel" class="features-panel hidden">
+          <span class="field-sublabel">Select Included Dynamic Modules:</span>
+          <div class="features-grid">
+            <label class="feature-checkbox">
+              <input type="checkbox" name="feature_opt" value="Price Estimator">
+              <span>Interactive Price Estimator</span>
+            </label>
+            <label class="feature-checkbox">
+              <input type="checkbox" name="feature_opt" value="E-Commerce Store">
+              <span>Printify / E-Commerce Store</span>
+            </label>
+            <label class="feature-checkbox">
+              <input type="checkbox" name="feature_opt" value="Client Portal Overlay">
+              <span>Client Portal Navigation Overlays</span>
+            </label>
+            <label class="feature-checkbox">
+              <input type="checkbox" name="feature_opt" value="Booking & Calendar">
+              <span>Embedded Booking / Call Scheduling</span>
+            </label>
+            <label class="feature-checkbox">
+              <input type="checkbox" name="feature_opt" value="Stripe Embedded Checkout">
+              <span>Embedded Stripe Checkout</span>
+            </label>
           </div>
         </div>
+      </div>
 
-        <!-- 7. MAINTENANCE NEEDS SECTION -->
-        <div class="form-group">
-          <label for="maintenance-notes">Ongoing Maintenance & Update Schedule *</label>
-          <textarea id="maintenance-notes" rows="3" required placeholder="Specify your desired update schedule (e.g. weekly content drops, bi-weekly product updates, monthly maintenance) and what content or features you need updated regular..."></textarea>
-        </div>
-
-        <!-- 8. EXTRA NOTES -->
-        <div class="form-group">
-          <label for="extra-notes">Extra Notes & Special Requests</label>
-          <textarea id="extra-notes" rows="3" placeholder="Specify any bespoke requirements, custom APIs, third-party integrations, or non-listed features..."></textarea>
-        </div>
-
-        <!-- SUBMIT BUTTON -->
+      <!-- SUBMIT FOOTER -->
+      <div class="intake-footer full-width">
         <button type="submit" id="btn-submit-intake" class="btn-primary-lg">Submit Intake Specifications</button>
         <div id="intake-msg" class="intake-status-msg"></div>
-      </form>
-    </div>
+      </div>
+
+    </form>
   </main>
 
   <script src="intake.js"></script>
