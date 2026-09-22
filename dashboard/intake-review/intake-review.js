@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 1. PRICE ESTIMATOR WIDGET LOGIC
+// 1. PRICE ESTIMATOR LOGIC
 // ==========================================
 function initPriceEstimator() {
   const siteTypeSelect = document.getElementById("review-site-type");
@@ -47,7 +47,7 @@ function initPriceEstimator() {
 }
 
 // ==========================================
-// 2. CHAT & MESSAGES LOGIC
+// 2. CHAT WIDGET & REALTIME SUBSCRIPTION FIX
 // ==========================================
 async function initChatWidget() {
   if (!window.ChatEngine) return;
@@ -85,21 +85,41 @@ function connectChatRoom(roomId) {
   document.getElementById("dash-chat-input").disabled = false;
   document.getElementById("dash-chat-send").disabled = false;
 
-  window.ChatEngine.subscribeToRoom(roomId, (messages, isInitialLoad) => {
-    const container = document.getElementById("messages-list");
-    if (!container) return;
+  // Unsubscribe from existing realtime channel before resubscribing
+  const db = getDb();
+  if (window.activeChatChannel) {
+    db.removeChannel(window.activeChatChannel);
+    window.activeChatChannel = null;
+  }
 
-    if (isInitialLoad) {
+  const channel = db.channel(`room_${roomId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_messages',
+      filter: `room_id=eq.${roomId}`
+    }, (payload) => {
+      appendMessageBubble(payload.new);
+    })
+    .subscribe();
+
+  window.activeChatChannel = channel;
+
+  // Initial fetch of room messages
+  db.from("chat_messages")
+    .select("*")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: true })
+    .then(({ data: messages }) => {
+      const container = document.getElementById("messages-list");
+      if (!container) return;
       container.innerHTML = "";
       if (!messages || messages.length === 0) {
         container.innerHTML = `<div class="message-placeholder"><p>No messages in room.</p></div>`;
         return;
       }
       messages.forEach(appendMessageBubble);
-    } else if (messages && messages[0]) {
-      appendMessageBubble(messages[0]);
-    }
-  });
+    });
 }
 
 function appendMessageBubble(msg) {
@@ -114,13 +134,11 @@ function appendMessageBubble(msg) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Check or Create Chat with Clients
 async function handleCreateOrOpenChat() {
   if (!activeIntake || !activeIntake.client_emails?.length) return;
   const db = getDb();
   const primaryEmail = activeIntake.client_emails[0];
 
-  // Check if room exists
   const { data: existingRooms } = await db
     .from("chat_rooms")
     .select("*")
@@ -131,7 +149,6 @@ async function handleCreateOrOpenChat() {
     document.getElementById("dash-room-select").value = roomId;
     connectChatRoom(roomId);
   } else {
-    // Create new room
     const { data: newRoom, error } = await db
       .from("chat_rooms")
       .insert({
@@ -154,7 +171,7 @@ async function handleCreateOrOpenChat() {
 }
 
 // ==========================================
-// 3. INTAKE REVIEW & STAGE NAVIGATION
+// 3. FULL INTAKE FORM DISPLAY
 // ==========================================
 async function fetchPendingIntakes() {
   const grid = document.getElementById("intake-cards-grid");
@@ -184,27 +201,51 @@ window.openIntakeDetail = function(intakeId) {
   activeIntake = currentIntakes.find(i => i.id === intakeId);
   if (!activeIntake) return;
 
-  // UI Setup
   switchViewStage("detail");
   document.getElementById("btn-nav-back").classList.remove("hidden");
   document.getElementById("right-panel-title").textContent = activeIntake.project_name || "Intake Review";
   document.getElementById("chat-party-action-bar").classList.remove("hidden");
 
-  // Render Mini Intake Preview
+  // Render ALL intake form data dynamically
   const doc = document.getElementById("intake-mini-doc");
+  
+  const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "None Specified";
+  const formatValue = (val) => val ? escapeHtml(val) : "<em>Not Provided</em>";
+
   doc.innerHTML = `
-    <h3>PROJECT INTAKE SPECIFICATIONS</h3>
+    <h2>PROJECT INTAKE SUBMISSION</h2>
+    <p><strong>Submitted Date:</strong> ${new Date(activeIntake.created_at).toLocaleString()}</p>
+
+    <h3>1. General Client & Project Info</h3>
     <table>
-      <tr><td><strong>Project Name</strong></td><td>${escapeHtml(activeIntake.project_name || "N/A")}</td></tr>
-      <tr><td><strong>Client Email(s)</strong></td><td>${escapeHtml((activeIntake.client_emails || []).join(", "))}</td></tr>
-      <tr><td><strong>Custom Domain</strong></td><td>${escapeHtml(activeIntake.custom_domain || "None")}</td></tr>
-      <tr><td><strong>Site Type</strong></td><td>${activeIntake.site_type === 'dynamic' ? 'Dynamic Application' : 'Static Site'}</td></tr>
-      <tr><td><strong>Selected Features</strong></td><td>${(activeIntake.selected_features || []).join(", ") || 'None'}</td></tr>
-      <tr><td><strong>Maintenance Needs</strong></td><td>${escapeHtml(activeIntake.maintenance_needs || "None")}</td></tr>
+      <tr><td class="label-col">Project Name</td><td>${formatValue(activeIntake.project_name)}</td></tr>
+      <tr><td class="label-col">Client Email(s)</td><td>${formatList(activeIntake.client_emails)}</td></tr>
+      <tr><td class="label-col">Custom Domain</td><td>${formatValue(activeIntake.custom_domain)}</td></tr>
+      <tr><td class="label-col">Target Launch Date</td><td>${formatValue(activeIntake.target_launch_date)}</td></tr>
+    </table>
+
+    <h3>2. Technical & Feature Scope</h3>
+    <table>
+      <tr><td class="label-col">Site Type</td><td>${activeIntake.site_type === 'dynamic' ? 'Dynamic Application' : 'Static Site'}</td></tr>
+      <tr><td class="label-col">Selected Features</td><td>${formatList(activeIntake.selected_features)}</td></tr>
+      <tr><td class="label-col">Estimated Architecture Price</td><td>$${activeIntake.estimated_price || (activeIntake.site_type === 'dynamic' ? '300' : '150')}</td></tr>
+    </table>
+
+    <h3>3. Content & Design Requirements</h3>
+    <table>
+      <tr><td class="label-col">Target Audience</td><td>${formatValue(activeIntake.target_audience)}</td></tr>
+      <tr><td class="label-col">Required Pages / Sections</td><td>${formatValue(activeIntake.page_breakdown || activeIntake.pages)}</td></tr>
+      <tr><td class="label-col">Inspiration / Competitor Links</td><td>${formatValue(activeIntake.inspiration_links)}</td></tr>
+      <tr><td class="label-col">Brand Assets / Drive Link</td><td>${formatValue(activeIntake.asset_drive_link)}</td></tr>
+    </table>
+
+    <h3>4. Maintenance & Hosting Needs</h3>
+    <table>
+      <tr><td class="label-col">Maintenance Preference</td><td>${formatValue(activeIntake.maintenance_needs)}</td></tr>
+      <tr><td class="label-col">Additional Client Notes</td><td>${formatValue(activeIntake.additional_notes || activeIntake.notes)}</td></tr>
     </table>
   `;
 
-  // Auto-connect chat if existing
   handleCreateOrOpenChat();
 };
 
@@ -227,7 +268,52 @@ function switchViewStage(stage) {
 }
 
 // ==========================================
-// 4. ACTION HANDLERS (REJECT, REVIEW, APPROVE)
+// 4. IN-DOCUMENT CONTRACT EDITOR
+// ==========================================
+function renderContractPreview() {
+  const doc = document.getElementById("contract-mini-doc");
+  const projName = activeIntake?.project_name || "Web Development Build";
+  const clientEmail = activeIntake?.client_emails?.[0] || "client@example.com";
+  const defaultCost = activeIntake?.estimated_price || (activeIntake?.site_type === 'dynamic' ? '300' : '150');
+
+  doc.innerHTML = `
+    <h2>SERVICE AGREEMENT & CONTRACT</h2>
+    <p>This agreement is entered into between <strong>LunarCraft</strong> and <strong><input type="text" id="doc-client-email" class="doc-input" value="${escapeHtml(clientEmail)}"></strong> for the project titled <strong><input type="text" id="doc-proj-name" class="doc-input" value="${escapeHtml(projName)}"></strong>.</p>
+    
+    <h3>1. Scope of Work</h3>
+    <p>LunarCraft will design and develop the requested web assets including: <em>${escapeHtml((activeIntake?.selected_features || []).join(', ') || 'Custom Web Design & Integration')}</em>.</p>
+
+    <h3>2. Financial & Payment Terms</h3>
+    <table>
+      <tr>
+        <td class="label-col">Total Build Cost ($)</td>
+        <td><input type="number" id="doc-total-cost" class="doc-input doc-table-input" value="${defaultCost}"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Required Initial Deposit ($)</td>
+        <td><input type="number" id="doc-deposit" class="doc-input doc-table-input" value="${Math.round(defaultCost / 2)}"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Build Monthly Plan</td>
+        <td><input type="text" id="doc-build-monthly" class="doc-input doc-table-input" value="N/A" placeholder="e.g. $50/mo for 6 mos"></td>
+      </tr>
+      <tr>
+        <td class="label-col">Monthly Maintenance ($)</td>
+        <td><input type="text" id="doc-maint-cost" class="doc-input doc-table-input" value="30 / month" placeholder="e.g. $30 / month or None"></td>
+      </tr>
+    </table>
+
+    <h3>3. Hosting & Deployment Terms</h3>
+    <p>Domain configuration (<input type="text" id="doc-domain" class="doc-input" value="${escapeHtml(activeIntake?.custom_domain || 'Pending Provider Setup')}">) and deployment services are provided as specified in the intake scope.</p>
+
+    <div style="margin-top: 30px; border-top: 1px dashed #aaa; padding-top: 15px;">
+      <p><em>By proceeding, an e-signature request with these finalized terms will be issued to the client.</em></p>
+    </div>
+  `;
+}
+
+// ==========================================
+// 5. EVENT LISTENERS & EXECUTION
 // ==========================================
 function setupEventListeners() {
   document.getElementById("btn-nav-back").addEventListener("click", () => switchViewStage("list"));
@@ -239,11 +325,11 @@ function setupEventListeners() {
     const db = getDb();
 
     await db.from("project_intakes").delete().eq("id", activeIntake.id);
-    setFeedback("Project rejected, notified client email, and deleted from table.", "#e74c3c");
+    setFeedback("Project rejected and removed.", "#e74c3c");
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1500);
   });
 
-  // REVIEW / REQUEST REVISIONS ACTION
+  // REQUEST REVISIONS
   document.getElementById("btn-action-review").addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
@@ -254,40 +340,18 @@ function setupEventListeners() {
       admin_notes: note
     }).eq("id", activeIntake.id);
 
-    setFeedback("Sent back to client dashboard for revisions.", "#f39c12");
+    setFeedback("Sent back to client for revisions.", "#f39c12");
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1500);
   });
 
-  // APPROVE & PREPARE CONTRACT ACTION
+  // APPROVE & PREPARE CONTRACT
   document.getElementById("btn-action-approve").addEventListener("click", () => {
     switchViewStage("contract");
     renderContractPreview();
   });
 
-  document.getElementById("btn-update-terms").addEventListener("click", renderContractPreview);
-
   // E-SIGN & INITIATE PROJECT SEQUENCE
   document.getElementById("btn-action-esign-initiate").addEventListener("click", executeProjectSequence);
-}
-
-function renderContractPreview() {
-  const total = document.getElementById("input-total-cost").value || "300";
-  const deposit = document.getElementById("input-deposit").value || "150";
-  const buildMonthly = document.getElementById("input-build-monthly").value || "N/A";
-  const maint = document.getElementById("input-maint-cost").value || "30";
-
-  const doc = document.getElementById("contract-mini-doc");
-  doc.innerHTML = `
-    <h3>SERVICE AGREEMENT & CONTRACT</h3>
-    <p><strong>Project:</strong> ${escapeHtml(activeIntake.project_name || 'Web Build')}</p>
-    <table>
-      <tr><td>Total Build Cost</td><td>$${total}</td></tr>
-      <tr><td>Deposit Required</td><td>$${deposit}</td></tr>
-      <tr><td>Build Monthly Plan</td><td>${buildMonthly}</td></tr>
-      <tr><td>Monthly Maintenance</td><td>$${maint} / month</td></tr>
-    </table>
-    <p><em>By proceeding, an e-signature request will be issued to the client.</em></p>
-  `;
 }
 
 // COMPLETE WORKFLOW EXECUTION
@@ -296,15 +360,17 @@ async function executeProjectSequence() {
   const db = getDb();
   setFeedback("Initiating project creation sequence...", "#88c0d0");
 
-  const totalCost = document.getElementById("input-total-cost").value || "300";
-  const primaryEmail = activeIntake.client_emails?.[0] || "client@example.com";
+  // Read value straight from document inputs
+  const totalCost = document.getElementById("doc-total-cost")?.value || "300";
+  const primaryEmail = document.getElementById("doc-client-email")?.value || activeIntake.client_emails?.[0] || "client@example.com";
+  const projName = document.getElementById("doc-proj-name")?.value || activeIntake.project_name || "New Site Project";
 
   try {
-    // 1. Create Project
+    // 1. Create Project Entry
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
-        name: activeIntake.project_name || "New Site Project",
+        name: projName,
         client_email: primaryEmail,
         status: "Contract Pending Signature",
         total_cost: parseFloat(totalCost)
@@ -314,15 +380,25 @@ async function executeProjectSequence() {
 
     if (projErr) throw projErr;
 
-    // 2. Ensure Chat Room Exists
+    // 2. Open / Connect Chat Room
     await handleCreateOrOpenChat();
 
-    // 3. Generate & Attach PDF
-    const pdfElement = document.getElementById("intake-mini-doc");
-    const pdfBlob = await html2pdf().from(pdfElement).output('blob');
+    // 3. Convert Contract DOM Document to PDF
+    const pdfElement = document.getElementById("contract-mini-doc");
+    
+    // Replace input elements with standard span text for PDF rendering
+    const clonedElement = pdfElement.cloneNode(true);
+    clonedElement.querySelectorAll("input").forEach(input => {
+      const span = document.createElement("span");
+      span.style.fontWeight = "bold";
+      span.textContent = input.value;
+      input.parentNode.replaceChild(span, input);
+    });
+
+    const pdfBlob = await html2pdf().from(clonedElement).output('blob');
     
     // Upload PDF to Supabase Storage
-    const filePath = `documents/project_${newProject.id}_intake.pdf`;
+    const filePath = `documents/project_${newProject.id}_contract.pdf`;
     await db.storage.from("project-files").upload(filePath, pdfBlob);
 
     // 4. Update Intake Status
@@ -331,12 +407,12 @@ async function executeProjectSequence() {
       project_id: newProject.id
     }).eq("id", activeIntake.id);
 
-    setFeedback("Success! Contract emailed, project created, and documents archived.", "#4ed1a0");
+    setFeedback("Success! Contract issued, project created, and PDF stored.", "#4ed1a0");
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 2000);
 
   } catch (err) {
     console.error(err);
-    setFeedback("Error executing project sequence: " + err.message, "#e74c3c");
+    setFeedback("Error executing sequence: " + err.message, "#e74c3c");
   }
 }
 
