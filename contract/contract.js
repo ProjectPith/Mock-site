@@ -126,7 +126,7 @@ async function loadIntakeAndProfileData(intakeId) {
     ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
     : [];
 
-  if (emails.length > 0) {
+  if (emails.length > 0) 
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
       .select('email, full_name')
@@ -143,7 +143,7 @@ async function loadIntakeAndProfileData(intakeId) {
       document.getElementById("val-client-names").textContent = emails.join(", ");
       document.getElementById("sig-client-printed").textContent = emails.join(", ");
     }
-}
+  
 
 async function handleSendToAdmin() {
   const msgEl = document.getElementById("contract-msg");
