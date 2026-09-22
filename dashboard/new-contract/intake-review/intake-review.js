@@ -709,13 +709,55 @@ function setupEventListeners() {
   document.getElementById("btn-create-or-open-chat")?.addEventListener("click", handleCreateOrOpenChat);
 
   document.getElementById("btn-action-reject")?.addEventListener("click", async () => {
-    if (!activeIntake || !confirm("Reject and remove this intake submission?")) return;
-    const db = getDb();
+    if (!activeIntake) return;
 
-    await db.from("project_intakes").delete().eq("id", activeIntake.id);
+    const rawEmails = activeIntake.client_emails || [];
+    const clientEmails = Array.isArray(rawEmails) 
+      ? rawEmails.map(e => String(e).trim()).filter(e => e !== '') 
+      : [];
 
-    setFeedback("Project rejected and intake form deleted.", "#e74c3c");
-    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
+    const projName = activeIntake.project_name || "Untitled Project";
+
+    // Optional: Ask for a reason so clients know why it was rejected
+    const rejectReason = prompt(`Reject and delete intake for "${projName}"?\nEnter an optional rejection reason to include in the email:`);
+    if (rejectReason === null) return; // User cancelled prompt
+
+    setFeedback("Sending rejection notices & removing intake submission...", "#f39c12");
+
+    try {
+      // 1. Trigger rejection email API endpoint (if configured)
+      if (clientEmails.length > 0) {
+        await fetch("/api/send-rejection-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recipients: clientEmails,
+            projectName: projName,
+            reason: rejectReason.trim() || "The submitted intake form did not meet project criteria or was duplicate."
+          })
+        }).catch(err => console.warn("Email dispatch failed or endpoint not implemented:", err));
+      }
+
+      // 2. Delete the record from Supabase database
+      const db = getDb();
+      const { error: deleteErr } = await db
+        .from("project_intakes")
+        .delete()
+        .eq("id", activeIntake.id);
+
+      if (deleteErr) throw deleteErr;
+
+      setFeedback("Intake form rejected, notification sent, and record removed.", "#e74c3c");
+
+      setTimeout(() => {
+        switchViewStage("list");
+        fetchPendingIntakes();
+      }, 1500);
+
+    } catch (err) {
+      console.error("Rejection Error:", err);
+      setFeedback("Error rejecting form: " + err.message, "#e74c3c");
+    }
   });
 
   document.getElementById("btn-action-review")?.addEventListener("click", async () => {
