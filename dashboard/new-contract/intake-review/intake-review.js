@@ -368,41 +368,196 @@ function switchViewStage(stage) {
 // ==========================================
 function renderContractPreview() {
   const doc = document.getElementById("contract-mini-doc");
-  if (!doc) return;
+  if (!doc || !activeIntake) return;
 
-  const projName = activeIntake?.project_name || "Web Development Build";
-  const clientEmail = activeIntake?.client_emails?.[0] || "client@example.com";
-  const defaultCost = activeIntake?.estimated_price || (activeIntake?.site_type === 'dynamic' ? '300' : '150');
+  // Extract intake data with defaults
+  const projName = activeIntake.project_name || "Custom Web Build";
+  const compName = activeIntake.company_name || "";
+  const customDomain = activeIntake.custom_domain || "";
+  const rawEmails = activeIntake.client_emails || [];
+  const clientEmailsStr = Array.isArray(rawEmails) ? rawEmails.join(", ") : (activeIntake.client_email || "");
+  const defaultCost = activeIntake.estimated_price || (activeIntake.site_type === 'dynamic' ? '300' : '150');
+  const defaultDeposit = Math.round(defaultCost / 2);
+  const maintRecurrence = activeIntake.maintenance_recurrence || activeIntake.maint_recurrence || "none";
+  const maintNeeds = activeIntake.maintenance_needs || activeIntake.maint_scope || "";
+  const customSpecs = activeIntake.custom_specifications || activeIntake.extra_notes || activeIntake.additional_notes || "";
+  
+  // Format color details string
+  let colorDisplay = "";
+  if (activeIntake.color_scheme) {
+    const cs = activeIntake.color_scheme;
+    if (cs.method === 'hex') {
+      colorDisplay = `Custom Hex: BG ${cs.hex_bg || '#12161A'}, Primary ${cs.hex_primary || '#FFFFFF'}, Accent1 ${cs.hex_accent1 || '#87CEEB'}, Accent2 ${cs.hex_accent2 || '#4ED1A0'}`;
+    } else if (cs.method === 'preset') {
+      colorDisplay = `Preset: ${cs.preset_theme || 'Ethereal Charcoal'}`;
+    } else if (cs.method === 'vibe') {
+      colorDisplay = `Vibe: ${cs.vibe_text || ''}`;
+    }
+  } else {
+    colorDisplay = activeIntake.color_details || "Standard Brand Aesthetic";
+  }
+
+  const selectedFeatures = (activeIntake.selected_features || activeIntake.dynamic_features || []).join(", ");
 
   doc.innerHTML = `
-    <h2>SERVICE AGREEMENT & CONTRACT</h2>
-    <p>This agreement is entered into between <strong>LunarCraft</strong> and <strong><input type="text" id="doc-client-email" class="doc-input" value="${escapeHtml(clientEmail)}"></strong> for the project titled <strong><input type="text" id="doc-proj-name" class="doc-input" value="${escapeHtml(projName)}"></strong>.</p>
-    
-    <h3>1. Scope of Work</h3>
-    <p>LunarCraft will design and develop the requested web assets including: <em>${escapeHtml((activeIntake?.selected_features || activeIntake?.dynamic_features || []).join(', ') || 'Custom Web Design & Integration')}</em>.</p>
+    <div class="contract-document" style="background:#fff; color:#1a1a1a; padding:30px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.5;">
+      
+      <!-- HEADER -->
+      <div class="doc-header" style="text-align:center; border-bottom:2px solid #1a1a1a; padding-bottom:10px; margin-bottom:20px;">
+        <h1 style="font-size:18pt; margin:0; letter-spacing:2px; color:#000;">LUNARCRAFT</h1>
+        <h2 style="font-size:12pt; margin:4px 0 0 0; font-weight:700;">WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
+        <p style="font-size:9pt; margin:2px 0 0 0; color:#555; letter-spacing:1px;">MASTER SERVICE TEMPLATE</p>
+      </div>
 
-    <h3>2. Financial & Payment Terms</h3>
-    <table>
-      <tr>
-        <td class="label-col">Total Build Cost ($)</td>
-        <td><input type="number" id="doc-total-cost" class="doc-input doc-table-input" value="${defaultCost}"></td>
-      </tr>
-      <tr>
-        <td class="label-col">Required Initial Deposit ($)</td>
-        <td><input type="number" id="doc-deposit" class="doc-input doc-table-input" value="${Math.round(defaultCost / 2)}"></td>
-      </tr>
-      <tr>
-        <td class="label-col">Build Monthly Plan</td>
-        <td><input type="text" id="doc-build-monthly" class="doc-input doc-table-input" value="N/A" placeholder="e.g. $50/mo for 6 mos"></td>
-      </tr>
-      <tr>
-        <td class="label-col">Monthly Maintenance ($)</td>
-        <td><input type="text" id="doc-maint-cost" class="doc-input doc-table-input" value="${escapeHtml(activeIntake?.maint_recurrence || '30 / month')}" placeholder="e.g. $30 / month or None"></td>
-      </tr>
-    </table>
+      <p style="font-size:10pt; margin-bottom:20px;">
+        This Web Design & Services Agreement ("Agreement") is entered into as of the date of final electronic signature ("Effective Date"), by and between <strong>LunarCraft</strong> ("Provider"), and the Client identified below ("Client").
+      </p>
 
-    <div style="margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 15px;">
-      <p><em>Approved intake specifications will be compiled into the project's permanent document repository.</em></p>
+      <!-- 1. PROJECT DETAILS & FINANCIAL TERMS -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">1. PROJECT DETAILS & FINANCIAL TERMS</h3>
+        <table class="terms-table" style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+          <tr>
+            <td style="width:35%; border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Client Full Name(s) / Email(s)</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-client-names" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(clientEmailsStr)}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Business / Company Name</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-company-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(compName)}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Project Name</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-project-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(projName)}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Domain Name</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-domain-name" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(customDomain)}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Build Total Cost ($)</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="number" id="edit-total-cost" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${defaultCost}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Deposit Amount ($)</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="number" id="edit-deposit" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${defaultDeposit}"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Build Monthly Payment</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-build-monthly" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="N/A" placeholder="e.g. $50/mo for 6 mos"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Monthly Maintenance Cost</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-maint-cost" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="$30 / month"></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Maintenance Frequency</td>
+            <td style="border:1px solid #ddd; padding:4px;">
+              <select id="edit-maint-recurrence" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">
+                <option value="none" ${maintRecurrence === 'none' ? 'selected' : ''}>No Ongoing Maintenance</option>
+                <option value="weekly" ${maintRecurrence === 'weekly' ? 'selected' : ''}>Weekly</option>
+                <option value="biweekly" ${maintRecurrence === 'biweekly' ? 'selected' : ''}>Bi-Weekly</option>
+                <option value="monthly" ${maintRecurrence === 'monthly' ? 'selected' : ''}>Monthly</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Scope of Maintenance</td>
+            <td style="border:1px solid #ddd; padding:4px;"><textarea id="edit-maint-scope" class="doc-input" rows="2" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">${escapeHtml(maintNeeds)}</textarea></td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- 2. DEVELOPMENT & SITE ACCESS -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">2. DEVELOPMENT & SITE ACCESS</h3>
+        <p style="margin:0 0 6px 0;"><strong>Deposit & Start Date:</strong> The site build process will officially commence only upon receipt and clearance of the initial deposit by the Provider.</p>
+        <p style="margin:0 0 6px 0;"><strong>Site Delivery & Access:</strong> Full access to and deployment of the completed website will be granted upon payment of the total build fee, unless a monthly payment schedule is specified in Section 1. Under a monthly payment schedule, Client access is contingent upon remaining fully current on all payments.</p>
+      </section>
+
+      <!-- 3. PROJECT SCOPE & TECHNICAL SPECS -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">3. PROJECT SCOPE & TECHNICAL SPECS</h3>
+        <table class="terms-table" style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+          <tr>
+            <td style="width:35%; border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Site Architecture</td>
+            <td style="border:1px solid #ddd; padding:4px;">
+              <select id="edit-site-type" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">
+                <option value="static" ${activeIntake.site_type === 'static' ? 'selected' : ''}>Static Web Presence (Informational Responsive Layout)</option>
+                <option value="dynamic" ${activeIntake.site_type === 'dynamic' ? 'selected' : ''}>Dynamic Web Application (Interactive Backend & Custom Web Tools)</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Included Modules & Features</td>
+            <td style="border:1px solid #ddd; padding:4px;"><textarea id="edit-selected-features" class="doc-input" rows="2" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;">${escapeHtml(selectedFeatures)}</textarea></td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; background:#f8f9fa; font-weight:bold;">Design & Color Scheme Specs</td>
+            <td style="border:1px solid #ddd; padding:4px;"><input type="text" id="edit-color-specs" class="doc-input" style="width:100%; border:1px solid #ccc; padding:4px; border-radius:3px;" value="${escapeHtml(colorDisplay)}"></td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- 4. INTELLECTUAL PROPERTY & CODE OWNERSHIP -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">4. INTELLECTUAL PROPERTY & CODE OWNERSHIP</h3>
+        <p style="margin:0 0 6px 0;"><strong>Source Code Ownership:</strong> Provider (LunarCraft) retains full ownership of all source code, design assets, and custom scripts created for the project until the site build cost is paid in full.</p>
+        <p style="margin:0 0 6px 0;"><strong>Payment Plans:</strong> If operating under a payment plan, ownership of all source code remains strictly with the Provider until the balance is cleared in full, regardless of active deployment.</p>
+        <p style="margin:0 0 6px 0;"><strong>Transfer upon Full Payment & Termination:</strong> Upon full payment of all outstanding build fees and formal contract termination, ownership of the site source code and repository will be transferred to the Client. The Client will assume sole management of third-party services (including Stripe, hosting, and API accounts).</p>
+      </section>
+
+      <!-- 5. ONGOING SITE MANAGEMENT & MAINTENANCE -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">5. ONGOING SITE MANAGEMENT & MAINTENANCE</h3>
+        <p style="margin:0 0 6px 0;"><strong>Management Rights:</strong> Provider will host, maintain, and manage the website until this Agreement is terminated in accordance with Section 7.</p>
+        <p style="margin:0 0 6px 0;"><strong>Maintenance Terms:</strong> Client agrees to pay the recurring Monthly Maintenance Fee outlined in Section 1 for continuous updates, monitoring, and administrative upkeep.</p>
+      </section>
+
+      <!-- 6. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">6. REVISIONS, SCOPE ADD-ONS & TECHNICAL WARRANTY</h3>
+        <p style="margin:0 0 6px 0;"><strong>Post-Delivery Window:</strong> Client is granted a two (2) week window following site delivery to request minor aesthetic adjustments and simple corrections at no additional charge.</p>
+        <p style="margin:0 0 6px 0;"><strong>Paid Add-Ons:</strong> Requested revisions involving new features, expanded functionality, or work beyond the initial scope are treated as paid add-ons and require an updated contract. Any deposit previously paid will be deducted from the revised total balance.</p>
+        <p style="margin:0 0 6px 0;"><strong>Provider Code Warranty:</strong> Any bugs or technical errors originating directly from Provider's original code carry no time limit and will be fixed at no extra charge.</p>
+        <p style="margin:0 0 6px 0;"><strong>Tamper Fee (Client / Third-Party Interference):</strong> Any bugs, errors, or outages caused by Client intervention, unauthorized modifications, or third-party interference will incur a repair fee of $150 per incident OR $75/hour, whichever is greater.</p>
+      </section>
+
+      <!-- 7. TERMINATION & REFUND POLICY -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">7. TERMINATION & REFUND POLICY</h3>
+        <p style="margin:0 0 6px 0;"><strong>Termination for Misconduct:</strong> Provider reserves the right to terminate this Agreement immediately for client misconduct, harassment, or disrespectful behavior. If terminated for misconduct prior to site handoff, the Client will receive a refund of payments made, but Provider retains 100% ownership of the website and code.</p>
+        <p style="margin:0 0 6px 0;"><strong>Client-Initiated Termination:</strong> If the Client chooses to terminate this Agreement prior to paying off the full build balance, no refunds will be issued for any deposits or payments previously made.</p>
+      </section>
+
+      <!-- 8. SPECIAL OPERATIONAL AGREEMENTS & SPECIFICATIONS -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">8. SPECIAL OPERATIONAL AGREEMENTS & SPECIFICATIONS</h3>
+        <p style="font-size:9pt; color:#555; margin-bottom:6px;">The following non-standard terms, custom agreements, or operational exceptions have been agreed upon by both parties and override standard provisions where applicable:</p>
+        <textarea id="edit-custom-specs" class="doc-input" rows="3" style="width:100%; border:1px solid #ccc; padding:6px; border-radius:3px; background:#f8fafc; font-size:9.5pt;">${escapeHtml(customSpecs)}</textarea>
+      </section>
+
+      <!-- 9. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT -->
+      <section style="margin-bottom:20px;">
+        <h3 style="font-size:11pt; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">9. ELECTRONIC SIGNATURE & ACKNOWLEDGMENT</h3>
+        <p style="font-size:9.5pt; margin-bottom:12px;">By signing electronically below, both parties agree to all terms and conditions of this Agreement.</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:15px;">
+          <!-- PROVIDER BLOCK -->
+          <div style="border-top:1px solid #aaa; padding-top:8px;">
+            <h4 style="margin:0 0 6px 0; font-size:9.5pt;">PROVIDER (LUNARCRAFT)</h4>
+            <div style="border:1px dashed #a0aec0; border-radius:3px; padding:10px; text-align:center; background:#f8fafc; font-size:8pt; color:#718096; font-style:italic;">Signature Pending Final Review</div>
+            <div style="font-size:9pt; margin-top:6px;"><strong>Title:</strong> Owner / Developer</div>
+          </div>
+
+          <!-- CLIENT BLOCK -->
+          <div style="border-top:1px solid #aaa; padding-top:8px;">
+            <h4 style="margin:0 0 6px 0; font-size:9.5pt;">CLIENT</h4>
+            <div style="border:1px dashed #a0aec0; border-radius:3px; padding:10px; text-align:center; background:#f8fafc; font-size:8pt; color:#718096; font-style:italic;">Signature Pending Final Approval</div>
+            <div style="font-size:9pt; margin-top:6px;"><strong>Title:</strong> Client / Authorized Representative</div>
+          </div>
+        </div>
+      </section>
+
     </div>
   `;
 }
