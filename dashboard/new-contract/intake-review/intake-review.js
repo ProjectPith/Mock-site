@@ -724,9 +724,9 @@ function setupEventListeners() {
     setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
 
     try {
-      // 1. Trigger the route in your root worker file
+      // 1. Call Supabase Edge Function directly
       if (clientEmails.length > 0) {
-        await fetch("/api/send-rejection-email", {
+        await fetch("https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/send-rejection-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -737,7 +737,7 @@ function setupEventListeners() {
         });
       }
 
-      // 2. Delete intake record from Supabase
+      // 2. Delete intake submission from Supabase table
       const db = getDb();
       const { error: deleteErr } = await db
         .from("project_intakes")
