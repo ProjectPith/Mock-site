@@ -139,38 +139,47 @@ function appendMessageBubble(msg) {
   container.scrollTop = container.scrollHeight;
 }
 
+// SEARCH CHAT BY PROJECT NAME & CREATE ROOM IF MISSING
 async function handleCreateOrOpenChat() {
-  if (!activeIntake || !activeIntake.client_emails?.length) return;
+  if (!activeIntake) return;
   const db = getDb();
-  const primaryEmail = activeIntake.client_emails[0];
+  const projName = activeIntake.project_name || 'Untitled Project';
+  const primaryEmail = activeIntake.client_emails?.[0] || 'client@example.com';
 
-  const { data: existingRooms } = await db
+  // Search by Project Name in chat_rooms
+  const { data: existingRooms, error: searchErr } = await db
     .from("chat_rooms")
     .select("*")
-    .eq("client_email", primaryEmail);
+    .ilike("name", `%${projName}%`);
 
-  if (existingRooms && existingRooms.length > 0) {
+  if (!searchErr && existingRooms && existingRooms.length > 0) {
     const roomId = existingRooms[0].id;
-    document.getElementById("dash-room-select").value = roomId;
+    const roomSelect = document.getElementById("dash-room-select");
+    if (roomSelect) roomSelect.value = roomId;
     connectChatRoom(roomId);
   } else {
-    const { data: newRoom, error } = await db
+    // Room doesn't exist; create new chat room
+    const { data: newRoom, error: createErr } = await db
       .from("chat_rooms")
       .insert({
-        name: `${activeIntake.project_name || 'Project'} Chat`,
+        name: `${projName} Chat`,
         client_email: primaryEmail
       })
       .select()
       .single();
 
-    if (!error && newRoom) {
+    if (!createErr && newRoom) {
       const roomSelect = document.getElementById("dash-room-select");
-      const opt = document.createElement("option");
-      opt.value = newRoom.id;
-      opt.textContent = newRoom.name;
-      roomSelect.appendChild(opt);
-      roomSelect.value = newRoom.id;
+      if (roomSelect) {
+        const opt = document.createElement("option");
+        opt.value = newRoom.id;
+        opt.textContent = newRoom.name;
+        roomSelect.appendChild(opt);
+        roomSelect.value = newRoom.id;
+      }
       connectChatRoom(newRoom.id);
+    } else {
+      console.error("Error creating chat room:", createErr);
     }
   }
 }
@@ -182,7 +191,6 @@ async function fetchPendingIntakes() {
   const grid = document.getElementById("intake-cards-grid");
   const db = getDb();
 
-  // Query ONLY forms currently submitted for admin review
   const { data: intakes, error } = await db
     .from("project_intakes")
     .select("*")
@@ -195,13 +203,44 @@ async function fetchPendingIntakes() {
   }
 
   currentIntakes = intakes;
-  grid.innerHTML = intakes.map(item => `
-    <div class="intake-card" onclick="openIntakeDetail('${item.id}')">
-      <h4>${escapeHtml(item.project_name || "Untitled Project")}</h4>
-      <p><strong>Client:</strong> ${escapeHtml(item.client_emails?.[0] || "N/A")}</p>
-      <p><strong>Submitted:</strong> ${new Date(item.created_at).toLocaleDateString()}</p>
-    </div>
-  `).join("");
+
+  // Resolve Profile Full Names for all client emails
+  const allEmails = intakes.flatMap(i => i.client_emails || []).filter(Boolean);
+  let profileMap = {};
+
+  if (allEmails.length > 0) {
+    const { data: profiles } = await db
+      .from('profiles')
+      .select('email, full_name')
+      .in('email', allEmails);
+
+    if (profiles) {
+      profiles.forEach(p => {
+        if (p.email && p.full_name) {
+          profileMap[p.email.toLowerCase()] = p.full_name;
+        }
+      });
+    }
+  }
+
+  // Render Horizontal Full-Stretch Cards with '|' Dividers
+  grid.innerHTML = intakes.map(item => {
+    const primaryEmail = item.client_emails?.[0] || "";
+    const clientDisplayName = profileMap[primaryEmail.toLowerCase()] || primaryEmail || "N/A";
+    const submittedDate = new Date(item.created_at).toLocaleDateString();
+
+    return `
+      <div class="intake-card" onclick="openIntakeDetail('${item.id}')">
+        <div class="intake-card-row">
+          <div class="intake-card-item project-title">${escapeHtml(item.project_name || "Untitled Project")}</div>
+          <span class="card-divider">|</span>
+          <div class="intake-card-item"><strong>Client:</strong>&nbsp;${escapeHtml(clientDisplayName)}</div>
+          <span class="card-divider">|</span>
+          <div class="intake-card-item"><strong>Submitted:</strong>&nbsp;${submittedDate}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 window.openIntakeDetail = function(intakeId) {
@@ -325,7 +364,7 @@ function setupEventListeners() {
   document.getElementById("btn-nav-back").addEventListener("click", () => switchViewStage("list"));
   document.getElementById("btn-create-or-open-chat").addEventListener("click", handleCreateOrOpenChat);
 
-  // ACTION 1: REJECT (Mark as 'rejected')
+  // ACTION 1: REJECT
   document.getElementById("btn-action-reject").addEventListener("click", async () => {
     if (!activeIntake || !confirm("Reject this intake form?")) return;
     const db = getDb();
@@ -338,7 +377,7 @@ function setupEventListeners() {
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // ACTION 2: SEND BACK FOR REVISIONS (Mark as 'awaiting_client_review')
+  // ACTION 2: REQUEST REVISIONS
   document.getElementById("btn-action-review").addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
@@ -353,13 +392,13 @@ function setupEventListeners() {
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // ACTION 3: APPROVE & OPEN CONTRACT EDITOR
+  // ACTION 3: APPROVE & PREPARE CONTRACT
   document.getElementById("btn-action-approve").addEventListener("click", () => {
     switchViewStage("contract");
     renderContractPreview();
   });
 
-  // ACTION 4: ISSUING CONTRACT (Mark as 'contract_issued')
+  // ACTION 4: E-SIGN & INITIATE
   document.getElementById("btn-action-esign-initiate").addEventListener("click", executeProjectSequence);
 }
 
@@ -374,7 +413,6 @@ async function executeProjectSequence() {
   const projName = document.getElementById("doc-proj-name")?.value || activeIntake.project_name || "New Site Project";
 
   try {
-    // 1. Create Project Entry
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
@@ -382,19 +420,16 @@ async function executeProjectSequence() {
         client_email: primaryEmail,
         status: "Contract Pending Signature",
         total_cost: parseFloat(totalCost),
-        intake_id: activeIntake.id // Link back to original intake form
+        intake_id: activeIntake.id
       })
       .select()
       .single();
 
     if (projErr) throw projErr;
 
-    // 2. Open / Connect Chat Room
     await handleCreateOrOpenChat();
 
-    // 3. Convert Contract DOM Document to PDF
     const pdfElement = document.getElementById("contract-mini-doc");
-    
     const clonedElement = pdfElement.cloneNode(true);
     clonedElement.querySelectorAll("input").forEach(input => {
       const span = document.createElement("span");
@@ -404,12 +439,9 @@ async function executeProjectSequence() {
     });
 
     const pdfBlob = await html2pdf().from(clonedElement).output('blob');
-    
-    // Upload PDF to Supabase Storage
     const filePath = `documents/project_${newProject.id}_contract.pdf`;
     await db.storage.from("project-files").upload(filePath, pdfBlob);
 
-    // 4. Update Intake Status to 'contract_issued'
     await db.from("project_intakes").update({
       status: "contract_issued",
       project_id: newProject.id
