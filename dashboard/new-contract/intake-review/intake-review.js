@@ -264,25 +264,26 @@ async function fetchPendingIntakes() {
   }).join("");
 }
 
-// ==========================================
-// 4. INTAKE PDF GENERATOR & VIEWER
-// ==========================================
 function buildIntakePdfHtml(data) {
   if (!data) return "";
 
   const title = escapeHtml(data.project_name || "Untitled Project");
   const createdDate = data.created_at ? new Date(data.created_at).toLocaleString() : new Date().toLocaleString();
   
-  const formatVal = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? escapeHtml(val) : "<em>N/A</em>";
+  // Format helper that handles empty strings, null, undefined, and preserves line breaks
+  const formatVal = (val) => {
+    if (val !== undefined && val !== null && String(val).trim() !== "") {
+      return escapeHtml(val).replace(/\n/g, "<br>");
+    }
+    return "<em>N/A</em>";
+  };
+
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
 
-  // 1. Color Scheme Formatting based on color_mode and color_details
+  // Color Scheme Formatting based on color_mode and color_details
   let colorDisplay = "<em>None Specified</em>";
-  
   if (data.color_details) {
     let cd = data.color_details;
-    
-    // Parse if stored as a JSON string in Supabase
     if (typeof cd === "string" && (cd.startsWith("{") || cd.startsWith("["))) {
       try { cd = JSON.parse(cd); } catch (e) {}
     }
@@ -302,7 +303,6 @@ function buildIntakePdfHtml(data) {
     }
   }
 
-  // 2. Maintenance Formatting
   const recurrenceDisplay = data.maintenance_recurrence 
     ? data.maintenance_recurrence.charAt(0).toUpperCase() + data.maintenance_recurrence.slice(1) 
     : "None";
