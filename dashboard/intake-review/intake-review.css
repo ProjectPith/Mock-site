@@ -1,0 +1,271 @@
+/* Layout Scaffolding: 1/3 Left, 2/3 Right Split */
+.review-workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 0 20px;
+  min-height: calc(100vh - 100px);
+}
+
+@media (max-width: 900px) {
+  .review-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* Widget Cards */
+.widget-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.widget-header h2, .widget-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+/* Price Estimator Styles */
+.calc-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-input {
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.addons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-main);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.checkbox-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.calc-total-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-subtle);
+  font-size: 0.95rem;
+}
+
+.calc-total-box strong {
+  color: var(--sky-blue);
+  font-size: 1.2rem;
+}
+
+/* Chat Integration */
+.chat-widget {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.chat-party-bar {
+  margin-bottom: 10px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Right Panel Elements */
+.panel-nav-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.intake-card {
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.intake-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--sky-blue);
+}
+
+.intake-card h4 {
+  margin: 0 0 8px 0;
+  color: var(--text-main);
+}
+
+.intake-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Miniaturized Document Canvas */
+.miniature-doc-wrapper {
+  background: #2d333b;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 15px;
+  max-height: 480px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.mini-doc-content {
+  background: #ffffff;
+  color: #1a1a1a;
+  padding: 25px;
+  border-radius: 4px;
+  font-size: 9pt;
+  line-height: 1.4;
+  transform-origin: top left;
+}
+
+.mini-doc-content h3 {
+  font-size: 10pt;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 4px;
+  margin: 12px 0 6px 0;
+}
+
+.mini-doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.mini-doc-content td {
+  border: 1px solid #dddddd;
+  padding: 4px 8px;
+}
+
+/* Buttons & Footer Actions */
+.view-footer-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+}
+
+.btn-warning {
+  background: #f39c12;
+  color: #fff;
+  border: none;
+}
+
+.contract-pricing-bar {
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.contract-pricing-bar h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+}
+
+.pricing-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.pricing-inputs-grid .input-field label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.pricing-inputs-grid .input-field input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+.feedback-message {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
