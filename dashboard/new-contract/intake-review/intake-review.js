@@ -267,27 +267,38 @@ async function fetchPendingIntakes() {
 // 4. INTAKE PDF GENERATOR & VIEWER
 // ==========================================
 function buildIntakePdfHtml(data) {
+  if (!data) return "";
+
   const title = escapeHtml(data.project_name || "Untitled Project");
   const createdDate = data.created_at ? new Date(data.created_at).toLocaleString() : new Date().toLocaleString();
   
-  const formatVal = (val) => val ? escapeHtml(val) : "<em>N/A</em>";
+  // Revised helper: checks null/undefined/empty strings cleanly so values like '0' or 'none' aren't hidden
+  const formatVal = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? escapeHtml(val) : "<em>N/A</em>";
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
 
-  // Formats Color Scheme details cleanly based on configured method
+  // Handles color_mode and color_details structure
   let colorDetails = "<em>None Specified</em>";
   if (data.color_details) {
-    const cs = data.color_details;
-    if (cs.method === 'hex') {
-      colorDetails = `Background: ${cs.hex_bg || 'N/A'}, Primary Text: ${cs.hex_primary || 'N/A'}, Accent 1: ${cs.hex_accent1 || 'N/A'}, Accent 2: ${cs.hex_accent2 || 'N/A'}`;
-    } else if (cs.method === 'preset') {
-      colorDetails = `Preset Theme: ${cs.preset_theme || 'N/A'}`;
-    } else if (cs.method === 'vibe') {
-      colorDetails = `Vibe Description: ${cs.vibe_text || 'N/A'}`;
+    const c = data.color_details;
+    const mode = data.color_mode || c.method;
+
+    if (mode === 'hex') {
+      colorDetails = `Background: ${c.hex_bg || c.background || 'N/A'}, Primary Text: ${c.hex_primary || c.primary || 'N/A'}, Accent 1: ${c.hex_accent1 || c.accent1 || 'N/A'}, Accent 2: ${c.hex_accent2 || c.accent2 || 'N/A'}`;
+    } else if (mode === 'preset') {
+      colorDetails = `Preset Theme: ${c.preset_theme || c.preset || 'N/A'}`;
+    } else if (mode === 'vibe') {
+      colorDetails = `Vibe Description: ${c.vibe_text || c.vibe || 'N/A'}`;
+    } else if (typeof c === 'string') {
+      colorDetails = escapeHtml(c);
     }
   }
 
+  // Capitalize or clean up maintenance recurrence display
+  const rawRecurrence = data.maintenance_recurrence || data.maint_recurrence || "";
+  const displayRecurrence = rawRecurrence ? rawRecurrence.charAt(0).toUpperCase() + rawRecurrence.slice(1) : "";
+
   return `
-    <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5;">
+    <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5; background: #fff;">
       <div style="border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px;">
         <h1 style="margin: 0; font-size: 18pt; text-transform: uppercase;">Project Specification: ${title}</h1>
         <p style="margin: 4px 0 0 0; font-size: 10pt; color: #555;"><strong>Date Created:</strong> ${createdDate}</p>
@@ -310,7 +321,7 @@ function buildIntakePdfHtml(data) {
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_recurrence)}</td></tr>
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(displayRecurrence)}</td></tr>
         <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_needs)}</td></tr>
       </table>
 
