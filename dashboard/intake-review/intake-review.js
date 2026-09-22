@@ -47,7 +47,7 @@ function initPriceEstimator() {
 }
 
 // ==========================================
-// 2. CHAT LOGIC (CONFIGURED FOR 'messages' TABLE)
+// 2. CHAT WIDGET LOGIC ('messages' table)
 // ==========================================
 async function initChatWidget() {
   if (!window.ChatEngine) return;
@@ -78,7 +78,6 @@ async function initChatWidget() {
     input.value = "";
 
     const db = getDb();
-    // Inserting directly into the 'messages' table
     await db.from("messages").insert({
       room_id: activeRoomId,
       sender_type: "admin",
@@ -99,7 +98,6 @@ function connectChatRoom(roomId) {
     window.activeChatChannel = null;
   }
 
-  // Realtime listener targeting 'messages' table
   const channel = db.channel(`room_${roomId}`)
     .on('postgres_changes', {
       event: 'INSERT',
@@ -113,7 +111,6 @@ function connectChatRoom(roomId) {
 
   window.activeChatChannel = channel;
 
-  // Initial fetch of room messages from 'messages' table
   db.from("messages")
     .select("*")
     .eq("room_id", roomId)
@@ -179,19 +176,21 @@ async function handleCreateOrOpenChat() {
 }
 
 // ==========================================
-// 3. FULL INTAKE FORM DISPLAY
+// 3. FETCH ONLY 'awaiting_admin_review' INTAKES
 // ==========================================
 async function fetchPendingIntakes() {
   const grid = document.getElementById("intake-cards-grid");
   const db = getDb();
 
+  // Query ONLY forms currently submitted for admin review
   const { data: intakes, error } = await db
     .from("project_intakes")
     .select("*")
+    .eq("status", "awaiting_admin_review")
     .order("created_at", { ascending: false });
 
   if (error || !intakes || intakes.length === 0) {
-    grid.innerHTML = `<p class="loading-text">No intake forms submitted for review.</p>`;
+    grid.innerHTML = `<p class="loading-text">No pending intake submissions needing review.</p>`;
     return;
   }
 
@@ -320,44 +319,47 @@ function renderContractPreview() {
 }
 
 // ==========================================
-// 5. EVENT LISTENERS & EXECUTION
+// 5. STATUS UPDATES & ACTIONS
 // ==========================================
 function setupEventListeners() {
   document.getElementById("btn-nav-back").addEventListener("click", () => switchViewStage("list"));
   document.getElementById("btn-create-or-open-chat").addEventListener("click", handleCreateOrOpenChat);
 
-  // REJECT ACTION
+  // ACTION 1: REJECT (Mark as 'rejected')
   document.getElementById("btn-action-reject").addEventListener("click", async () => {
-    if (!activeIntake || !confirm("Reject this intake and remove from Supabase?")) return;
+    if (!activeIntake || !confirm("Reject this intake form?")) return;
     const db = getDb();
 
-    await db.from("project_intakes").delete().eq("id", activeIntake.id);
-    setFeedback("Project rejected and removed.", "#e74c3c");
-    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1500);
+    await db.from("project_intakes").update({
+      status: "rejected"
+    }).eq("id", activeIntake.id);
+
+    setFeedback("Project rejected and removed from review queue.", "#e74c3c");
+    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // REQUEST REVISIONS
+  // ACTION 2: SEND BACK FOR REVISIONS (Mark as 'awaiting_client_review')
   document.getElementById("btn-action-review").addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
 
     const db = getDb();
     await db.from("project_intakes").update({
-      status: "requires_client_revision",
+      status: "awaiting_client_review",
       admin_notes: note
     }).eq("id", activeIntake.id);
 
-    setFeedback("Sent back to client for revisions.", "#f39c12");
-    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1500);
+    setFeedback("Form returned to client dashboard for revisions.", "#f39c12");
+    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
-  // APPROVE & PREPARE CONTRACT
+  // ACTION 3: APPROVE & OPEN CONTRACT EDITOR
   document.getElementById("btn-action-approve").addEventListener("click", () => {
     switchViewStage("contract");
     renderContractPreview();
   });
 
-  // E-SIGN & INITIATE PROJECT SEQUENCE
+  // ACTION 4: ISSUING CONTRACT (Mark as 'contract_issued')
   document.getElementById("btn-action-esign-initiate").addEventListener("click", executeProjectSequence);
 }
 
@@ -379,7 +381,8 @@ async function executeProjectSequence() {
         name: projName,
         client_email: primaryEmail,
         status: "Contract Pending Signature",
-        total_cost: parseFloat(totalCost)
+        total_cost: parseFloat(totalCost),
+        intake_id: activeIntake.id // Link back to original intake form
       })
       .select()
       .single();
@@ -406,7 +409,7 @@ async function executeProjectSequence() {
     const filePath = `documents/project_${newProject.id}_contract.pdf`;
     await db.storage.from("project-files").upload(filePath, pdfBlob);
 
-    // 4. Update Intake Status
+    // 4. Update Intake Status to 'contract_issued'
     await db.from("project_intakes").update({
       status: "contract_issued",
       project_id: newProject.id
