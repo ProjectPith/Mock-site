@@ -126,18 +126,34 @@ async function loadIntakeAndProfileData(intakeId) {
     ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
     : [];
 
+  // Profile Name Fetching
+  const rawEmails = intake.client_emails || [];
+  const emails = Array.isArray(rawEmails) 
+    ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
+    : [];
+
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
       .select('email, full_name')
       .in('email', emails);
+
     if (profileErr) {
       console.error("Profile Fetch Error:", profileErr);
     }
-      const nameDisplay = resolvedNames.join(", "); {
+
+    // Map through emails and match full_name from profiles
+    if (profiles && profiles.length > 0) {
+      const resolvedNames = emails.map(email => {
+        const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
+        return match && match.full_name ? match.full_name : email;
+      });
+
+      const nameDisplay = resolvedNames.join(", ");
       document.getElementById("val-client-names").textContent = nameDisplay;
       document.getElementById("sig-client-printed").textContent = nameDisplay;
     } else {
+      // Fallback to raw emails if no matching profiles were found
       document.getElementById("val-client-names").textContent = emails.join(", ");
       document.getElementById("sig-client-printed").textContent = emails.join(", ");
     }
