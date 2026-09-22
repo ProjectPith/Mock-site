@@ -718,46 +718,63 @@ function setupEventListeners() {
 
     const projName = activeIntake.project_name || "Untitled Project";
 
-    const rejectReason = prompt(`Reject intake for "${projName}"?\nEnter a reason for the client(s):`);
-    if (rejectReason === null) return; 
+    // --- REJECT BUTTON LISTENER ---
+  const rejectBtn = document.getElementById("btn-action-reject");
+  if (rejectBtn) {
+    rejectBtn.addEventListener("click", async () => {
+      if (!activeIntake) return;
 
-    setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
+      const rawEmails = activeIntake.client_emails || [];
+      const clientEmails = Array.isArray(rawEmails) 
+        ? rawEmails.map(e => String(e).trim()).filter(e => e !== '') 
+        : [];
 
-    try {
-      // 1. Call Supabase Edge Function directly
-      if (clientEmails.length > 0) {
-        await fetch("https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/send-rejection-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            recipients: clientEmails,
-            projectName: projName,
-            reason: rejectReason.trim() || "The submitted intake form did not meet current project criteria."
-          })
-        });
+      const projName = activeIntake.project_name || "Untitled Project";
+
+      const rejectReason = prompt(`Reject intake for "${projName}"?\nEnter a reason for the client(s):`);
+      if (rejectReason === null) return; 
+
+      setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
+
+      try {
+        const db = getDb();
+
+        // 1. Invoke Supabase Edge Function directly (handles auth/headers automatically)
+        if (clientEmails.length > 0) {
+          const { data, error: fnError } = await db.functions.invoke("send-rejection-email", {
+            body: {
+              recipients: clientEmails,
+              projectName: projName,
+              reason: rejectReason.trim() || "The submitted intake form did not meet current project criteria."
+            }
+          });
+
+          if (fnError) {
+            throw new Error(fnError.message || "Failed to trigger rejection email edge function.");
+          }
+        }
+
+        // 2. Delete intake submission from Supabase table
+        const { error: deleteErr } = await db
+          .from("project_intakes")
+          .delete()
+          .eq("id", activeIntake.id);
+
+        if (deleteErr) throw deleteErr;
+
+        setFeedback("Intake rejected, email sent, and record deleted.", "#e74c3c");
+
+        setTimeout(() => {
+          switchViewStage("list");
+          fetchPendingIntakes();
+        }, 1500);
+
+      } catch (err) {
+        console.error("Rejection Error:", err);
+        setFeedback("Error rejecting form: " + err.message, "#e74c3c");
       }
-
-      // 2. Delete intake submission from Supabase table
-      const db = getDb();
-      const { error: deleteErr } = await db
-        .from("project_intakes")
-        .delete()
-        .eq("id", activeIntake.id);
-
-      if (deleteErr) throw deleteErr;
-
-      setFeedback("Intake rejected, email sent, and record deleted.", "#e74c3c");
-
-      setTimeout(() => {
-        switchViewStage("list");
-        fetchPendingIntakes();
-      }, 1500);
-
-    } catch (err) {
-      console.error("Rejection Error:", err);
-      setFeedback("Error rejecting form: " + err.message, "#e74c3c");
-    }
-  });
+    });
+  }
   
   document.getElementById("btn-action-review")?.addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
