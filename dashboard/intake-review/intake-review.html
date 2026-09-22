@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intake Review | LunarCraft</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+  <link rel="stylesheet" href="/dashboard/intake-review/intake-review.css">
+  
+  <!-- Supabase & HTML2PDF Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="/chatEngine.js"></script>
+</head>
+<body class="dashboard-body">
+
+  <div id="site-header-container"></div>
+
+  <main class="review-workspace-grid">
+
+    <!-- LEFT COLUMN (1/3 Width) -->
+    <aside class="left-panel">
+      
+      <!-- TOP HALF: Interactive Price Calculator -->
+      <section class="widget-card calc-widget">
+        <div class="widget-header">
+          <h3>Price Estimator</h3>
+        </div>
+        <div class="calc-content">
+          <div class="form-group">
+            <label for="review-site-type">Architecture Type</label>
+            <select id="review-site-type" class="form-input">
+              <option value="static">Static Web Presence ($150)</option>
+              <option value="dynamic">Dynamic Web Application ($300)</option>
+            </select>
+          </div>
+
+          <div id="calc-dynamic-addons" class="addons-group hidden">
+            <label class="section-label">Dynamic Add-Ons</label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="calc-addon" value="100"> Custom Web Tools (+$100)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="calc-addon" value="75"> E-Commerce / Payments (+$75)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="calc-addon" value="50"> User Auth / Accounts (+$50)
+            </label>
+          </div>
+
+          <div class="calc-total-box">
+            <span>Estimated Total:</span>
+            <strong id="calc-total-price">$150</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOTTOM HALF: Chat Connection Widget -->
+      <section class="widget-card chat-widget">
+        <div class="widget-header">
+          <h3>Messages</h3>
+          <select id="dash-room-select" class="dash-room-select">
+            <option value="">Select Room...</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Action: Shown when viewing form/contract -->
+        <div id="chat-party-action-bar" class="chat-party-bar hidden">
+          <button id="btn-create-or-open-chat" class="btn btn-secondary btn-sm full-width">
+            💬 Open / Create Chat with Listed Parties
+          </button>
+        </div>
+
+        <div id="messages-list" class="messages-list">
+          <div class="message-placeholder">
+            <p>Select a chat room or pull up an intake form.</p>
+          </div>
+        </div>
+
+        <form id="dash-chat-form" class="dash-chat-form">
+          <input type="text" id="dash-chat-input" placeholder="Quick reply..." disabled required autocomplete="off" />
+          <button type="submit" id="dash-chat-send" class="btn btn-sm" disabled>Send</button>
+        </form>
+      </section>
+
+    </aside>
+
+    <!-- RIGHT COLUMN (2/3 Width) -->
+    <section class="right-panel widget-card">
+      
+      <!-- Right Panel Nav Header -->
+      <div class="widget-header panel-nav-header">
+        <div class="header-left">
+          <button id="btn-nav-back" class="btn btn-secondary btn-sm hidden">← Back to Forms</button>
+          <h2 id="right-panel-title">Pending Project Intakes</h2>
+        </div>
+        <span id="form-status-badge" class="badge hidden">Status</span>
+      </div>
+
+      <!-- VIEW 1: Grid of Intake Form Cards -->
+      <div id="view-intake-list" class="view-stage">
+        <div id="intake-cards-grid" class="cards-grid">
+          <p class="loading-text">Loading intake submissions...</p>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Miniaturized Intake Form Viewer & Action Bar -->
+      <div id="view-intake-detail" class="view-stage hidden">
+        <div class="miniature-doc-wrapper">
+          <div id="intake-mini-doc" class="mini-doc-content">
+            <!-- Dynamic Mini Intake Form HTML -->
+          </div>
+        </div>
+
+        <!-- Footer Actions for Intake Review -->
+        <div id="intake-actions-footer" class="view-footer-actions">
+          <button id="btn-action-reject" class="btn btn-danger">Reject</button>
+          <button id="btn-action-review" class="btn btn-warning">Request Revisions</button>
+          <button id="btn-action-approve" class="btn btn-primary">Approve & Prepare Contract</button>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Contract Preparation & Signing Form -->
+      <div id="view-contract-editor" class="view-stage hidden">
+        <div class="contract-pricing-bar">
+          <h4>Specify Financial Terms</h4>
+          <div class="pricing-inputs-grid">
+            <div class="input-field">
+              <label>Total Build Cost ($)</label>
+              <input type="number" id="input-total-cost" placeholder="300">
+            </div>
+            <div class="input-field">
+              <label>Deposit Amount ($)</label>
+              <input type="number" id="input-deposit" placeholder="150">
+            </div>
+            <div class="input-field">
+              <label>Build Monthly Payment</label>
+              <input type="text" id="input-build-monthly" placeholder="N/A or $50/mo">
+            </div>
+            <div class="input-field">
+              <label>Monthly Maintenance ($)</label>
+              <input type="number" id="input-maint-cost" placeholder="30">
+            </div>
+          </div>
+          <button id="btn-update-terms" class="btn btn-secondary btn-sm">Apply Pricing to Document</button>
+        </div>
+
+        <div class="miniature-doc-wrapper">
+          <div id="contract-mini-doc" class="mini-doc-content">
+            <!-- Dynamic Contract Document HTML -->
+          </div>
+        </div>
+
+        <!-- Footer Actions for Contract Stage -->
+        <div class="view-footer-actions">
+          <button id="btn-action-esign-initiate" class="btn btn-primary full-width-btn">
+            ✍️ E-Sign & Initiate Project Creation Sequence
+          </button>
+        </div>
+      </div>
+
+      <div id="status-feedback-msg" class="feedback-message"></div>
+
+    </section>
+
+  </main>
+
+  <script src="/nav.js"></script>
+  <script src="/dashboard/intake-review/intake-review.js"></script>
+</body>
+</html>
