@@ -43,10 +43,15 @@ async function loadIntakeAndProfileData(intakeId) {
     .from('project_intakes')
     .select('*')
     .eq('id', intakeId)
-    .single();
+    .maybeSingle();
 
   if (intakeErr || !intake) {
     console.error("Error fetching intake:", intakeErr);
+    return;
+  }
+
+  if (!intake) {
+    console.warn("No intake record found matching ID:", intakeId);
     return;
   }
 
