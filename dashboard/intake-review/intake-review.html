@@ -65,7 +65,6 @@
           </select>
         </div>
 
-        <!-- Dynamic Action: Shown when viewing form/contract -->
         <div id="chat-party-action-bar" class="chat-party-bar hidden">
           <button id="btn-create-or-open-chat" class="btn btn-secondary btn-sm full-width">
             💬 Open / Create Chat with Listed Parties
@@ -89,7 +88,6 @@
     <!-- RIGHT COLUMN (2/3 Width) -->
     <section class="right-panel widget-card">
       
-      <!-- Right Panel Nav Header -->
       <div class="widget-header panel-nav-header">
         <div class="header-left">
           <button id="btn-nav-back" class="btn btn-secondary btn-sm hidden">← Back to Forms</button>
@@ -105,15 +103,14 @@
         </div>
       </div>
 
-      <!-- VIEW 2: Miniaturized Intake Form Viewer & Action Bar -->
+      <!-- VIEW 2: Complete Form Information Viewer -->
       <div id="view-intake-detail" class="view-stage hidden">
         <div class="miniature-doc-wrapper">
           <div id="intake-mini-doc" class="mini-doc-content">
-            <!-- Dynamic Mini Intake Form HTML -->
+            <!-- Full details dynamically inserted here -->
           </div>
         </div>
 
-        <!-- Footer Actions for Intake Review -->
         <div id="intake-actions-footer" class="view-footer-actions">
           <button id="btn-action-reject" class="btn btn-danger">Reject</button>
           <button id="btn-action-review" class="btn btn-warning">Request Revisions</button>
@@ -121,38 +118,14 @@
         </div>
       </div>
 
-      <!-- VIEW 3: Contract Preparation & Signing Form -->
+      <!-- VIEW 3: Contract Document with Inline Text Fields -->
       <div id="view-contract-editor" class="view-stage hidden">
-        <div class="contract-pricing-bar">
-          <h4>Specify Financial Terms</h4>
-          <div class="pricing-inputs-grid">
-            <div class="input-field">
-              <label>Total Build Cost ($)</label>
-              <input type="number" id="input-total-cost" placeholder="300">
-            </div>
-            <div class="input-field">
-              <label>Deposit Amount ($)</label>
-              <input type="number" id="input-deposit" placeholder="150">
-            </div>
-            <div class="input-field">
-              <label>Build Monthly Payment</label>
-              <input type="text" id="input-build-monthly" placeholder="N/A or $50/mo">
-            </div>
-            <div class="input-field">
-              <label>Monthly Maintenance ($)</label>
-              <input type="number" id="input-maint-cost" placeholder="30">
-            </div>
-          </div>
-          <button id="btn-update-terms" class="btn btn-secondary btn-sm">Apply Pricing to Document</button>
-        </div>
-
         <div class="miniature-doc-wrapper">
           <div id="contract-mini-doc" class="mini-doc-content">
-            <!-- Dynamic Contract Document HTML -->
+            <!-- Inline Contract Template inserted here -->
           </div>
         </div>
 
-        <!-- Footer Actions for Contract Stage -->
         <div class="view-footer-actions">
           <button id="btn-action-esign-initiate" class="btn btn-primary full-width-btn">
             ✍️ E-Sign & Initiate Project Creation Sequence
