@@ -276,40 +276,36 @@ function buildIntakePdfHtml(data) {
   const formatVal = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? escapeHtml(val) : "<em>N/A</em>";
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
 
-  // Safely parse color_details if stringified JSON, then match against color_mode
-  let colorDetails = "<em>None Specified</em>";
-  let rawDetails = data.color_details;
+  // 1. Color Scheme Formatting based on color_mode and color_details
+  let colorDisplay = "<em>None Specified</em>";
+  
+  if (data.color_details) {
+    let cd = data.color_details;
+    
+    // Parse if stored as a JSON string in Supabase
+    if (typeof cd === "string" && (cd.startsWith("{") || cd.startsWith("["))) {
+      try { cd = JSON.parse(cd); } catch (e) {}
+    }
 
-  if (typeof rawDetails === 'string') {
-    try {
-      rawDetails = JSON.parse(rawDetails);
-    } catch (e) {
-      // Raw string format
+    if (typeof cd === "object" && cd !== null) {
+      if (data.color_mode === 'hex') {
+        colorDisplay = `Background: ${cd.background || 'N/A'}, Primary: ${cd.primary || 'N/A'}, Accent 1: ${cd.accent1 || 'N/A'}, Accent 2: ${cd.accent2 || 'N/A'}`;
+      } else if (data.color_mode === 'preset') {
+        colorDisplay = `Preset Theme: ${cd.preset || cd.preset_theme || 'N/A'}`;
+      } else if (data.color_mode === 'vibe') {
+        colorDisplay = `Vibe: ${cd.vibe || cd.vibe_text || 'N/A'}`;
+      } else {
+        colorDisplay = escapeHtml(JSON.stringify(cd));
+      }
+    } else {
+      colorDisplay = escapeHtml(cd);
     }
   }
 
-  const mode = data.color_mode || (rawDetails && rawDetails.method);
-
-  if (rawDetails && typeof rawDetails === 'object') {
-    if (mode === 'hex') {
-      const bg = rawDetails.hex_bg || rawDetails.background || 'N/A';
-      const primary = rawDetails.hex_primary || rawDetails.primary || 'N/A';
-      const accent1 = rawDetails.hex_accent1 || rawDetails.accent1 || 'N/A';
-      const accent2 = rawDetails.hex_accent2 || rawDetails.accent2 || 'N/A';
-      colorDetails = `Background: ${bg}, Primary: ${primary}, Accent 1: ${accent1}, Accent 2: ${accent2}`;
-    } else if (mode === 'preset') {
-      colorDetails = `Preset Theme: ${rawDetails.preset_theme || rawDetails.preset || 'N/A'}`;
-    } else if (mode === 'vibe') {
-      colorDetails = `Vibe Description: ${rawDetails.vibe_text || rawDetails.vibe || 'N/A'}`;
-    }
-  } else if (typeof rawDetails === 'string' && rawDetails.trim() !== '') {
-    colorDetails = escapeHtml(rawDetails);
-  }
-
-  // Maintenance display handling
-  const rawRecurrence = data.maintenance_recurrence || data.maint_recurrence || "";
-  const displayRecurrence = rawRecurrence ? rawRecurrence.charAt(0).toUpperCase() + rawRecurrence.slice(1) : "";
-  const maintNeeds = data.maintenance_needs || data.maint_scope || "";
+  // 2. Maintenance Formatting
+  const recurrenceDisplay = data.maintenance_recurrence 
+    ? data.maintenance_recurrence.charAt(0).toUpperCase() + data.maintenance_recurrence.slice(1) 
+    : "None";
 
   return `
     <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5; background: #fff;">
@@ -330,24 +326,26 @@ function buildIntakePdfHtml(data) {
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
         <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Description</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.project_description)}</td></tr>
         <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Target Audience</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.target_audience)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Additional Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Custom Specifications</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Extra Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.extra_notes)}</td></tr>
       </table>
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(displayRecurrence)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(maintNeeds)}</td></tr>
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(recurrenceDisplay)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Needs</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_needs)}</td></tr>
       </table>
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">4. Aesthetic & Color Scheme</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Configuration</td><td style="padding:6px; border:1px solid #ddd;">${colorDetails}</td></tr>
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Mode</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.color_mode)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Details</td><td style="padding:6px; border:1px solid #ddd;">${colorDisplay}</td></tr>
       </table>
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">5. Build Type & Modules</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
         <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Site Build Type</td><td style="padding:6px; border:1px solid #ddd;">${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Dynamic Modules</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Features</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
       </table>
     </div>
   `;
