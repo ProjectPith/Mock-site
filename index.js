@@ -83,7 +83,7 @@ if (url.pathname === "/api/send-rejection-email" && request.method === "POST") {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "LunarCraft <onboarding@resend.dev>", // Replace with your domain once verified on Resend
+        from: "LunarCraft <applications@lunarcraft.dev>", // Replace with your domain once verified on Resend
         to: recipients,
         subject: `Update regarding your project intake: ${projectName}`,
         html: `
