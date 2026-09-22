@@ -139,21 +139,26 @@ function appendMessageBubble(msg) {
   container.scrollTop = container.scrollHeight;
 }
 
-// SEARCH CHAT BY PROJECT NAME & CREATE ROOM WITH ALL PARTIES
+// SEARCH CHAT BY PROJECT NAME & ASSIGN ALL CLIENT DETAILS
 async function handleCreateOrOpenChat() {
   if (!activeIntake) return;
   const db = getDb();
   const projName = activeIntake.project_name || 'Untitled Project';
-  
-  // Extract and clean all client emails associated with the intake
+
+  // Extract all client emails and build a clean fallback string for secondary contacts
   const rawEmails = activeIntake.client_emails || [];
   const clientEmails = Array.isArray(rawEmails) 
     ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
     : [];
-  
-  const primaryEmail = clientEmails[0] || 'client@example.com';
 
-  // 1. Search existing room by Project Name
+  const primaryEmail = clientEmails[0] || 'client@example.com';
+  // Formats all emails into a comma-separated string if your column holds multiple values
+  const allEmailsCombined = clientEmails.join(', ');
+
+  // Fetch primary client full name if available
+  let primaryName = activeIntake.client_name || primaryEmail;
+
+  // 1. Check if a room already exists for this project
   const { data: existingRooms, error: searchErr } = await db
     .from("chat_rooms")
     .select("*")
@@ -161,30 +166,25 @@ async function handleCreateOrOpenChat() {
 
   if (!searchErr && existingRooms && existingRooms.length > 0) {
     const room = existingRooms[0];
-    
-    // Check if new emails need to be merged into participant list
-    const existingParticipants = room.participants || [];
-    const updatedParticipants = Array.from(new Set([...existingParticipants, ...clientEmails]));
 
-    if (updatedParticipants.length > existingParticipants.length) {
-      await db
-        .from("chat_rooms")
-        .update({ 
-          participants: updatedParticipants,
-          client_email: primaryEmail
-        })
-        .eq("id", room.id);
-    }
+    // Ensure the room has the updated client info attached
+    await db
+      .from("chat_rooms")
+      .update({ 
+        client_name: primaryName,
+        client_email: allEmailsCombined || primaryEmail
+      })
+      .eq("id", room.id);
 
     const roomSelect = document.getElementById("dash-room-select");
     if (roomSelect) roomSelect.value = room.id;
     connectChatRoom(room.id);
   } else {
-    // 2. Room doesn't exist; create new chat room containing all emails
+    // 2. Insert new room mapping client_name and client_email
     const roomPayload = {
       name: `${projName} Chat`,
-      client_email: primaryEmail,
-      participants: clientEmails // Stores full array of involved client emails
+      client_name: primaryName,
+      client_email: allEmailsCombined || primaryEmail
     };
 
     const { data: newRoom, error: createErr } = await db
@@ -198,7 +198,7 @@ async function handleCreateOrOpenChat() {
       if (roomSelect) {
         const opt = document.createElement("option");
         opt.value = newRoom.id;
-        opt.textContent = newRoom.name; // Keeps header clean with single project name
+        opt.textContent = newRoom.name; // Keeps the preview bar clean
         roomSelect.appendChild(opt);
         roomSelect.value = newRoom.id;
       }
@@ -208,6 +208,7 @@ async function handleCreateOrOpenChat() {
     }
   }
 }
+
 // ==========================================
 // 3. FETCH ONLY 'awaiting_admin_review' INTAKES
 // ==========================================
