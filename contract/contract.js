@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadIntakeAndProfileData(intakeId) {
   const db = window.supabaseClient;
 
-  // 1. Fetch Intake Record
+  // Fetch Intake Record
   const { data: intake, error: intakeErr } = await db
     .from('project_intakes')
     .select('*')
@@ -44,7 +44,7 @@ async function loadIntakeAndProfileData(intakeId) {
     return;
   }
 
-  // Populate Intake Content
+  // Section 1 Fill
   document.getElementById("val-project-name").textContent = intake.project_name || "Custom Web Project";
   document.getElementById("val-domain-name").textContent = intake.custom_domain || "Pending / Not Provided";
   document.getElementById("val-maintenance-scope").textContent = intake.maintenance_needs || "Ongoing Updates";
@@ -57,7 +57,46 @@ async function loadIntakeAndProfileData(intakeId) {
     if (intake.contract_terms.monthly_maint) document.getElementById("val-maintenance-cost").textContent = `$${intake.contract_terms.monthly_maint} / month`;
   }
 
-  // 2. Fetch Client Names from Profiles Table
+  // NEW: Section 3 Technical Specs Fill
+  // 1. Site Type
+  const siteTypeDisplay = intake.site_type === 'dynamic' 
+    ? 'Dynamic Web Application (Interactive Backend & Custom Web Tools)' 
+    : 'Static Web Presence (Informational Responsive Layout)';
+  document.getElementById("val-site-type").textContent = siteTypeDisplay;
+
+  // 2. Included Modules
+  const features = intake.selected_features || [];
+  if (features.length > 0) {
+    document.getElementById("val-selected-features").innerHTML = `
+      <ul style="margin: 0; padding-left: 18px;">
+        ${features.map(f => `<li>${f}</li>`).join('')}
+      </ul>
+    `;
+  } else {
+    document.getElementById("val-selected-features").textContent = "Standard Core Layout (No custom dynamic modules selected)";
+  }
+
+  // 3. Color Specs Formatting
+  let colorDisplay = "";
+  if (intake.color_mode === 'hex' && intake.color_details) {
+    const c = intake.color_details;
+    const parts = [
+      `BG: ${c.background || 'N/A'}`,
+      `Primary: ${c.primary || 'N/A'}`
+    ];
+    if (c.accent1) parts.push(`Accent 1: ${c.accent1}`);
+    if (c.accent2) parts.push(`Accent 2: ${c.accent2}`);
+    colorDisplay = `Custom Hex Palette (${parts.join(', ')})`;
+  } else if (intake.color_mode === 'preset' && intake.color_details) {
+    colorDisplay = `Preset Theme: ${intake.color_details.preset || 'Standard'}`;
+  } else if (intake.color_mode === 'vibe' && intake.color_details) {
+    colorDisplay = `Custom Aesthetic Vibe: "${intake.color_details.vibe || 'Specified by client'}"`;
+  } else {
+    colorDisplay = "Standard Brand Aesthetic";
+  }
+  document.getElementById("val-color-specs").textContent = colorDisplay;
+
+  // Profile Name Fetching
   const emails = intake.client_emails || [];
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
@@ -72,14 +111,13 @@ async function loadIntakeAndProfileData(intakeId) {
           if (match.full_name) return match.full_name;
           if (match.first_name || match.last_name) return `${match.first_name || ''} ${match.last_name || ''}`.trim();
         }
-        return email; // Fallback to email if user has no set name in profile
+        return email;
       });
 
       const nameDisplay = resolvedNames.join(", ");
       document.getElementById("val-client-names").textContent = nameDisplay;
       document.getElementById("sig-client-printed").textContent = nameDisplay;
     } else {
-      // Fallback if profiles query returns empty
       document.getElementById("val-client-names").textContent = emails.join(", ");
       document.getElementById("sig-client-printed").textContent = emails.join(", ");
     }
