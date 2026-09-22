@@ -101,7 +101,7 @@ async function loadIntakeAndProfileData(intakeId) {
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
-      .select('email, full_name, first_name, last_name')
+      .select('email, full_name')
       .in('email', emails);
 
     if (!profileErr && profiles && profiles.length > 0) {
@@ -109,7 +109,6 @@ async function loadIntakeAndProfileData(intakeId) {
         const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
         if (match) {
           if (match.full_name) return match.full_name;
-          if (match.first_name || match.last_name) return `${match.first_name || ''} ${match.last_name || ''}`.trim();
         }
         return email;
       });
