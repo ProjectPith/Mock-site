@@ -139,32 +139,57 @@ function appendMessageBubble(msg) {
   container.scrollTop = container.scrollHeight;
 }
 
-// SEARCH CHAT BY PROJECT NAME & CREATE ROOM IF MISSING
+// SEARCH CHAT BY PROJECT NAME & CREATE ROOM WITH ALL PARTIES
 async function handleCreateOrOpenChat() {
   if (!activeIntake) return;
   const db = getDb();
   const projName = activeIntake.project_name || 'Untitled Project';
-  const primaryEmail = activeIntake.client_emails?.[0] || 'client@example.com';
+  
+  // Extract and clean all client emails associated with the intake
+  const rawEmails = activeIntake.client_emails || [];
+  const clientEmails = Array.isArray(rawEmails) 
+    ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
+    : [];
+  
+  const primaryEmail = clientEmails[0] || 'client@example.com';
 
-  // Search by Project Name in chat_rooms
+  // 1. Search existing room by Project Name
   const { data: existingRooms, error: searchErr } = await db
     .from("chat_rooms")
     .select("*")
     .ilike("name", `%${projName}%`);
 
   if (!searchErr && existingRooms && existingRooms.length > 0) {
-    const roomId = existingRooms[0].id;
+    const room = existingRooms[0];
+    
+    // Check if new emails need to be merged into participant list
+    const existingParticipants = room.participants || [];
+    const updatedParticipants = Array.from(new Set([...existingParticipants, ...clientEmails]));
+
+    if (updatedParticipants.length > existingParticipants.length) {
+      await db
+        .from("chat_rooms")
+        .update({ 
+          participants: updatedParticipants,
+          client_email: primaryEmail
+        })
+        .eq("id", room.id);
+    }
+
     const roomSelect = document.getElementById("dash-room-select");
-    if (roomSelect) roomSelect.value = roomId;
-    connectChatRoom(roomId);
+    if (roomSelect) roomSelect.value = room.id;
+    connectChatRoom(room.id);
   } else {
-    // Room doesn't exist; create new chat room
+    // 2. Room doesn't exist; create new chat room containing all emails
+    const roomPayload = {
+      name: `${projName} Chat`,
+      client_email: primaryEmail,
+      participants: clientEmails // Stores full array of involved client emails
+    };
+
     const { data: newRoom, error: createErr } = await db
       .from("chat_rooms")
-      .insert({
-        name: `${projName} Chat`,
-        client_email: primaryEmail
-      })
+      .insert(roomPayload)
       .select()
       .single();
 
@@ -173,7 +198,7 @@ async function handleCreateOrOpenChat() {
       if (roomSelect) {
         const opt = document.createElement("option");
         opt.value = newRoom.id;
-        opt.textContent = newRoom.name;
+        opt.textContent = newRoom.name; // Keeps header clean with single project name
         roomSelect.appendChild(opt);
         roomSelect.value = newRoom.id;
       }
@@ -183,7 +208,6 @@ async function handleCreateOrOpenChat() {
     }
   }
 }
-
 // ==========================================
 // 3. FETCH ONLY 'awaiting_admin_review' INTAKES
 // ==========================================
