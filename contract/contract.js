@@ -19,10 +19,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (currentIntakeId) {
     await loadIntakeAndProfileData(currentIntakeId);
+  } else {
+    console.warn("No intake_id provided in URL parameters.");
   }
 
   document.getElementById("btn-edit-intake")?.addEventListener("click", () => {
-    window.location.href = `/intake.html?intake_id=${currentIntakeId}`;
+    if (currentIntakeId) {
+      window.location.href = `/intake/intake.html?intake_id=${currentIntakeId}`;
+    } else {
+      window.location.href = `/intake/intake.html`;
+    }
   });
 
   document.getElementById("btn-submit-to-admin")?.addEventListener("click", handleSendToAdmin);
@@ -32,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadIntakeAndProfileData(intakeId) {
   const db = window.supabaseClient;
 
-  // Fetch Intake Record
+  // 1. Fetch Intake Record
   const { data: intake, error: intakeErr } = await db
     .from('project_intakes')
     .select('*')
@@ -57,14 +63,12 @@ async function loadIntakeAndProfileData(intakeId) {
     if (intake.contract_terms.monthly_maint) document.getElementById("val-maintenance-cost").textContent = `$${intake.contract_terms.monthly_maint} / month`;
   }
 
-  // NEW: Section 3 Technical Specs Fill
-  // 1. Site Type
+  // Section 3 Technical Specs Fill
   const siteTypeDisplay = intake.site_type === 'dynamic' 
     ? 'Dynamic Web Application (Interactive Backend & Custom Web Tools)' 
     : 'Static Web Presence (Informational Responsive Layout)';
   document.getElementById("val-site-type").textContent = siteTypeDisplay;
 
-  // 2. Included Modules
   const features = intake.selected_features || [];
   if (features.length > 0) {
     document.getElementById("val-selected-features").innerHTML = `
@@ -76,14 +80,10 @@ async function loadIntakeAndProfileData(intakeId) {
     document.getElementById("val-selected-features").textContent = "Standard Core Layout (No custom dynamic modules selected)";
   }
 
-  // 3. Color Specs Formatting
   let colorDisplay = "";
   if (intake.color_mode === 'hex' && intake.color_details) {
     const c = intake.color_details;
-    const parts = [
-      `BG: ${c.background || 'N/A'}`,
-      `Primary: ${c.primary || 'N/A'}`
-    ];
+    const parts = [`BG: ${c.background || 'N/A'}`, `Primary: ${c.primary || 'N/A'}`];
     if (c.accent1) parts.push(`Accent 1: ${c.accent1}`);
     if (c.accent2) parts.push(`Accent 2: ${c.accent2}`);
     colorDisplay = `Custom Hex Palette (${parts.join(', ')})`;
@@ -101,7 +101,7 @@ async function loadIntakeAndProfileData(intakeId) {
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
-      .select('email, full_name')
+      .select('email, full_name, first_name, last_name')
       .in('email', emails);
 
     if (!profileErr && profiles && profiles.length > 0) {
@@ -109,6 +109,7 @@ async function loadIntakeAndProfileData(intakeId) {
         const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
         if (match) {
           if (match.full_name) return match.full_name;
+          if (match.first_name || match.last_name) return `${match.first_name || ''} ${match.last_name || ''}`.trim();
         }
         return email;
       });
@@ -125,21 +126,42 @@ async function loadIntakeAndProfileData(intakeId) {
 
 async function handleSendToAdmin() {
   const msgEl = document.getElementById("contract-msg");
-  msgEl.textContent = "Submitting intake and contract draft to provider for review...";
+  
+  if (!currentIntakeId) {
+    msgEl.textContent = "Error: Missing intake record ID. Please return to the intake form and resubmit.";
+    msgEl.style.color = "#ff6b6b";
+    return;
+  }
+
+  msgEl.textContent = "Saving and submitting intake package to provider for review...";
   msgEl.style.color = "#87ceeb";
 
   const db = window.supabaseClient;
+
+  // Save current status AND ensure the record update completes in Supabase
   const { error } = await db
     .from('project_intakes')
-    .update({ status: 'pending_admin_review' })
+    .update({ 
+      status: 'pending_admin_review',
+      updated_at: new Date().toISOString()
+    })
     .eq('id', currentIntakeId);
 
   if (error) {
-    msgEl.textContent = "Error submitting: " + error.message;
+    console.error("Supabase Submission Error:", error);
+    msgEl.textContent = "Error submitting to database: " + error.message;
     msgEl.style.color = "#ff6b6b";
   } else {
-    msgEl.textContent = "Submitted! Provider will review financial terms and respond shortly.";
+    msgEl.textContent = "Submitted successfully! Your provider will review financial terms and respond shortly.";
     msgEl.style.color = "#4ed1a0";
+
+    // Disable button to prevent duplicate submissions
+    const btn = document.getElementById("btn-submit-to-admin");
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+    }
   }
 }
 
