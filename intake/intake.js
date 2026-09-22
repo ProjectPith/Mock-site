@@ -1,4 +1,4 @@
-// intake.js - Intake Form Handling
+// intake.js - Widget Intake Form Handling
 
 (function () {
   if (!window.supabaseClient && window.supabase) {
@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupFormSubmission();
 });
 
-// Dynamic Email Add/Remove
 function setupDynamicParties() {
   const addBtn = document.getElementById("btn-add-party");
   const container = document.getElementById("parties-container");
@@ -37,7 +36,6 @@ window.removePartyRow = function (btn) {
   }
 };
 
-// Sync Shade Picker buttons to Hex Text Inputs
 function setupShadePickers() {
   const fields = [
     { text: "hex-bg", picker: "picker-bg" },
@@ -87,7 +85,6 @@ window.switchColorMethod = function (method) {
   }
 };
 
-// Toggle Static vs Dynamic features panel
 window.toggleSiteType = function (type) {
   const panel = document.getElementById("dynamic-features-panel");
   if (type === 'dynamic') {
@@ -97,15 +94,13 @@ window.toggleSiteType = function (type) {
   }
 };
 
-// Submit to Supabase
-// Add or replace the submit logic in intake.js
 function setupFormSubmission() {
   const form = document.getElementById("intake-form");
   const msgEl = document.getElementById("intake-msg");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    msgEl.textContent = "Processing intake specifications...";
+    msgEl.textContent = "Saving intake specifications...";
     msgEl.style.color = "#87ceeb";
 
     const emailInputs = document.querySelectorAll(".party-email");
@@ -140,17 +135,20 @@ function setupFormSubmission() {
 
     const payload = {
       project_name: document.getElementById("project-name").value,
+      company_name: document.getElementById("company-name").value.trim() || null,
       client_emails: emails,
       all_accounts_created: document.getElementById("confirm-accounts").checked,
       custom_domain: document.getElementById("custom-domain").value.trim() || null,
       project_description: document.getElementById("project-description").value,
+      target_audience: document.getElementById("target-audience").value,
+      extra_notes: document.getElementById("extra-notes").value,
+      maintenance_recurrence: document.getElementById("maint-recurrence").value,
+      maintenance_needs: document.getElementById("maint-scope").value,
       color_mode: colorMethod,
       color_details: colorDetails,
       site_type: siteType,
       selected_features: features,
-      maintenance_needs: document.getElementById("maintenance-notes").value,
-      extra_notes: document.getElementById("extra-notes").value,
-      status: 'draft_client'
+      status: 'awaiting_admin_review'
     };
 
     const db = window.supabaseClient;
@@ -165,8 +163,12 @@ function setupFormSubmission() {
       recordId = data.id;
     }
 
-    // Redirect client directly to contract draft review before submitting to admin
-    window.location.href = `/contract/contract.html?intake_id=${recordId}&mode=review`;
+    msgEl.textContent = "Intake submitted successfully! Redirecting...";
+    msgEl.style.color = "#4ed1a0";
+
+    setTimeout(() => {
+      window.location.href = `/contract/contract.html?intake_id=${recordId}&mode=review`;
+    }, 1000);
   });
 
   function showError(msg) {
