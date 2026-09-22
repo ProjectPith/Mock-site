@@ -409,13 +409,11 @@ function renderContractPreview() {
   const maintNeeds = activeIntake.maintenance_needs || "";
   const customSpecs = activeIntake.custom_specifications || activeIntake.extra_notes || "";
   
-  // Extract and format color scheme safely so HTML input tags don't cut off JSON quotes
   const colorDisplay = parseColorSpecs(activeIntake);
   const selectedFeatures = (activeIntake.selected_features || []).join(", ");
 
   doc.innerHTML = `
     <div class="contract-document">
-      
       <div class="contract-header">
         <h1>LUNARCRAFT</h1>
         <h2>WEB DESIGN & DIGITAL SERVICES AGREEMENT</h2>
@@ -559,7 +557,6 @@ function renderContractPreview() {
           </div>
         </div>
       </section>
-
     </div>
   `;
 }
@@ -572,9 +569,6 @@ async function executeProjectSequence() {
   const totalCost = document.getElementById("edit-total-cost")?.value || "300";
   const projName = document.getElementById("edit-project-name")?.value || activeIntake.project_name || "New Site Project";
 
-  // ----------------------------------------------------
-  // EXTRACT ALL CLIENT EMAILS & FETCH MATCHING NAMES
-  // ----------------------------------------------------
   const rawEmails = activeIntake.client_emails || [];
   const clientEmails = Array.isArray(rawEmails) 
     ? rawEmails.map(e => String(e).trim()).filter(e => e !== '') 
@@ -589,16 +583,12 @@ async function executeProjectSequence() {
       .in('email', clientEmails);
 
     if (!profileErr && profiles) {
-      // Create a map for fast email-to-name lookup
       const profileMap = {};
       profiles.forEach(p => {
         if (p.email) profileMap[p.email.toLowerCase()] = p.full_name || p.email;
       });
-
-      // Map each email in order to its resolved name (or fallback to email)
       clientNames = clientEmails.map(email => profileMap[email.toLowerCase()] || email);
     } else {
-      // Fallback if profiles lookup fails
       clientNames = [...clientEmails];
     }
   }
@@ -606,9 +596,6 @@ async function executeProjectSequence() {
   const primaryEmail = clientEmails[0] || "client@example.com";
 
   try {
-    // ----------------------------------------------------
-    // 1. GENERATE PDF BLOB
-    // ----------------------------------------------------
     const pdfContainer = document.createElement("div");
     pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
     
@@ -629,9 +616,6 @@ async function executeProjectSequence() {
 
     document.body.removeChild(pdfContainer);
 
-    // ----------------------------------------------------
-    // 2. UPLOAD TO SUPABASE STORAGE
-    // ----------------------------------------------------
     const fileName = `intake_spec_${Date.now()}.pdf`;
     const filePath = `project_intakes/${fileName}`;
     
@@ -650,16 +634,13 @@ async function executeProjectSequence() {
     const { data: urlData } = db.storage.from("project-files").getPublicUrl(filePath);
     const intakePdfUrl = urlData?.publicUrl || "";
 
-    // ----------------------------------------------------
-    // 3. INSERT INTO PROJECTS TABLE (WITH ALL EMAILS & NAMES)
-    // ----------------------------------------------------
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
         name: projName,
-        client_email: primaryEmail,       // Primary email for legacy single-field compatibility
-        client_emails: clientEmails,      // Array of ALL client emails
-        client_names: clientNames,        // Array of ALL client profile names
+        client_email: primaryEmail,
+        client_emails: clientEmails,
+        client_names: clientNames,
         status: "Active",
         total_cost: parseFloat(totalCost),
         intake_pdf_url: intakePdfUrl,
@@ -673,14 +654,8 @@ async function executeProjectSequence() {
       throw new Error("Failed to create project row: " + projErr.message);
     }
 
-    // ----------------------------------------------------
-    // 4. CONNECT CHAT ROOM
-    // ----------------------------------------------------
     await handleCreateOrOpenChat();
 
-    // ----------------------------------------------------
-    // 5. DELETE INTAKE RECORD
-    // ----------------------------------------------------
     const { error: deleteErr } = await db
       .from("project_intakes")
       .delete()
@@ -708,6 +683,7 @@ function setupEventListeners() {
   document.getElementById("btn-nav-back")?.addEventListener("click", () => switchViewStage("list"));
   document.getElementById("btn-create-or-open-chat")?.addEventListener("click", handleCreateOrOpenChat);
 
+  // REJECT BUTTON LISTENER
   document.getElementById("btn-action-reject")?.addEventListener("click", async () => {
     if (!activeIntake) return;
 
@@ -718,65 +694,53 @@ function setupEventListeners() {
 
     const projName = activeIntake.project_name || "Untitled Project";
 
-    // --- REJECT BUTTON LISTENER ---
-  const rejectBtn = document.getElementById("btn-action-reject");
-  if (rejectBtn) {
-    rejectBtn.addEventListener("click", async () => {
-      if (!activeIntake) return;
+    const rejectReason = prompt(`Reject intake for "${projName}"?\nEnter a reason for the client(s):`);
+    if (rejectReason === null) return; 
 
-      const rawEmails = activeIntake.client_emails || [];
-      const clientEmails = Array.isArray(rawEmails) 
-        ? rawEmails.map(e => String(e).trim()).filter(e => e !== '') 
-        : [];
+    setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
 
-      const projName = activeIntake.project_name || "Untitled Project";
+    try {
+      const db = getDb();
 
-      const rejectReason = prompt(`Reject intake for "${projName}"?\nEnter a reason for the client(s):`);
-      if (rejectReason === null) return; 
-
-      setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
-
-      try {
-        const db = getDb();
-
-        // 1. Invoke Supabase Edge Function directly (handles auth/headers automatically)
-        if (clientEmails.length > 0) {
-          const { data, error: fnError } = await db.functions.invoke("send-rejection-email", {
-            body: {
-              recipients: clientEmails,
-              projectName: projName,
-              reason: rejectReason.trim() || "The submitted intake form did not meet current project criteria."
-            }
-          });
-
-          if (fnError) {
-            throw new Error(fnError.message || "Failed to trigger rejection email edge function.");
+      // 1. Invoke Supabase Edge Function directly
+      if (clientEmails.length > 0) {
+        const { data, error: fnError } = await db.functions.invoke("send-rejection-email", {
+          body: {
+            recipients: clientEmails,
+            projectName: projName,
+            reason: rejectReason.trim() || "The submitted intake form did not meet current project criteria."
           }
+        });
+
+        if (fnError) {
+          throw new Error(fnError.message || "Failed to trigger rejection email edge function.");
         }
-
-        // 2. Delete intake submission from Supabase table
-        const { error: deleteErr } = await db
-          .from("project_intakes")
-          .delete()
-          .eq("id", activeIntake.id);
-
-        if (deleteErr) throw deleteErr;
-
-        setFeedback("Intake rejected, email sent, and record deleted.", "#e74c3c");
-
-        setTimeout(() => {
-          switchViewStage("list");
-          fetchPendingIntakes();
-        }, 1500);
-
-      } catch (err) {
-        console.error("Rejection Error:", err);
-        setFeedback("Error rejecting form: " + err.message, "#e74c3c");
       }
-    });
-  }
-  
+
+      // 2. Delete intake submission from Supabase table
+      const { error: deleteErr } = await db
+        .from("project_intakes")
+        .delete()
+        .eq("id", activeIntake.id);
+
+      if (deleteErr) throw deleteErr;
+
+      setFeedback("Intake rejected, email sent, and record deleted.", "#e74c3c");
+
+      setTimeout(() => {
+        switchViewStage("list");
+        fetchPendingIntakes();
+      }, 1500);
+
+    } catch (err) {
+      console.error("Rejection Error:", err);
+      setFeedback("Error rejecting form: " + err.message, "#e74c3c");
+    }
+  });
+
+  // REVIEW BUTTON LISTENER
   document.getElementById("btn-action-review")?.addEventListener("click", async () => {
+    if (!activeIntake) return;
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
 
@@ -790,13 +754,15 @@ function setupEventListeners() {
     setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 1200);
   });
 
+  // APPROVE BUTTON LISTENER
   document.getElementById("btn-action-approve")?.addEventListener("click", () => {
     switchViewStage("contract");
     renderContractPreview();
   });
 
+  // ESIGN / EXECUTE BUTTON LISTENER
   document.getElementById("btn-action-esign-initiate")?.addEventListener("click", executeProjectSequence);
-});
+}
 
 function setFeedback(msg, color) {
   const el = document.getElementById("status-feedback-msg");
