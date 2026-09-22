@@ -126,16 +126,14 @@ async function loadIntakeAndProfileData(intakeId) {
     ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
     : [];
 
-  if (emails.length > 0) 
+  if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
       .select('email, full_name')
       .in('email', emails);
-
     if (profileErr) {
       console.error("Profile Fetch Error:", profileErr);
     }
-
       const nameDisplay = resolvedNames.join(", "); {
       document.getElementById("val-client-names").textContent = nameDisplay;
       document.getElementById("sig-client-printed").textContent = nameDisplay;
@@ -143,6 +141,9 @@ async function loadIntakeAndProfileData(intakeId) {
       document.getElementById("val-client-names").textContent = emails.join(", ");
       document.getElementById("sig-client-printed").textContent = emails.join(", ");
     }
+  }
+}
+
   
 
 async function handleSendToAdmin() {
