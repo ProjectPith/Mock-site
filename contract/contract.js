@@ -116,19 +116,21 @@ async function loadIntakeAndProfileData(intakeId) {
   document.getElementById("val-color-specs").textContent = colorDisplay;
 
   // Profile Name Fetching
-  const emails = intake.client_emails || [];
+  const rawEmails = intake.client_emails || [];
+  const emails = Array.isArray(rawEmails) 
+    ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
+    : [];
+
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
       .select('email, full_name')
       .in('email', emails);
 
-    if (!profileErr && profiles && profiles.length > 0) {
-      const resolvedNames = emails.map(email => {
-        const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
-        if (match && match.full_name) return match.full_name;
-        return email;
-      });
+    if (profileErr) {
+      console.error("Profile Fetch Error:", profileErr);
+    }
+  }
 
       const nameDisplay = resolvedNames.join(", ");
       document.getElementById("val-client-names").textContent = nameDisplay;
