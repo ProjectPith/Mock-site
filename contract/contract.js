@@ -135,16 +135,14 @@ async function loadIntakeAndProfileData(intakeId) {
     if (profileErr) {
       console.error("Profile Fetch Error:", profileErr);
     }
-  }
 
-      const nameDisplay = resolvedNames.join(", ");
+      const nameDisplay = resolvedNames.join(", "); {
       document.getElementById("val-client-names").textContent = nameDisplay;
       document.getElementById("sig-client-printed").textContent = nameDisplay;
     } else {
       document.getElementById("val-client-names").textContent = emails.join(", ");
       document.getElementById("sig-client-printed").textContent = emails.join(", ");
     }
-  }
 }
 
 async function handleSendToAdmin() {
