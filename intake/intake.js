@@ -140,7 +140,7 @@ function setupFormSubmission() {
       all_accounts_created: document.getElementById("confirm-accounts").checked,
       custom_domain: document.getElementById("custom-domain").value.trim() || null,
       project_description: document.getElementById("project-description").value,
-      target_audience: document.getElementById("target-audience").value,
+      target_audience: document.getElementById("target-audience").value.trim() || null,
       extra_notes: document.getElementById("extra-notes").value,
       maintenance_recurrence: document.getElementById("maint-recurrence").value,
       maintenance_needs: document.getElementById("maint-scope").value,
