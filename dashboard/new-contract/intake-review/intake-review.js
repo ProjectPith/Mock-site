@@ -213,10 +213,11 @@ async function fetchPendingIntakes() {
   if (!grid) return;
   const db = getDb();
 
+  // Querying project_intakes. Adjust status string if your DB uses 'pending' or 'submitted'
   const { data: intakes, error } = await db
     .from("project_intakes")
     .select("*")
-    .eq("status", "awaiting_admin_review")
+    .or("status.eq.awaiting_admin_review,status.eq.pending,status.eq.submitted")
     .order("created_at", { ascending: false });
 
   if (error || !intakes || intakes.length === 0) {
@@ -261,6 +262,95 @@ async function fetchPendingIntakes() {
       </div>
     `;
   }).join("");
+}
+
+// ==========================================
+// 4. INTAKE PDF GENERATOR & VIEWER
+// ==========================================
+function buildIntakePdfHtml(data) {
+  if (!data) return "";
+
+  const title = escapeHtml(data.project_name || "Untitled Project");
+  const createdDate = data.created_at ? new Date(data.created_at).toLocaleString() : new Date().toLocaleString();
+  
+  const formatVal = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? escapeHtml(val) : "<em>N/A</em>";
+  const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "<em>None Specified</em>";
+
+  // Safely parse color_details if stringified JSON, then match against color_mode
+  let colorDetails = "<em>None Specified</em>";
+  let rawDetails = data.color_details;
+
+  if (typeof rawDetails === 'string') {
+    try {
+      rawDetails = JSON.parse(rawDetails);
+    } catch (e) {
+      // Raw string format
+    }
+  }
+
+  const mode = data.color_mode || (rawDetails && rawDetails.method);
+
+  if (rawDetails && typeof rawDetails === 'object') {
+    if (mode === 'hex') {
+      const bg = rawDetails.hex_bg || rawDetails.background || 'N/A';
+      const primary = rawDetails.hex_primary || rawDetails.primary || 'N/A';
+      const accent1 = rawDetails.hex_accent1 || rawDetails.accent1 || 'N/A';
+      const accent2 = rawDetails.hex_accent2 || rawDetails.accent2 || 'N/A';
+      colorDetails = `Background: ${bg}, Primary: ${primary}, Accent 1: ${accent1}, Accent 2: ${accent2}`;
+    } else if (mode === 'preset') {
+      colorDetails = `Preset Theme: ${rawDetails.preset_theme || rawDetails.preset || 'N/A'}`;
+    } else if (mode === 'vibe') {
+      colorDetails = `Vibe Description: ${rawDetails.vibe_text || rawDetails.vibe || 'N/A'}`;
+    }
+  } else if (typeof rawDetails === 'string' && rawDetails.trim() !== '') {
+    colorDetails = escapeHtml(rawDetails);
+  }
+
+  // Maintenance display handling
+  const rawRecurrence = data.maintenance_recurrence || data.maint_recurrence || "";
+  const displayRecurrence = rawRecurrence ? rawRecurrence.charAt(0).toUpperCase() + rawRecurrence.slice(1) : "";
+  const maintNeeds = data.maintenance_needs || data.maint_scope || "";
+
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 25px; color: #111; line-height: 1.5; background: #fff;">
+      <div style="border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 18pt; text-transform: uppercase;">Project Specification: ${title}</h1>
+        <p style="margin: 4px 0 0 0; font-size: 10pt; color: #555;"><strong>Date Created:</strong> ${createdDate}</p>
+      </div>
+
+      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">1. Project Identification</h3>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Name</td><td style="padding:6px; border:1px solid #ddd;">${title}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Company Name</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.company_name)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Involved Party Emails</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.client_emails)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Custom Domain</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_domain)}</td></tr>
+      </table>
+
+      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">2. Overview & Details</h3>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Description</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.project_description)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Target Audience</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.target_audience)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Additional Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
+      </table>
+
+      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(displayRecurrence)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(maintNeeds)}</td></tr>
+      </table>
+
+      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">4. Aesthetic & Color Scheme</h3>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Color Configuration</td><td style="padding:6px; border:1px solid #ddd;">${colorDetails}</td></tr>
+      </table>
+
+      <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">5. Build Type & Modules</h3>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Site Build Type</td><td style="padding:6px; border:1px solid #ddd;">${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Dynamic Modules</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
+      </table>
+    </div>
+  `;
 }
 
 // ==========================================
