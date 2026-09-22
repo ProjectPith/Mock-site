@@ -718,14 +718,13 @@ function setupEventListeners() {
 
     const projName = activeIntake.project_name || "Untitled Project";
 
-    // Optional: Ask for a reason so clients know why it was rejected
-    const rejectReason = prompt(`Reject and delete intake for "${projName}"?\nEnter an optional rejection reason to include in the email:`);
-    if (rejectReason === null) return; // User cancelled prompt
+    const rejectReason = prompt(`Reject intake for "${projName}"?\nEnter a reason for the client(s):`);
+    if (rejectReason === null) return; 
 
-    setFeedback("Sending rejection notices & removing intake submission...", "#f39c12");
+    setFeedback("Sending rejection emails & deleting intake...", "#f39c12");
 
     try {
-      // 1. Trigger rejection email API endpoint (if configured)
+      // 1. Trigger the route in your root worker file
       if (clientEmails.length > 0) {
         await fetch("/api/send-rejection-email", {
           method: "POST",
@@ -733,12 +732,12 @@ function setupEventListeners() {
           body: JSON.stringify({
             recipients: clientEmails,
             projectName: projName,
-            reason: rejectReason.trim() || "The submitted intake form did not meet project criteria or was duplicate."
+            reason: rejectReason.trim() || "The submitted intake form did not meet current project criteria."
           })
-        }).catch(err => console.warn("Email dispatch failed or endpoint not implemented:", err));
+        });
       }
 
-      // 2. Delete the record from Supabase database
+      // 2. Delete intake record from Supabase
       const db = getDb();
       const { error: deleteErr } = await db
         .from("project_intakes")
@@ -747,7 +746,7 @@ function setupEventListeners() {
 
       if (deleteErr) throw deleteErr;
 
-      setFeedback("Intake form rejected, notification sent, and record removed.", "#e74c3c");
+      setFeedback("Intake rejected, email sent, and record deleted.", "#e74c3c");
 
       setTimeout(() => {
         switchViewStage("list");
@@ -759,7 +758,7 @@ function setupEventListeners() {
       setFeedback("Error rejecting form: " + err.message, "#e74c3c");
     }
   });
-
+  
   document.getElementById("btn-action-review")?.addEventListener("click", async () => {
     const note = prompt("Reason for sending back to client dashboard for review:");
     if (!note) return;
