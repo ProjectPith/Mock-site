@@ -275,8 +275,8 @@ function buildIntakePdfHtml(data) {
 
   // Formats Color Scheme details cleanly based on configured method
   let colorDetails = "<em>None Specified</em>";
-  if (data.color_scheme) {
-    const cs = data.color_scheme;
+  if (data.color_details) {
+    const cs = data.color_details;
     if (cs.method === 'hex') {
       colorDetails = `Background: ${cs.hex_bg || 'N/A'}, Primary Text: ${cs.hex_primary || 'N/A'}, Accent 1: ${cs.hex_accent1 || 'N/A'}, Accent 2: ${cs.hex_accent2 || 'N/A'}`;
     } else if (cs.method === 'preset') {
@@ -305,13 +305,13 @@ function buildIntakePdfHtml(data) {
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
         <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Project Description</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.project_description)}</td></tr>
         <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Target Audience</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.target_audience)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Additional Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.additional_notes || data.extra_notes)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Additional Notes</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.custom_specifications)}</td></tr>
       </table>
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">3. Maintenance Schedule</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
-        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maint_recurrence)}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maint_scope)}</td></tr>
+        <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Recurrence Cycle</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_recurrence)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Maintenance Scope</td><td style="padding:6px; border:1px solid #ddd;">${formatVal(data.maintenance_needs)}</td></tr>
       </table>
 
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">4. Aesthetic & Color Scheme</h3>
@@ -322,7 +322,7 @@ function buildIntakePdfHtml(data) {
       <h3 style="font-size: 11pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase;">5. Build Type & Modules</h3>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
         <tr><td style="width:30%; padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Site Build Type</td><td style="padding:6px; border:1px solid #ddd;">${data.site_type === 'dynamic' ? 'Dynamic Web Application' : 'Static Web Presence'}</td></tr>
-        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Dynamic Modules</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features || data.dynamic_features)}</td></tr>
+        <tr><td style="padding:6px; background:#f4f4f4; border:1px solid #ddd; font-weight:bold;">Included Dynamic Modules</td><td style="padding:6px; border:1px solid #ddd;">${formatList(data.selected_features)}</td></tr>
       </table>
     </div>
   `;
