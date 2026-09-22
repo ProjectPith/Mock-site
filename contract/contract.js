@@ -45,7 +45,7 @@ async function loadIntakeAndProfileData(intakeId) {
     .eq('id', intakeId)
     .maybeSingle();
 
-  if (intakeErr || !intake) {
+  if (intakeErr) {
     console.error("Error fetching intake:", intakeErr);
     return;
   }
@@ -126,12 +126,6 @@ async function loadIntakeAndProfileData(intakeId) {
     ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
     : [];
 
-  // Profile Name Fetching
-  const rawEmails = intake.client_emails || [];
-  const emails = Array.isArray(rawEmails) 
-    ? rawEmails.filter(e => typeof e === 'string' && e.trim() !== '') 
-    : [];
-
   if (emails.length > 0) {
     const { data: profiles, error: profileErr } = await db
       .from('profiles')
@@ -159,8 +153,6 @@ async function loadIntakeAndProfileData(intakeId) {
     }
   }
 }
-
-  
 
 async function handleSendToAdmin() {
   const msgEl = document.getElementById("contract-msg");
