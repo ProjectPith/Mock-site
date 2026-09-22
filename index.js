@@ -69,7 +69,7 @@ export default {
 const url = new URL(request.url);
 
 // ADD THIS ROUTE CONDITION:
-if (url.pathname === "/api/send-rejection-email" && request.method === "POST") {
+if (url.pathname.endsWith("/send-rejection-email") && request.method === "POST") {
   try {
     const { recipients, projectName, reason } = await request.json();
 
