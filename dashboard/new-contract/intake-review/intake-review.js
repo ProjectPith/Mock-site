@@ -570,8 +570,40 @@ async function executeProjectSequence() {
   setFeedback("Processing project approval & generating documents...", "#88c0d0");
 
   const totalCost = document.getElementById("edit-total-cost")?.value || "300";
-  const primaryEmail = activeIntake.client_emails?.[0] || "client@example.com";
   const projName = document.getElementById("edit-project-name")?.value || activeIntake.project_name || "New Site Project";
+
+  // ----------------------------------------------------
+  // EXTRACT ALL CLIENT EMAILS & FETCH MATCHING NAMES
+  // ----------------------------------------------------
+  const rawEmails = activeIntake.client_emails || [];
+  const clientEmails = Array.isArray(rawEmails) 
+    ? rawEmails.map(e => String(e).trim()).filter(e => e !== '') 
+    : [];
+
+  let clientNames = [];
+
+  if (clientEmails.length > 0) {
+    const { data: profiles, error: profileErr } = await db
+      .from('profiles')
+      .select('email, full_name')
+      .in('email', clientEmails);
+
+    if (!profileErr && profiles) {
+      // Create a map for fast email-to-name lookup
+      const profileMap = {};
+      profiles.forEach(p => {
+        if (p.email) profileMap[p.email.toLowerCase()] = p.full_name || p.email;
+      });
+
+      // Map each email in order to its resolved name (or fallback to email)
+      clientNames = clientEmails.map(email => profileMap[email.toLowerCase()] || email);
+    } else {
+      // Fallback if profiles lookup fails
+      clientNames = [...clientEmails];
+    }
+  }
+
+  const primaryEmail = clientEmails[0] || "client@example.com";
 
   try {
     // ----------------------------------------------------
@@ -580,7 +612,6 @@ async function executeProjectSequence() {
     const pdfContainer = document.createElement("div");
     pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
     
-    // Render temporarily in DOM so html2pdf captures layout accurately
     pdfContainer.style.position = "absolute";
     pdfContainer.style.left = "-9999px";
     pdfContainer.style.width = "800px";
@@ -616,18 +647,19 @@ async function executeProjectSequence() {
       throw new Error("PDF Upload Failed: " + uploadErr.message);
     }
 
-    // Retrieve public URL
     const { data: urlData } = db.storage.from("project-files").getPublicUrl(filePath);
     const intakePdfUrl = urlData?.publicUrl || "";
 
     // ----------------------------------------------------
-    // 3. INSERT INTO PROJECTS TABLE
+    // 3. INSERT INTO PROJECTS TABLE (WITH ALL EMAILS & NAMES)
     // ----------------------------------------------------
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
         name: projName,
-        client_email: primaryEmail,
+        client_email: primaryEmail,       // Primary email for legacy single-field compatibility
+        client_emails: clientEmails,      // Array of ALL client emails
+        client_names: clientNames,        // Array of ALL client profile names
         status: "Active",
         total_cost: parseFloat(totalCost),
         intake_pdf_url: intakePdfUrl,
@@ -659,7 +691,7 @@ async function executeProjectSequence() {
       throw new Error("Project created, but deletion blocked by DB policies: " + deleteErr.message);
     }
 
-    setFeedback("Success! Project created, PDF attached, and intake record removed.", "#4ed1a0");
+    setFeedback("Success! Project created, all clients attached, PDF stored, and intake record removed.", "#4ed1a0");
     
     setTimeout(() => { 
       switchViewStage("list"); 
