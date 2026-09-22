@@ -69,8 +69,8 @@
         </div>
 
         <div class="form-group">
-          <label for="target-audience">Target Audience *</label>
-          <input type="text" id="target-audience" required placeholder="e.g. Tech founders, local retail customers, agency owners">
+          <label for="target-audience">Target Audience <small>(Optional)</small></label>
+          <input type="text" id="target-audience" placeholder="e.g. Tech founders, local retail customers, agency owners">
         </div>
 
         <div class="form-group">
@@ -83,21 +83,19 @@
       <div class="intake-widget-box">
         <h3>3. Maintenance Schedule</h3>
 
-        <div class="form-group-row">
-          <div class="form-group">
-            <label for="maint-recurrence">Recurrence Cycle *</label>
-            <select id="maint-recurrence" class="styled-select" required>
-              <option value="none">No Ongoing Maintenance</option>
-              <option value="weekly">Weekly</option>
-              <option value="biweekly">Bi-Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label for="maint-recurrence">Recurrence Cycle *</label>
+          <select id="maint-recurrence" class="styled-select full-select" required>
+            <option value="none">No Ongoing Maintenance</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label for="maint-scope">Per-Instance Maintenance Needs</label>
-          <textarea id="maint-scope" rows="3" placeholder="e.g. Up to 8 products changed per cycle, weekly news updates, monthly plugin & security audits..."></textarea>
+          <label for="maint-scope">Per-Instance Maintenance Needs *</label>
+          <textarea id="maint-scope" rows="4" required placeholder="e.g. Up to 8 products changed per cycle, weekly news updates, monthly plugin & security audits..."></textarea>
         </div>
       </div>
 
@@ -197,7 +195,7 @@
 
           <!-- VIBE -->
           <div id="color-sec-vibe" class="color-panel hidden">
-            <textarea id="vibe-text" rows="3" placeholder="Describe aesthetic, light/dark contrast level, mood..."></textarea>
+            <textarea id="vibe-text" rows="8" placeholder="Describe aesthetic, light/dark contrast level, mood, lighting, background preferences..."></textarea>
           </div>
         </div>
       </div>
@@ -225,7 +223,7 @@
         </div>
 
         <div id="dynamic-features-panel" class="features-panel hidden">
-          <span class="field-sublabel">Select Included Dynamic Modules:</span>
+          <span class="field-sublabel feature-header-label">Select Included Dynamic Modules:</span>
           <div class="features-grid">
             <label class="feature-checkbox">
               <input type="checkbox" name="feature_opt" value="Price Estimator">
