@@ -50,10 +50,29 @@ async function loadIntakeAndProfileData(intakeId) {
     return;
   }
 
-  // Section 1 Fill
+  // Section 1 Terms Fill
+  document.getElementById("val-company-name").textContent = intake.company_name || "None Specified";
   document.getElementById("val-project-name").textContent = intake.project_name || "Custom Web Project";
   document.getElementById("val-domain-name").textContent = intake.custom_domain || "Pending / Not Provided";
-  document.getElementById("val-maintenance-scope").textContent = intake.maintenance_needs || "Ongoing Updates";
+  
+  // Recurrence Formatting
+  const recurrenceMap = {
+    none: "No Ongoing Maintenance",
+    weekly: "Weekly",
+    biweekly: "Bi-Weekly",
+    monthly: "Monthly"
+  };
+  document.getElementById("val-maintenance-recurrence").textContent = recurrenceMap[intake.maintenance_recurrence] || intake.maintenance_recurrence || "None";
+  document.getElementById("val-maintenance-scope").textContent = intake.maintenance_needs || "None Specified";
+
+  // Section 8 Custom Specifications / Extra Notes
+  const customSpecsEl = document.getElementById("val-custom-specs");
+  const notes = intake.custom_specifications || intake.extra_notes;
+  if (notes && notes.trim() !== "") {
+    customSpecsEl.textContent = notes;
+  } else {
+    customSpecsEl.innerHTML = "<em>No custom specifications or non-standard terms noted. Standard operational guidelines apply.</em>";
+  }
 
   // Financial values if pre-populated in contract_terms JSONB
   if (intake.contract_terms) {
@@ -107,9 +126,7 @@ async function loadIntakeAndProfileData(intakeId) {
     if (!profileErr && profiles && profiles.length > 0) {
       const resolvedNames = emails.map(email => {
         const match = profiles.find(p => p.email?.toLowerCase() === email.toLowerCase());
-        if (match) {
-          if (match.full_name) return match.full_name;
-        }
+        if (match && match.full_name) return match.full_name;
         return email;
       });
 
@@ -137,7 +154,6 @@ async function handleSendToAdmin() {
 
   const db = window.supabaseClient;
 
-  // Save current status AND ensure the record update completes in Supabase
   const { error } = await db
     .from('project_intakes')
     .update({ 
@@ -154,7 +170,6 @@ async function handleSendToAdmin() {
     msgEl.textContent = "Submitted successfully! Your provider will review financial terms and respond shortly.";
     msgEl.style.color = "#4ed1a0";
 
-    // Disable button to prevent duplicate submissions
     const btn = document.getElementById("btn-submit-to-admin");
     if (btn) {
       btn.disabled = true;
