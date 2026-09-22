@@ -47,7 +47,7 @@ function initPriceEstimator() {
 }
 
 // ==========================================
-// 2. CHAT WIDGET & REALTIME SUBSCRIPTION FIX
+// 2. CHAT LOGIC (CONFIGURED FOR 'messages' TABLE)
 // ==========================================
 async function initChatWidget() {
   if (!window.ChatEngine) return;
@@ -76,7 +76,15 @@ async function initChatWidget() {
 
     const msg = input.value.trim();
     input.value = "";
-    await window.ChatEngine.sendMessage(activeRoomId, "admin", "Admin", msg);
+
+    const db = getDb();
+    // Inserting directly into the 'messages' table
+    await db.from("messages").insert({
+      room_id: activeRoomId,
+      sender_type: "admin",
+      sender_name: "Admin",
+      content: msg
+    });
   });
 }
 
@@ -85,18 +93,18 @@ function connectChatRoom(roomId) {
   document.getElementById("dash-chat-input").disabled = false;
   document.getElementById("dash-chat-send").disabled = false;
 
-  // Unsubscribe from existing realtime channel before resubscribing
   const db = getDb();
   if (window.activeChatChannel) {
     db.removeChannel(window.activeChatChannel);
     window.activeChatChannel = null;
   }
 
+  // Realtime listener targeting 'messages' table
   const channel = db.channel(`room_${roomId}`)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'chat_messages',
+      table: 'messages',
       filter: `room_id=eq.${roomId}`
     }, (payload) => {
       appendMessageBubble(payload.new);
@@ -105,8 +113,8 @@ function connectChatRoom(roomId) {
 
   window.activeChatChannel = channel;
 
-  // Initial fetch of room messages
-  db.from("chat_messages")
+  // Initial fetch of room messages from 'messages' table
+  db.from("messages")
     .select("*")
     .eq("room_id", roomId)
     .order("created_at", { ascending: true })
@@ -206,7 +214,6 @@ window.openIntakeDetail = function(intakeId) {
   document.getElementById("right-panel-title").textContent = activeIntake.project_name || "Intake Review";
   document.getElementById("chat-party-action-bar").classList.remove("hidden");
 
-  // Render ALL intake form data dynamically
   const doc = document.getElementById("intake-mini-doc");
   
   const formatList = (arr) => (Array.isArray(arr) && arr.length > 0) ? arr.map(i => escapeHtml(i)).join(", ") : "None Specified";
@@ -360,7 +367,6 @@ async function executeProjectSequence() {
   const db = getDb();
   setFeedback("Initiating project creation sequence...", "#88c0d0");
 
-  // Read value straight from document inputs
   const totalCost = document.getElementById("doc-total-cost")?.value || "300";
   const primaryEmail = document.getElementById("doc-client-email")?.value || activeIntake.client_emails?.[0] || "client@example.com";
   const projName = document.getElementById("doc-proj-name")?.value || activeIntake.project_name || "New Site Project";
@@ -386,7 +392,6 @@ async function executeProjectSequence() {
     // 3. Convert Contract DOM Document to PDF
     const pdfElement = document.getElementById("contract-mini-doc");
     
-    // Replace input elements with standard span text for PDF rendering
     const clonedElement = pdfElement.cloneNode(true);
     clonedElement.querySelectorAll("input").forEach(input => {
       const span = document.createElement("span");
