@@ -574,45 +574,78 @@ async function executeProjectSequence() {
   const projName = document.getElementById("edit-project-name")?.value || activeIntake.project_name || "New Site Project";
 
   try {
+    // STEP 1: Generate Intake Specification PDF Blob
+    const pdfContainer = document.createElement("div");
+    pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
+    
+    // Ensure styles render properly in offscreen element
+    pdfContainer.style.padding = "20px";
+    pdfContainer.style.background = "#ffffff";
+    pdfContainer.style.color = "#000000";
+
+    const pdfBlob = await html2pdf().from(pdfContainer).output('blob');
+
+    // STEP 2: Upload Intake PDF to Supabase Storage
+    const fileName = `intake_spec_${Date.now()}.pdf`;
+    const filePath = `documents/project_intakes/${fileName}`;
+    
+    const { data: uploadData, error: uploadErr } = await db.storage
+      .from("project-files")
+      .upload(filePath, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: true
+      });
+
+    if (uploadErr) {
+      console.error("Storage upload error:", uploadErr.message);
+    }
+
+    // Get Public URL for the uploaded intake PDF
+    let intakePdfUrl = "";
+    if (uploadData) {
+      const { data: urlData } = db.storage.from("project-files").getPublicUrl(filePath);
+      intakePdfUrl = urlData?.publicUrl || filePath;
+    }
+
+    // STEP 3: Create Project Record in `projects` Table
     const { data: newProject, error: projErr } = await db
       .from("projects")
       .insert({
         name: projName,
         client_email: primaryEmail,
         status: "Active",
-        total_cost: parseFloat(totalCost)
+        total_cost: parseFloat(totalCost),
+        intake_pdf_url: intakePdfUrl, // Storing the generated Intake PDF URL
+        contract_pdf_url: null        // Ready for signed contract URL later
       })
       .select()
       .single();
 
     if (projErr) throw projErr;
 
+    // STEP 4: Connect / Initialize Chat Room
     await handleCreateOrOpenChat();
 
-    const pdfContainer = document.createElement("div");
-    pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
-
-    const pdfBlob = await html2pdf().from(pdfContainer).output('blob');
-
-    const filePath = `documents/project_${newProject.id}/intake_specifications.pdf`;
-    const { error: uploadErr } = await db.storage.from("project-files").upload(filePath, pdfBlob);
-
-    if (uploadErr) {
-      console.warn("Storage upload error:", uploadErr.message);
-    }
-
+    // STEP 5: Remove Intake Submission from `project_intakes`
     const { error: deleteErr } = await db
       .from("project_intakes")
       .delete()
       .eq("id", activeIntake.id);
 
-    if (deleteErr) throw deleteErr;
+    if (deleteErr) {
+      console.error("Could not delete intake submission:", deleteErr);
+      throw new Error("Project created, but failed to remove intake record: " + deleteErr.message);
+    }
 
-    setFeedback("Success! Project created, PDF attached to documents, and intake form removed.", "#4ed1a0");
-    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 2000);
+    setFeedback("Success! Project created, Intake PDF attached, and submission removed.", "#4ed1a0");
+    
+    setTimeout(() => { 
+      switchViewStage("list"); 
+      fetchPendingIntakes(); 
+    }, 2000);
 
   } catch (err) {
-    console.error(err);
+    console.error("Execution sequence failed:", err);
     setFeedback("Error executing approval sequence: " + err.message, "#e74c3c");
   }
 }
