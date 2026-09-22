@@ -247,7 +247,7 @@ function setupEventListeners() {
 
   if (startContractBtn) {
     startContractBtn.addEventListener("click", () => {
-      window.location.href = "/dashboard/intake-review/intake-review.html";
+      window.location.href = "/dashboard/new-contract/intake-review/intake-review.html";
     });
   }
 }
