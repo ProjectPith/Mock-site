@@ -562,6 +562,65 @@ function renderContractPreview() {
   `;
 }
 
+async function executeProjectSequence() {
+  if (!activeIntake) return;
+  const db = getDb();
+  setFeedback("Processing project approval & generating documents...", "#88c0d0");
+
+  const totalCost = document.getElementById("edit-total-cost")?.value || "300";
+  const primaryEmail = activeIntake.client_emails?.[0] || activeIntake.client_email || "client@example.com";
+  const projName = document.getElementById("edit-project-name")?.value || activeIntake.project_name || "New Site Project";
+
+  try {
+    // 1. Create project record
+    const { data: newProject, error: projErr } = await db
+      .from("projects")
+      .insert({
+        name: projName,
+        client_email: primaryEmail,
+        status: "Active",
+        total_cost: parseFloat(totalCost)
+      })
+      .select()
+      .single();
+
+    if (projErr) throw projErr;
+
+    // 2. Initialize chat connection
+    await handleCreateOrOpenChat();
+
+    // 3. Render PDF DOM element containing exact intake form data
+    const pdfContainer = document.createElement("div");
+    pdfContainer.innerHTML = buildIntakePdfHtml(activeIntake);
+
+    // 4. Convert DOM to PDF Blob
+    const pdfBlob = await html2pdf().from(pdfContainer).output('blob');
+
+    // 5. Upload PDF file to project's document folder
+    const filePath = `documents/project_${newProject.id}/intake_specifications.pdf`;
+    const { error: uploadErr } = await db.storage.from("project-files").upload(filePath, pdfBlob);
+
+    if (uploadErr) {
+      console.warn("Storage upload error:", uploadErr.message);
+    }
+
+    // 6. Delete intake form from project_intakes table
+    const { error: deleteErr } = await db
+      .from("project_intakes")
+      .delete()
+      .eq("id", activeIntake.id);
+
+    if (deleteErr) throw deleteErr;
+
+    setFeedback("Success! Project created, PDF attached to documents, and intake form removed.", "#4ed1a0");
+    setTimeout(() => { switchViewStage("list"); fetchPendingIntakes(); }, 2000);
+
+  } catch (err) {
+    console.error(err);
+    setFeedback("Error executing approval sequence: " + err.message, "#e74c3c");
+  }
+}
+
 function setupEventListeners() {
   document.getElementById("btn-nav-back")?.addEventListener("click", () => switchViewStage("list"));
   document.getElementById("btn-create-or-open-chat")?.addEventListener("click", handleCreateOrOpenChat);
