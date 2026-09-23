@@ -1,46 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Project Dashboard | LunarCraft</title>
-  <link rel="stylesheet" href="admin-projects.css">
-  <!-- Supabase JS Client & ChatEngine dependency -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="admin-projects-body">
-
-  <!-- TOP HEADER / NAV BAR -->
-  <header class="admin-nav-header">
-    <div class="nav-brand">
-      <span class="brand-title">LUNARCRAFT</span>
-      <span class="brand-subtitle">/ Admin Project Dashboard</span>
-    </div>
-    <div class="nav-controls">
-      <select id="project-selector" class="project-dropdown">
-        <option value="">Loading Projects...</option>
-      </select>
-    </div>
-  </header>
-
-  <!-- MAIN DASHBOARD GRID -->
+<!-- MAIN DASHBOARD GRID -->
   <main class="dashboard-grid">
 
-    <!-- LEFT COLUMN (1/3 Horizontal) -->
+    <!-- LEFT COLUMN (1/3 Horizontal, Full Height) -->
     <aside class="col-left">
 
-      <!-- TOP: Tool Bookmarks (Scrollable, Public/Private) -->
+      <!-- TOP: Tool Bookmarks -->
       <section class="widget-card tools-widget">
         <div class="widget-header">
           <h3>Tools & Bookmarks</h3>
           <button id="btn-add-bookmark" class="btn-icon" title="Add Bookmark">+</button>
         </div>
-        <div id="bookmarks-list" class="bookmarks-list">
-          <!-- Dynamically populated bookmarks -->
-        </div>
+        <div id="bookmarks-list" class="bookmarks-list"></div>
       </section>
 
-      <!-- BOTTOM: Financial Status & Payment Plan Widget -->
+      <!-- BOTTOM: Financial Status (Tightened bottom padding) -->
       <section class="widget-card financial-widget">
         <div class="widget-header">
           <h3>Financial & Status Overview</h3>
@@ -56,7 +29,6 @@
             <span id="display-balance-due" class="fin-amount highlight">$0.00</span>
           </div>
 
-          <!-- Dynamic Container for Payment Plan Details -->
           <div id="payment-plan-section" class="payment-plan-box hidden">
             <hr class="divider">
             <div class="fin-stat-box">
@@ -69,65 +41,58 @@
 
     </aside>
 
-    <!-- CENTER COLUMN (1/3 Horizontal) -->
-    <section class="col-center">
+    <!-- TOP RIGHT: Details Box (2/3 Horizontal, 1/3 Vertical) -->
+    <section class="widget-card details-widget">
+      <div class="widget-header">
+        <h3 id="display-project-title">Select a Project</h3>
+        <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
+      </div>
+      <div id="project-info-scroll" class="details-scroll">
+        <div class="info-row">
+          <span class="info-label">Client / Company:</span>
+          <span id="info-client-name" class="info-val">N/A</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Site Type:</span>
+          <span id="info-site-type" class="info-val">N/A</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Color Specs:</span>
+          <span id="info-color-specs" class="info-val">N/A</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Features:</span>
+          <span id="info-features" class="info-val">N/A</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Target Audience:</span>
+          <span id="info-audience" class="info-val">N/A</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Description:</span>
+          <p id="info-description" class="info-val-text">No project selected.</p>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Custom Specs:</span>
+          <p id="info-custom-specs" class="info-val-text">N/A</p>
+        </div>
+      </div>
+    </section>
 
-      <!-- BOTTOM (2/3 Vertical): Project Members -->
-      <div class="widget-card members-widget">
+    <!-- BOTTOM ROW (2/3 Vertical Space Split 50/50 Between Center and Right) -->
+    <div class="bottom-right-row">
+
+      <!-- MEMBERS (Center 1/3 Horizontal) -->
+      <section class="widget-card members-widget">
         <div class="widget-header">
           <h3>Project Members</h3>
           <button id="btn-add-member" class="btn-sm btn-outline">+ Add Member</button>
         </div>
-        <div id="members-list" class="members-list">
-          <!-- Dynamically populated project members -->
-        </div>
-      </div>
+        <div id="members-list" class="members-list"></div>
+      </section>
 
-    </section>
-
-    <!-- RIGHT COLUMN (1/3 Horizontal) -->
-    <section class="col-right">
-
-      <!-- TOP (1/3 Vertical): Project Details & Docs -->
-      <div class="widget-card details-widget">
-        <div class="widget-header">
-          <h3 id="display-project-title">Select a Project</h3>
-          <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
-        </div>
-        <div id="project-info-scroll" class="details-scroll">
-          <div class="info-row">
-            <span class="info-label">Client / Company:</span>
-            <span id="info-client-name" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Site Type:</span>
-            <span id="info-site-type" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Color Specs:</span>
-            <span id="info-color-specs" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Features:</span>
-            <span id="info-features" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Target Audience:</span>
-            <span id="info-audience" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Description:</span>
-            <p id="info-description" class="info-val-text">No project selected.</p>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Custom Specs:</span>
-            <p id="info-custom-specs" class="info-val-text">N/A</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOTTOM (2/3 Vertical): Project Chat Messages -->
-      <div class="widget-card messages-widget">
+      <!-- MESSAGES (Right 1/3 Horizontal) -->
+      <section class="widget-card messages-widget">
         <div class="widget-header chat-header">
           <div class="chat-title-group">
             <h3>Messages</h3>
@@ -149,106 +114,8 @@
           <input type="text" id="dash-chat-input" placeholder="Type message..." disabled>
           <button type="submit" id="dash-chat-send" class="btn-sm btn-accent" disabled>Send</button>
         </form>
-      </div>
+      </section>
 
-    </section>
+    </div>
 
   </main>
-
-  <!-- ========================================== -->
-  <!-- MODALS & OVERLAYS                          -->
-  <!-- ========================================== -->
-
-  <!-- BOOKMARK MODAL -->
-  <div id="modal-bookmark" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-bookmark')">&times;</span>
-      <h3>Add Project Bookmark</h3>
-      <form id="form-add-bookmark">
-        <div class="form-group">
-          <label for="bm-name">Bookmark Name</label>
-          <input type="text" id="bm-name" required placeholder="e.g. Figma Specs">
-        </div>
-        <div class="form-group">
-          <label for="bm-url">URL</label>
-          <input type="url" id="bm-url" required placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label for="bm-visibility">Visibility</label>
-          <select id="bm-visibility" class="doc-input">
-            <option value="private">Private (Admin Only)</option>
-            <option value="public">Public (Visible to Client)</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%; margin-top: 10px;">Save Bookmark</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- DOCUMENTS & ATTACHMENTS MODAL -->
-  <div id="modal-docs" class="modal hidden">
-    <div class="modal-content modal-wide">
-      <span class="close-btn" onclick="closeModal('modal-docs')">&times;</span>
-      <h3>Project Documents & Attachments</h3>
-      <div id="docs-modal-body" class="docs-list">
-        <!-- Dynamically rendered document links -->
-      </div>
-    </div>
-  </div>
-
-  <!-- EDIT / MANAGE MEMBER OVERLAY -->
-  <div id="modal-member-edit" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-member-edit')">&times;</span>
-      <h3>Manage Member</h3>
-      <input type="hidden" id="edit-member-id">
-      <div class="form-group">
-        <label>Member Name / Email</label>
-        <p id="edit-member-label" style="font-weight: bold; color: #87ceeb;"></p>
-      </div>
-      <div class="form-group">
-        <label for="edit-member-role">Project Role</label>
-        <input type="text" id="edit-member-role" placeholder="e.g. Lead Developer, Client Representative">
-      </div>
-      <div class="modal-actions-row">
-        <button type="button" id="btn-save-member-role" class="btn-sm btn-accent">Save Role</button>
-        <button type="button" id="btn-remove-member" class="btn-sm btn-danger">Remove From Project</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CHAT ATTACH / CREATE MODAL -->
-  <div id="modal-chat-manage" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-chat-manage')">&times;</span>
-      <h3>Manage Project Chat</h3>
-      <div class="tab-controls">
-        <button id="tab-btn-attach" class="tab-btn active" onclick="toggleChatTab('attach')">Attach Existing</button>
-        <button id="tab-btn-create" class="tab-btn" onclick="toggleChatTab('create')">Create New</button>
-      </div>
-
-      <!-- ATTACH EXISTING CHAT FORM -->
-      <form id="form-attach-chat" class="tab-pane">
-        <div class="form-group">
-          <label for="attach-chat-select">Select Existing Chat Room</label>
-          <select id="attach-chat-select" class="doc-input">
-            <option value="">Loading unattached chats...</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
-      </form>
-
-      <!-- CREATE NEW CHAT FORM -->
-      <form id="form-create-chat" class="tab-pane hidden">
-        <div class="form-group">
-          <label for="new-chat-name">Chat Room Name</label>
-          <input type="text" id="new-chat-name" required placeholder="e.g. Design Feedback Stream">
-        </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Create & Attach</button>
-      </form>
-    </div>
-  </div>
-
-  <script src="admin-projects.js"></script>
-</body>
-</html>
