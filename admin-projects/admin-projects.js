@@ -396,23 +396,23 @@ function setupEventListeners() {
     const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
-    // 1. Collect selected member emails
+    // 1. Collect selected member emails from checkboxes
     const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
     const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-    // 2. Append external email if provided
+    // 2. Append external email if provided and not already included
     if (externalEmail && !memberEmails.includes(externalEmail)) {
       memberEmails.push(externalEmail);
     }
 
-    // 3. Fallback to active project email if empty
+    // 3. Fallback: if nothing selected, use active project email
     if (memberEmails.length === 0 && activeProject.client_email) {
       memberEmails.push(activeProject.client_email);
     }
 
     const db = getDb();
 
-    // 4. Look up full names in profiles for all emails
+    // 4. Query profiles for all emails to pull full names
     const { data: profiles } = await db
       .from("profiles")
       .select("email, full_name")
@@ -425,17 +425,22 @@ function setupEventListeners() {
       });
     }
 
-    // 5. Format as "Name (email)" or fallback to "email"
-    const formattedParticipants = memberEmails.map(email => {
+    // 5. Separate names and emails into two clean lists
+    const namesList = [];
+    const emailsList = [];
+
+    memberEmails.forEach(email => {
       const fullName = profileMap[email.toLowerCase()];
-      return fullName ? `${fullName} (${email})` : email;
+      emailsList.push(email);
+      namesList.push(fullName || email); // Uses profile full_name if found, otherwise email
     });
 
-    // 6. Save formatted participants to client_email
+    // 6. Insert with names in client_name and emails in client_email
     const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
-      client_email: formattedParticipants.join(", ")
+      client_email: emailsList.join(", "),
+      client_name: namesList.join(", ")
     }).select().single();
 
     if (error) {
