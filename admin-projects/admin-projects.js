@@ -507,6 +507,13 @@ function setupEventListeners() {
     closeModal("modal-member-add");
     e.target.reset();
   });
+
+  // Open Status Selection Overlay
+  document.getElementById("display-project-status")?.addEventListener("click", () => {
+    if (activeProject) {
+      openModal("modal-status-select");
+    }
+  });
 }
 
 // Modal Helpers
@@ -537,6 +544,37 @@ window.openEditMemberModal = function(email, name, role) {
   document.getElementById("edit-member-label").textContent = `${name} (${email})`;
   document.getElementById("edit-member-role").value = role;
   openModal("modal-member-edit");
+};
+
+window.updateProjectStatus = async function(newStatus) {
+  if (!activeProject) return;
+
+  const db = getDb();
+  
+  // Update status in Supabase
+  const { error } = await db
+    .from("projects")
+    .update({ status: newStatus })
+    .eq("id", activeProject.id);
+
+  if (error) {
+    console.error("Error updating project status:", error);
+    alert("Failed to update status: " + error.message);
+    return;
+  }
+
+  // Update active state & UI
+  activeProject.status = newStatus;
+  const statusEl = document.getElementById("display-project-status");
+  if (statusEl) {
+    statusEl.textContent = newStatus;
+  }
+
+  // Also sync the project in currentProjects list
+  const proj = currentProjects.find(p => p.id === activeProject.id);
+  if (proj) proj.status = newStatus;
+
+  closeModal("modal-status-select");
 };
 
 async function populateUnattachedChats() {
