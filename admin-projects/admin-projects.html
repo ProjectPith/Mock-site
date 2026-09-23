@@ -75,38 +75,52 @@
         <h3 id="display-project-title">Select a Project</h3>
         <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
       </div>
-      <div id="project-info-scroll" class="details-scroll">
-        <div class="info-row">
-          <span class="info-label">Client / Company:</span>
-          <span id="info-client-name" class="info-val">N/A</span>
+  
+      <!-- Split view container -->
+      <div id="project-info-scroll" class="details-split-container">
+    
+        <!-- LEFT SECTION: Overview & Text Details -->
+        <div class="details-col details-col-left">
+          <div class="info-row">
+            <span class="info-label">Client / Company:</span>
+            <span id="info-client-name" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Site Type:</span>
+            <span id="info-site-type" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Target Audience:</span>
+            <span id="info-audience" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Description:</span>
+            <p id="info-description" class="info-val-text">No project selected.</p>
+          </div>
         </div>
-        <div class="info-row">
-          <span class="info-label">Site Type:</span>
-          <span id="info-site-type" class="info-val">N/A</span>
+
+        <!-- CENTER DIVIDER LINE -->
+        <div class="details-divider"></div>
+
+        <!-- RIGHT SECTION: Specs & Visuals -->
+        <div class="details-col details-col-right">
+          <div class="info-row">
+            <span class="info-label">Color Specs:</span>
+            <span id="info-color-specs" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Features:</span>
+            <span id="info-features" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Custom Specs:</span>
+            <p id="info-custom-specs" class="info-val-text">N/A</p>
+          </div>
         </div>
-        <div class="info-row">
-          <span class="info-label">Color Specs:</span>
-          <span id="info-color-specs" class="info-val">N/A</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Features:</span>
-          <span id="info-features" class="info-val">N/A</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Target Audience:</span>
-          <span id="info-audience" class="info-val">N/A</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Description:</span>
-          <p id="info-description" class="info-val-text">No project selected.</p>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Custom Specs:</span>
-          <p id="info-custom-specs" class="info-val-text">N/A</p>
-        </div>
+
       </div>
     </section>
-
+    
     <!-- BOTTOM ROW (2/3 Vertical Space Split 50/50 Between Center and Right) -->
     <div class="bottom-right-row">
 
@@ -231,14 +245,36 @@
         <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
       </form>
 
-      <!-- CREATE NEW CHAT FORM -->
-      <form id="form-create-chat" class="tab-pane hidden">
-        <div class="form-group">
-          <label for="new-chat-name">Chat Room Name</label>
-          <input type="text" id="new-chat-name" required placeholder="e.g. Design Feedback Stream">
+      <!-- CREATE CHAT MODAL OVERLAY -->
+      <div id="modal-create-chat" class="modal hidden">
+        <div class="modal-content modal-wide">
+          <span class="close-btn" id="close-modal-chat">&times;</span>
+          <h3>Create New Chat Room</h3>
+    
+          <div class="form-group">
+            <label for="chat-room-name">Chat Room Title</label>
+            <input type="text" id="chat-room-name" placeholder="e.g., Design Sync">
+          </div>
+
+          <div class="form-group">
+            <label>Select Project Members</label>
+            <div id="modal-chat-members-select" class="members-multiselect-box">
+              <!-- JS will dynamically insert checkboxes here -->
+              <label class="checkbox-item"><input type="checkbox" value="user_1"> John Doe (Admin)</label>
+              <label class="checkbox-item"><input type="checkbox" value="user_2"> Jane Smith (Client)</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="chat-external-email">Add Non-Project Member (Email)</label>
+            <input type="email" id="chat-external-email" placeholder="client@example.com">
+          </div>
+
+          <div class="modal-actions-row">
+            <button id="btn-submit-create-chat" class="btn-sm btn-accent">Create Chat</button>
+          </div>
         </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Create & Attach</button>
-      </form>
+      </div>
     </div>
   </div>
 
