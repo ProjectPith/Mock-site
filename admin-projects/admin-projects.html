@@ -6,7 +6,6 @@
   <title>Admin Project Dashboard | LunarCraft</title>
   <link rel="stylesheet" href="admin-projects.css">
   <link rel="stylesheet" href="/global.css">
-  <!-- Supabase JS Client & ChatEngine dependency -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="admin-projects-body">
@@ -41,7 +40,7 @@
         <div id="bookmarks-list" class="bookmarks-list"></div>
       </section>
 
-      <!-- BOTTOM: Financial Status (Tightened bottom padding) -->
+      <!-- BOTTOM: Financial Status -->
       <section class="widget-card financial-widget">
         <div class="widget-header">
           <h3>Financial & Status Overview</h3>
@@ -73,58 +72,78 @@
     <section class="widget-card details-widget">
       <div class="widget-header">
         <h3 id="display-project-title">Select a Project</h3>
-        <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
+        <div class="header-action-group">
+          <button id="btn-edit-details" class="btn-sm btn-outline">Edit Info</button>
+          <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
+        </div>
       </div>
   
       <!-- Split view container -->
       <div id="project-info-scroll" class="details-split-container">
     
-        <!-- LEFT SECTION: Overview & Text Details -->
+        <!-- LEFT COLUMN -->
         <div class="details-col details-col-left">
           <div class="info-row">
-            <span class="info-label">Client / Company:</span>
-            <span id="info-client-name" class="info-val">N/A</span>
+            <span class="info-label">Company Name:</span>
+            <span id="info-company-name" class="info-val">N/A</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Custom Domain:</span>
+            <span id="info-custom-domain" class="info-val">N/A</span>
           </div>
           <div class="info-row">
             <span class="info-label">Site Type:</span>
             <span id="info-site-type" class="info-val">N/A</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Target Audience:</span>
-            <span id="info-audience" class="info-val">N/A</span>
+            <span class="info-label">Selected Features:</span>
+            <span id="info-selected-features" class="info-val">N/A</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Description:</span>
-            <p id="info-description" class="info-val-text">No project selected.</p>
+            <span class="info-label">Project Description:</span>
+            <p id="info-project-description" class="info-val-text">No project selected.</p>
           </div>
         </div>
 
         <!-- CENTER DIVIDER LINE -->
         <div class="details-divider"></div>
 
-        <!-- RIGHT SECTION: Specs & Visuals -->
+        <!-- RIGHT COLUMN -->
         <div class="details-col details-col-right">
           <div class="info-row">
+            <span class="info-label">Color Mode:</span>
+            <span id="info-color-mode" class="info-val">N/A</span>
+          </div>
+          
+          <!-- COLOR BUBBLES CONTAINER -->
+          <div class="info-row">
             <span class="info-label">Color Specs:</span>
-            <span id="info-color-specs" class="info-val">N/A</span>
+            <div id="color-bubbles-row" class="color-bubbles-row">
+              <button type="button" class="color-bubble" data-index="0" title="Click to edit color"></button>
+              <button type="button" class="color-bubble" data-index="1" title="Click to edit color"></button>
+              <button type="button" class="color-bubble" data-index="2" title="Click to edit color"></button>
+              <button type="button" class="color-bubble" data-index="3" title="Click to edit color"></button>
+            </div>
+            <p id="info-color-details-extra" class="info-val-text hidden"></p>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Target Audience:</span>
+            <span id="info-target-audience" class="info-val">N/A</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Features:</span>
-            <span id="info-features" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Custom Specs:</span>
-            <p id="info-custom-specs" class="info-val-text">N/A</p>
+            <span class="info-label">Extra Notes:</span>
+            <p id="info-extra-notes" class="info-val-text">None</p>
           </div>
         </div>
 
       </div>
     </section>
     
-    <!-- BOTTOM ROW (2/3 Vertical Space Split 50/50 Between Center and Right) -->
+    <!-- BOTTOM ROW -->
     <div class="bottom-right-row">
 
-      <!-- MEMBERS (Center 1/3 Horizontal) -->
+      <!-- MEMBERS -->
       <section class="widget-card members-widget">
         <div class="widget-header">
           <h3>Project Members</h3>
@@ -133,7 +152,7 @@
         <div id="members-list" class="members-list"></div>
       </section>
 
-      <!-- MESSAGES (Right 1/3 Horizontal) -->
+      <!-- MESSAGES -->
       <section class="widget-card messages-widget">
         <div class="widget-header chat-header">
           <div class="chat-title-group">
@@ -164,6 +183,79 @@
   <!-- ========================================== -->
   <!-- MODALS & OVERLAYS                          -->
   <!-- ========================================== -->
+
+  <!-- EDIT DETAILS MODAL -->
+  <div id="modal-edit-details" class="modal hidden">
+    <div class="modal-content modal-wide">
+      <span class="close-btn" onclick="closeModal('modal-edit-details')">&times;</span>
+      <h3>Edit Project Information</h3>
+      <form id="form-edit-details" class="edit-details-grid">
+        <div class="form-col">
+          <h4 class="form-section-title">Left Side Specs</h4>
+          <div class="form-group">
+            <label for="edit-company-name">Company Name</label>
+            <input type="text" id="edit-company-name">
+          </div>
+          <div class="form-group">
+            <label for="edit-custom-domain">Custom Domain</label>
+            <input type="text" id="edit-custom-domain">
+          </div>
+          <div class="form-group">
+            <label for="edit-site-type">Site Type</label>
+            <input type="text" id="edit-site-type">
+          </div>
+          <div class="form-group">
+            <label for="edit-selected-features">Selected Features (comma separated)</label>
+            <input type="text" id="edit-selected-features">
+          </div>
+          <div class="form-group">
+            <label for="edit-project-description">Project Description</label>
+            <textarea id="edit-project-description" rows="3" class="doc-input"></textarea>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <h4 class="form-section-title">Right Side Specs</h4>
+          <div class="form-group">
+            <label for="edit-color-mode">Color Mode</label>
+            <input type="text" id="edit-color-mode">
+          </div>
+          <div class="form-group">
+            <label for="edit-color-details">Color Details (Hex Codes & Notes)</label>
+            <input type="text" id="edit-color-details" placeholder="#181C20, #88C0D0, #E6EDF3, #4ED1A0 (Notes)">
+          </div>
+          <div class="form-group">
+            <label for="edit-target-audience">Target Audience</label>
+            <input type="text" id="edit-target-audience">
+          </div>
+          <div class="form-group">
+            <label for="edit-extra-notes">Extra Notes</label>
+            <textarea id="edit-extra-notes" rows="3" class="doc-input"></textarea>
+          </div>
+        </div>
+
+        <div class="full-width-actions">
+          <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Save Project Info</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- COLOR SHADE PICKER OVERLAY -->
+  <div id="modal-color-picker" class="modal hidden">
+    <div class="modal-content color-picker-modal-content">
+      <span class="close-btn" onclick="closeModal('modal-color-picker')">&times;</span>
+      <h3>Edit Color Bubble</h3>
+      <div class="picker-flex">
+        <input type="color" id="shade-picker-input" value="#ffffff">
+        <div class="form-group" style="flex:1;">
+          <label for="hex-code-input">Hex Code</label>
+          <input type="text" id="hex-code-input" placeholder="#FFFFFF" maxlength="7">
+        </div>
+      </div>
+      <button type="button" id="btn-save-color-bubble" class="btn-sm btn-accent" style="width: 100%; margin-top: 10px;">Apply Color</button>
+    </div>
+  </div>
 
   <!-- BOOKMARK MODAL -->
   <div id="modal-bookmark" class="modal hidden">
@@ -196,9 +288,7 @@
     <div class="modal-content modal-wide">
       <span class="close-btn" onclick="closeModal('modal-docs')">&times;</span>
       <h3>Project Documents & Attachments</h3>
-      <div id="docs-modal-body" class="docs-list">
-        <!-- Dynamically rendered document links -->
-      </div>
+      <div id="docs-modal-body" class="docs-list"></div>
     </div>
   </div>
 
@@ -234,7 +324,6 @@
         <button id="tab-btn-create" class="tab-btn" type="button" onclick="toggleChatTab('create')">Create New</button>
       </div>
 
-      <!-- TAB 1: ATTACH EXISTING CHAT FORM -->
       <form id="form-attach-chat" class="tab-pane">
         <div class="form-group">
           <label for="attach-chat-select">Select Existing Chat Room</label>
@@ -245,7 +334,6 @@
         <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
       </form>
 
-      <!-- TAB 2: CREATE NEW CHAT FORM -->
       <form id="form-create-chat" class="tab-pane hidden">
         <div class="form-group">
           <label for="new-chat-name">Chat Room Title</label>
@@ -254,9 +342,7 @@
 
         <div class="form-group">
           <label>Select Project Members</label>
-          <div id="modal-chat-members-select" class="members-multiselect-box">
-            <!-- Dynamic project members check-list -->
-          </div>
+          <div id="modal-chat-members-select" class="members-multiselect-box"></div>
         </div>
 
         <div class="form-group">
