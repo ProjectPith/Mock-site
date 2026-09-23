@@ -119,18 +119,15 @@ function renderFinancialOverview(proj) {
 // ==========================================
 // 4. CENTER: PROJECT MEMBERS
 // ==========================================
-async function fetchProjectMembers(proj) {
-  const container = document.getElementById("members-list");
-  if (!container) return;
+async function populateModalMembers() {
+  const container = document.getElementById("modal-chat-members-select");
+  if (!container || !activeProject) return;
 
   const db = getDb();
-  
-  // Connecting to 'profiles' table using placeholders for schema columns
-  // You can adjust column names when updating your profile table structure
-  const rawEmails = proj.client_emails || (proj.client_email ? [proj.client_email] : []);
+  const rawEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
 
   if (rawEmails.length === 0) {
-    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No members assigned.</p>`;
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members available.</p>`;
     return;
   }
 
@@ -146,22 +143,26 @@ async function fetchProjectMembers(proj) {
     });
   }
 
-  container.innerHTML = rawEmails.map(email => {
+  container.innerHTML = rawEmails.map((email, idx) => {
     const prof = profileMap[email.toLowerCase()] || {};
     const displayName = prof.full_name || email;
-    const role = prof.project_role || "Client Representative";
+    const role = prof.project_role || "Client";
 
     return `
-      <div class="member-card">
-        <div class="member-info">
-          <span class="member-name">${escapeHtml(displayName)}</span>
-          <span class="member-role">${escapeHtml(role)}</span>
-        </div>
-        <button class="btn-sm btn-outline" onclick="openEditMemberModal('${email}', '${escapeHtml(displayName)}', '${escapeHtml(role)}')">Edit</button>
-      </div>
+      <label class="checkbox-item">
+        <input type="checkbox" name="chat-members" value="${escapeHtml(email)}" checked>
+        ${escapeHtml(displayName)} (${escapeHtml(role)})
+      </label>
     `;
   }).join("");
 }
+
+// Update the event listener in setupEventListeners():
+document.getElementById("btn-chat-attach-create")?.addEventListener("click", () => {
+  openModal("modal-chat-manage");
+  populateUnattachedChats();
+  populateModalMembers();
+});
 
 // ==========================================
 // 5. LEFT-TOP: BOOKMARKS & TOOLS WIDGET
