@@ -4,6 +4,7 @@ let activeProject = null;
 let activeChatRoomId = null;
 let activeChatChannel = null;
 let editingBubbleIndex = null;
+let memberToRemoveEmail = null;
 
 if (!window.supabaseClient && window.supabase) {
   const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -98,25 +99,21 @@ function renderColorBubbles(colorDetailsStr) {
   const bubbles = document.querySelectorAll("#color-bubbles-row .color-bubble");
   const extraTextEl = document.getElementById("info-color-details-extra");
 
-  // Regex to extract hex codes (#FFF or #FFFFFF)
   const hexRegex = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
   const foundHexes = colorDetailsStr.match(hexRegex) || [];
 
-  // Remove hex codes to find extra non-hex text
   let remainingText = colorDetailsStr;
   foundHexes.forEach(hex => {
     remainingText = remainingText.replace(hex, "");
   });
   remainingText = remainingText.replace(/[,;]/g, " ").trim();
 
-  // Populate 4 Bubbles
   bubbles.forEach((bubble, index) => {
-    const hex = foundHexes[index] || "#FFFFFF"; // Default to white if not present
+    const hex = foundHexes[index] || "#FFFFFF";
     bubble.style.backgroundColor = hex;
     bubble.dataset.hex = hex;
   });
 
-  // Display remaining non-hex text if present
   if (remainingText && extraTextEl) {
     extraTextEl.textContent = remainingText;
     extraTextEl.classList.remove("hidden");
@@ -181,8 +178,7 @@ async function fetchProjectMembers(proj) {
     const prof = profileMap[email.toLowerCase()] || {};
     return {
       email: email,
-      full_name: prof.full_name || email,
-      role: prof.project_role || "Client"
+      full_name: prof.full_name || email
     };
   });
 
@@ -202,11 +198,57 @@ function renderProjectMembers(members) {
     <div class="member-card">
       <div class="member-info">
         <span class="member-name">${escapeHtml(m.full_name)}</span>
-        <span class="member-role">${escapeHtml(m.role)}</span>
+        <span class="member-email-sub">${escapeHtml(m.email)}</span>
       </div>
-      <button class="btn-sm btn-outline" onclick="openEditMemberModal('${escapeHtml(m.email)}', '${escapeHtml(m.full_name)}', '${escapeHtml(m.role)}')">Edit</button>
+      <button class="btn-sm btn-danger" onclick="openRemoveMemberModal('${escapeHtml(m.email)}', '${escapeHtml(m.full_name)}')">Remove</button>
     </div>
   `).join("");
+}
+
+window.openRemoveMemberModal = function(email, displayName) {
+  memberToRemoveEmail = email;
+  const label = document.getElementById("remove-member-label");
+  if (label) label.textContent = `${displayName} (${email})`;
+  openModal("modal-member-remove");
+};
+
+async function confirmRemoveMember() {
+  if (!memberToRemoveEmail || !activeProject) return;
+
+  const db = getDb();
+
+  // Filter out email from client_emails
+  const currentEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
+  const updatedEmails = currentEmails.filter(e => e.toLowerCase() !== memberToRemoveEmail.toLowerCase());
+
+  // Filter out name from client_names
+  const currentNames = activeProject.client_names || (activeProject.client_name ? [activeProject.client_name] : []);
+  const updatedNames = currentNames.filter((_, idx) => {
+    return currentEmails[idx] && currentEmails[idx].toLowerCase() !== memberToRemoveEmail.toLowerCase();
+  });
+
+  const { error } = await db
+    .from("projects")
+    .update({ 
+      client_emails: updatedEmails,
+      client_names: updatedNames
+    })
+    .eq("id", activeProject.id);
+
+  if (error) {
+    console.error("Error removing member:", error);
+    alert("Failed to remove member: " + error.message);
+    return;
+  }
+
+  activeProject.client_emails = updatedEmails;
+  activeProject.client_names = updatedNames;
+
+  fetchProjectMembers(activeProject);
+  renderProjectDetails(activeProject);
+
+  memberToRemoveEmail = null;
+  closeModal("modal-member-remove");
 }
 
 // ==========================================
@@ -359,6 +401,9 @@ function appendMessageBubble(msg) {
 // 7. EVENT LISTENERS & MODAL CONTROLS
 // ==========================================
 function setupEventListeners() {
+  // Confirm Remove Member Button
+  document.getElementById("btn-confirm-remove-member")?.addEventListener("click", confirmRemoveMember);
+
   // Bookmark Modal
   document.getElementById("btn-add-bookmark")?.addEventListener("click", () => openModal("modal-bookmark"));
   document.getElementById("form-add-bookmark")?.addEventListener("submit", (e) => {
@@ -469,7 +514,6 @@ function setupEventListeners() {
       }
     });
 
-    // Preserve any existing extra non-hex notes
     const colorDetailsStr = activeProject.color_details || "";
     const hexRegex = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
     let extraNotes = colorDetailsStr.replace(hexRegex, "").replace(/[,;]/g, " ").trim();
@@ -684,13 +728,6 @@ window.toggleChatTab = function(tab) {
   }
 };
 
-window.openEditMemberModal = function(email, name, role) {
-  document.getElementById("edit-member-id").value = email;
-  document.getElementById("edit-member-label").textContent = `${name} (${email})`;
-  document.getElementById("edit-member-role").value = role;
-  openModal("modal-member-edit");
-};
-
 window.updateProjectStatus = async function(newStatus) {
   if (!activeProject) return;
 
@@ -786,12 +823,11 @@ async function populateModalMembers() {
   container.innerHTML = rawEmails.map((email) => {
     const prof = profileMap[email.toLowerCase()] || {};
     const displayName = prof.full_name || email;
-    const role = prof.project_role || "Client";
 
     return `
       <label class="checkbox-item">
         <input type="checkbox" name="chat-members" value="${escapeHtml(email)}" checked>
-        ${escapeHtml(displayName)} (${escapeHtml(role)})
+        ${escapeHtml(displayName)}
       </label>
     `;
   }).join("");
