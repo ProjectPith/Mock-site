@@ -80,6 +80,99 @@
   height: 100%;
 }
 
+/* HEADER ACTIONS GROUP */
+.header-action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* COLOR BUBBLES ROW */
+.color-bubbles-row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.3rem 0;
+}
+
+.color-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #373e47;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0;
+  outline: none;
+}
+
+.color-bubble:hover {
+  transform: scale(1.15);
+  border-color: #88c0d0;
+  box-shadow: 0 0 8px rgba(136, 192, 208, 0.4);
+}
+
+/* COLOR PICKER MODAL */
+.color-picker-modal-content {
+  width: 280px;
+}
+
+.picker-flex {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+#shade-picker-input {
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* EDIT DETAILS FORM GRID */
+.edit-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  color: #88c0d0;
+  text-transform: uppercase;
+  border-bottom: 1px solid #373e47;
+  padding-bottom: 0.25rem;
+}
+
+.full-width-actions {
+  grid-column: 1 / 3;
+  margin-top: 0.5rem;
+}
+
+.doc-input {
+  width: 100%;
+  padding: 0.4rem;
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.doc-input:focus {
+  outline: 1px solid #88c0d0;
+}
+
 /* BOTTOM AREA CONTAINER FOR MEMBERS & MESSAGES */
 .bottom-right-row {
   grid-column: 2 / 3;
