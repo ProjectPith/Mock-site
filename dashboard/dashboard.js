@@ -80,7 +80,7 @@ async function fetchProjects() {
 }
 
 window.navigateToProject = function(projectId) {
-  window.location.href = `../projects/project.html?id=${projectId}`;
+  window.location.href = `/admin-projects/admin-projects.html?id=${projectId}`;
 };
 
 // ==========================================
