@@ -381,16 +381,64 @@ function setupEventListeners() {
     fetchProjectChatRooms(activeProject.id);
   });
 
-  // Form: Attach Chat
-  document.getElementById("form-attach-chat")?.addEventListener("submit", async (e) => {
+  // Form: Create Chat
+  document.getElementById("form-create-chat")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const roomId = document.getElementById("attach-chat-select").value;
-    if (!roomId || !activeProject) return;
+    const name = document.getElementById("new-chat-name").value;
+    const externalEmail = document.getElementById("chat-external-email")?.value.trim();
+    if (!name || !activeProject) return;
+
+    // 1. Collect selected member emails from checkboxes
+    const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
+    const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    // 2. Append external email if provided and not already included
+    if (externalEmail && !memberEmails.includes(externalEmail)) {
+      memberEmails.push(externalEmail);
+    }
+
+    // 3. Fallback: if nothing was selected, use the active project's primary email
+    if (memberEmails.length === 0 && activeProject.client_email) {
+      memberEmails.push(activeProject.client_email);
+    }
 
     const db = getDb();
-    await db.from("chat_rooms").update({ project_id: activeProject.id }).eq("id", roomId);
+
+    // 4. Query profiles for all collected emails to retrieve their full names
+    const { data: profiles } = await db
+      .from("profiles")
+      .select("email, full_name")
+      .in("email", memberEmails);
+
+    const profileMap = {};
+    if (profiles) {
+      profiles.forEach(p => {
+        if (p.email) profileMap[p.email.toLowerCase()] = p.full_name;
+      });
+    }
+
+    // 5. Format each entry as "Full Name (email)" or fall back to just "email" if no profile exists
+    const formattedParticipants = memberEmails.map(email => {
+      const fullName = profileMap[email.toLowerCase()];
+      return fullName ? `${fullName} (${email})` : email;
+    });
+
+    // 6. Save formatted names & emails into client_email
+    const { data: newRoom, error } = await db.from("chat_rooms").insert({
+      name: name,
+      project_id: activeProject.id,
+      client_email: formattedParticipants.join(", ")
+    }).select().single();
+
+    if (error) {
+      console.error("Error creating chat room:", error);
+      alert("Failed to create chat room: " + error.message);
+      return;
+    }
+
     closeModal("modal-chat-manage");
-    fetchProjectChatRooms(activeProject.id);
+    e.target.reset();
+    if (newRoom) fetchProjectChatRooms(activeProject.id);
   });
 
   // Form: Create Chat
