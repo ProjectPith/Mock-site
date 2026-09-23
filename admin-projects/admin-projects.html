@@ -1,4 +1,32 @@
-<!-- MAIN DASHBOARD GRID -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Project Dashboard | LunarCraft</title>
+  <link rel="stylesheet" href="admin-projects.css">
+  <link rel="stylesheet" href="global.css">
+  <!-- Supabase JS Client & ChatEngine dependency -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-projects-body">
+
+  
+
+  <!-- TOP HEADER / NAV BAR -->
+  <header class="admin-nav-header">
+    <div class="nav-brand">
+      <span class="brand-title">LUNARCRAFT</span>
+      <span class="brand-subtitle">/ Admin Project Dashboard</span>
+    </div>
+    <div class="nav-controls">
+      <select id="project-selector" class="project-dropdown">
+        <option value="">Loading Projects...</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD GRID -->
   <main class="dashboard-grid">
 
     <!-- LEFT COLUMN (1/3 Horizontal, Full Height) -->
@@ -119,3 +147,101 @@
     </div>
 
   </main>
+
+  <!-- ========================================== -->
+  <!-- MODALS & OVERLAYS                          -->
+  <!-- ========================================== -->
+
+  <!-- BOOKMARK MODAL -->
+  <div id="modal-bookmark" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('modal-bookmark')">&times;</span>
+      <h3>Add Project Bookmark</h3>
+      <form id="form-add-bookmark">
+        <div class="form-group">
+          <label for="bm-name">Bookmark Name</label>
+          <input type="text" id="bm-name" required placeholder="e.g. Figma Specs">
+        </div>
+        <div class="form-group">
+          <label for="bm-url">URL</label>
+          <input type="url" id="bm-url" required placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label for="bm-visibility">Visibility</label>
+          <select id="bm-visibility" class="doc-input">
+            <option value="private">Private (Admin Only)</option>
+            <option value="public">Public (Visible to Client)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-sm btn-accent" style="width: 100%; margin-top: 10px;">Save Bookmark</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS & ATTACHMENTS MODAL -->
+  <div id="modal-docs" class="modal hidden">
+    <div class="modal-content modal-wide">
+      <span class="close-btn" onclick="closeModal('modal-docs')">&times;</span>
+      <h3>Project Documents & Attachments</h3>
+      <div id="docs-modal-body" class="docs-list">
+        <!-- Dynamically rendered document links -->
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT / MANAGE MEMBER OVERLAY -->
+  <div id="modal-member-edit" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('modal-member-edit')">&times;</span>
+      <h3>Manage Member</h3>
+      <input type="hidden" id="edit-member-id">
+      <div class="form-group">
+        <label>Member Name / Email</label>
+        <p id="edit-member-label" style="font-weight: bold; color: #87ceeb;"></p>
+      </div>
+      <div class="form-group">
+        <label for="edit-member-role">Project Role</label>
+        <input type="text" id="edit-member-role" placeholder="e.g. Lead Developer, Client Representative">
+      </div>
+      <div class="modal-actions-row">
+        <button type="button" id="btn-save-member-role" class="btn-sm btn-accent">Save Role</button>
+        <button type="button" id="btn-remove-member" class="btn-sm btn-danger">Remove From Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT ATTACH / CREATE MODAL -->
+  <div id="modal-chat-manage" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('modal-chat-manage')">&times;</span>
+      <h3>Manage Project Chat</h3>
+      <div class="tab-controls">
+        <button id="tab-btn-attach" class="tab-btn active" onclick="toggleChatTab('attach')">Attach Existing</button>
+        <button id="tab-btn-create" class="tab-btn" onclick="toggleChatTab('create')">Create New</button>
+      </div>
+
+      <!-- ATTACH EXISTING CHAT FORM -->
+      <form id="form-attach-chat" class="tab-pane">
+        <div class="form-group">
+          <label for="attach-chat-select">Select Existing Chat Room</label>
+          <select id="attach-chat-select" class="doc-input">
+            <option value="">Loading unattached chats...</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
+      </form>
+
+      <!-- CREATE NEW CHAT FORM -->
+      <form id="form-create-chat" class="tab-pane hidden">
+        <div class="form-group">
+          <label for="new-chat-name">Chat Room Name</label>
+          <input type="text" id="new-chat-name" required placeholder="e.g. Design Feedback Stream">
+        </div>
+        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Create & Attach</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin-projects.js"></script>
+</body>
+</html>
