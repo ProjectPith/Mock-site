@@ -187,12 +187,13 @@ async function fetchProjectBookmarks(projectId) {
   if (!container) return;
 
   const db = getDb();
-  
-  // Fetch from bookmarks table or fallback to localStorage
+
+  // Query bookmarks table filtered exclusively by project_id
   const { data: bookmarks, error } = await db
-    .from("project_bookmarks")
+    .from("bookmarks")
     .select("*")
-    .eq("project_id", projectId);
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
 
   if (error || !bookmarks || bookmarks.length === 0) {
     container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No bookmarks linked to this project.</p>`;
@@ -200,9 +201,9 @@ async function fetchProjectBookmarks(projectId) {
   }
 
   container.innerHTML = bookmarks.map(bm => `
-    <a href="${bm.url}" target="_blank" class="bookmark-card">
+    <a href="${escapeHtml(bm.url)}" target="_blank" rel="noopener noreferrer" class="bookmark-card">
       <span>${escapeHtml(bm.name)} ↗</span>
-      <span class="visibility-tag ${bm.visibility}">${bm.visibility}</span>
+      <span class="visibility-tag ${bm.visibility}">${escapeHtml(bm.visibility)}</span>
     </a>
   `).join("");
 }
@@ -211,13 +212,20 @@ async function saveBookmark(name, url, visibility) {
   if (!activeProject) return;
   const db = getDb();
 
-  await db.from("project_bookmarks").insert({
+  const { error } = await db.from("bookmarks").insert({
     project_id: activeProject.id,
-    name,
-    url,
-    visibility
+    name: name,
+    url: url,
+    visibility: visibility
   });
 
+  if (error) {
+    console.error("Error saving bookmark:", error);
+    alert("Failed to save bookmark.");
+    return;
+  }
+
+  // Refresh bookmarks list for active project
   fetchProjectBookmarks(activeProject.id);
 }
 
