@@ -400,22 +400,27 @@ function setupEventListeners() {
     const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
-    // 1. Collect selected member emails
+    // 1. Collect selected member emails from checkboxes
     const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
     const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-    // 2. Append external email if provided
+    // 2. Append external email if provided and not already included
     if (externalEmail && !memberEmails.includes(externalEmail)) {
       memberEmails.push(externalEmail);
     }
 
+    // 3. Fallback: if nothing was selected, use the primary project client email
+    if (memberEmails.length === 0 && activeProject.client_email) {
+      memberEmails.push(activeProject.client_email);
+    }
+
     const db = getDb();
     
-    // 3. Fallback insert using standard schema columns
+    // 4. Save as a comma-separated string in client_email without changing DB schema
     const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
-      client_email: externalEmail || activeProject.client_email || null
+      client_email: memberEmails.join(", ")
     }).select().single();
 
     if (error) {
