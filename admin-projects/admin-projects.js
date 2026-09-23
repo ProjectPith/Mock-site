@@ -461,17 +461,33 @@ function setupEventListeners() {
     if (!email || !activeProject) return;
 
     const db = getDb();
-    
-    // 1. Append new member email to project's client_emails list
+
+    // 1. Get existing emails & names arrays/strings from activeProject
     const currentEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
-    if (!currentEmails.includes(email)) {
+    const currentNames = activeProject.client_names || (activeProject.client_name ? [activeProject.client_name] : []);
+
+    // 2. Look up the new member's full name in profiles
+    const { data: profile } = await db
+      .from("profiles")
+      .select("full_name")
+      .ilike("email", email)
+      .maybeSingle();
+
+    const memberName = profile?.full_name || email;
+
+    // 3. Append email and resolved name if not already present
+    if (!currentEmails.map(e => e.toLowerCase()).includes(email.toLowerCase())) {
       currentEmails.push(email);
+      currentNames.push(memberName);
     }
 
-    // 2. Persist to database
+    // 4. Update the projects table with both lists
     const { error } = await db
       .from("projects")
-      .update({ client_emails: currentEmails })
+      .update({ 
+        client_emails: currentEmails,
+        client_names: currentNames
+      })
       .eq("id", activeProject.id);
 
     if (error) {
@@ -480,9 +496,14 @@ function setupEventListeners() {
       return;
     }
 
-    // 3. Update active state and refresh rendering
+    // 5. Update local state & refresh project details + members UI
     activeProject.client_emails = currentEmails;
+    activeProject.client_names = currentNames;
+    
+    // Refresh members list and header info
     fetchProjectMembers(activeProject);
+    renderProjectDetails(activeProject);
+
     closeModal("modal-member-add");
     e.target.reset();
   });
