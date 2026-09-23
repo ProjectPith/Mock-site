@@ -3,6 +3,7 @@ let currentProjects = [];
 let activeProject = null;
 let activeChatRoomId = null;
 let activeChatChannel = null;
+let editingBubbleIndex = null;
 
 if (!window.supabaseClient && window.supabase) {
   const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -44,7 +45,6 @@ async function fetchProjects() {
     if (e.target.value) loadProjectDetails(e.target.value);
   });
 
-  // Check URL params for project ID or default to first project
   const urlParams = new URLSearchParams(window.location.search);
   const paramProjectId = urlParams.get("id");
 
@@ -61,19 +61,10 @@ async function loadProjectDetails(projectId) {
   activeProject = currentProjects.find(p => p.id === projectId);
   if (!activeProject) return;
 
-  // Render Project Specifications Top-Right
   renderProjectDetails(activeProject);
-
-  // Render Financial Overview Bottom-Left
   renderFinancialOverview(activeProject);
-
-  // Fetch & Render Members Center
   fetchProjectMembers(activeProject);
-
-  // Fetch & Render Bookmarks Top-Left
   fetchProjectBookmarks(activeProject.id);
-
-  // Load Associated Chat Streams Bottom-Right
   fetchProjectChatRooms(activeProject.id);
 }
 
@@ -82,18 +73,56 @@ async function loadProjectDetails(projectId) {
 // ==========================================
 function renderProjectDetails(proj) {
   document.getElementById("display-project-title").textContent = proj.name || "Untitled Project";
-  
-  // Format client names / emails nicely
-  const clientNames = Array.isArray(proj.client_names) ? proj.client_names.join(", ") : proj.client_names;
-  const clientEmails = Array.isArray(proj.client_emails) ? proj.client_emails.join(", ") : proj.client_emails;
-  document.getElementById("info-client-name").textContent = clientNames || clientEmails || proj.client_name || proj.client_email || "N/A";
-  
+
+  // Left Side
+  document.getElementById("info-company-name").textContent = proj.company_name || proj.client_name || "N/A";
+  document.getElementById("info-custom-domain").textContent = proj.custom_domain || "N/A";
   document.getElementById("info-site-type").textContent = proj.site_type || "N/A";
-  document.getElementById("info-color-specs").textContent = proj.color_details || "N/A";
-  document.getElementById("info-features").textContent = Array.isArray(proj.selected_features) ? proj.selected_features.join(", ") : (proj.selected_features || "N/A");
-  document.getElementById("info-audience").textContent = proj.target_audience || "N/A";
-  document.getElementById("info-description").textContent = proj.project_description || "No description provided.";
-  document.getElementById("info-custom-specs").textContent = proj.custom_specifications || "None";
+  
+  const features = Array.isArray(proj.selected_features) 
+    ? proj.selected_features.join(", ") 
+    : (proj.selected_features || "N/A");
+  document.getElementById("info-selected-features").textContent = features;
+  document.getElementById("info-project-description").textContent = proj.project_description || "No project description provided.";
+
+  // Right Side
+  document.getElementById("info-color-mode").textContent = proj.color_mode || "N/A";
+  document.getElementById("info-target-audience").textContent = proj.target_audience || "N/A";
+  document.getElementById("info-extra-notes").textContent = proj.extra_notes || proj.custom_specifications || "None";
+
+  // Parse Color Details into 4 Bubbles + Extra Text
+  renderColorBubbles(proj.color_details || "");
+}
+
+function renderColorBubbles(colorDetailsStr) {
+  const bubbles = document.querySelectorAll("#color-bubbles-row .color-bubble");
+  const extraTextEl = document.getElementById("info-color-details-extra");
+
+  // Regex to extract hex codes (#FFF or #FFFFFF)
+  const hexRegex = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
+  const foundHexes = colorDetailsStr.match(hexRegex) || [];
+
+  // Remove hex codes to find extra non-hex text
+  let remainingText = colorDetailsStr;
+  foundHexes.forEach(hex => {
+    remainingText = remainingText.replace(hex, "");
+  });
+  remainingText = remainingText.replace(/[,;]/g, " ").trim();
+
+  // Populate 4 Bubbles
+  bubbles.forEach((bubble, index) => {
+    const hex = foundHexes[index] || "#FFFFFF"; // Default to white if not present
+    bubble.style.backgroundColor = hex;
+    bubble.dataset.hex = hex;
+  });
+
+  // Display remaining non-hex text if present
+  if (remainingText && extraTextEl) {
+    extraTextEl.textContent = remainingText;
+    extraTextEl.classList.remove("hidden");
+  } else if (extraTextEl) {
+    extraTextEl.classList.add("hidden");
+  }
 }
 
 // ==========================================
@@ -107,14 +136,12 @@ function renderFinancialOverview(proj) {
 
   if (statusEl) statusEl.textContent = proj.status || "Active";
 
-  // Current Balance Due linked to 'current_balance' column (fallback to 'balance_due')
   const currentBalance = proj.current_balance !== undefined && proj.current_balance !== null 
     ? proj.current_balance 
     : (proj.balance_due !== undefined && proj.balance_due !== null ? proj.balance_due : 0);
     
   if (balanceEl) balanceEl.textContent = `$${parseFloat(currentBalance).toFixed(2)}`;
 
-  // Payment plan evaluation
   if (proj.has_payment_plan || proj.total_build_remaining !== undefined) {
     if (buildPlanBox) buildPlanBox.classList.remove("hidden");
     const remaining = proj.total_build_remaining || 0;
@@ -191,7 +218,6 @@ async function fetchProjectBookmarks(projectId) {
 
   const db = getDb();
 
-  // Query bookmarks table filtered exclusively by project_id
   const { data: bookmarks, error } = await db
     .from("bookmarks")
     .select("*")
@@ -228,7 +254,6 @@ async function saveBookmark(name, url, visibility) {
     return;
   }
 
-  // Refresh bookmarks list for active project
   fetchProjectBookmarks(activeProject.id);
 }
 
@@ -252,17 +277,14 @@ async function fetchProjectChatRooms(projectId) {
     return;
   }
 
-  // Render rooms dropdown
   roomSelect.innerHTML = rooms.map(r => `<option value="${r.id}">${escapeHtml(r.name || 'Project Chat')}</option>`).join("");
   
-  // Attach change listener to switch chat rooms when selected
   roomSelect.onchange = (e) => {
     if (e.target.value) {
       connectChatRoom(e.target.value);
     }
   };
 
-  // Connect to first room by default
   connectChatRoom(rooms[0].id);
 }
 
@@ -280,7 +302,6 @@ function connectChatRoom(roomId) {
     activeChatChannel = null;
   }
 
-  // Subscribe to real-time chat messages
   activeChatChannel = db.channel(`room_${roomId}`)
     .on('postgres_changes', {
       event: 'INSERT',
@@ -292,7 +313,6 @@ function connectChatRoom(roomId) {
     })
     .subscribe();
 
-  // Load existing messages
   db.from("messages")
     .select("*")
     .eq("room_id", roomId)
@@ -355,6 +375,122 @@ function setupEventListeners() {
   document.getElementById("btn-open-docs")?.addEventListener("click", () => {
     openModal("modal-docs");
     renderDocsList();
+  });
+
+  // Open Edit Details Modal
+  document.getElementById("btn-edit-details")?.addEventListener("click", () => {
+    if (!activeProject) return;
+    populateEditDetailsModal(activeProject);
+    openModal("modal-edit-details");
+  });
+
+  // Submit Edit Details Form
+  document.getElementById("form-edit-details")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!activeProject) return;
+
+    const db = getDb();
+
+    const featuresRaw = document.getElementById("edit-selected-features").value;
+    const featuresArr = featuresRaw.split(",").map(f => f.trim()).filter(Boolean);
+
+    const updatePayload = {
+      company_name: document.getElementById("edit-company-name").value.trim(),
+      custom_domain: document.getElementById("edit-custom-domain").value.trim(),
+      site_type: document.getElementById("edit-site-type").value.trim(),
+      selected_features: featuresArr,
+      project_description: document.getElementById("edit-project-description").value.trim(),
+      color_mode: document.getElementById("edit-color-mode").value.trim(),
+      color_details: document.getElementById("edit-color-details").value.trim(),
+      target_audience: document.getElementById("edit-target-audience").value.trim(),
+      extra_notes: document.getElementById("edit-extra-notes").value.trim()
+    };
+
+    const { error } = await db
+      .from("projects")
+      .update(updatePayload)
+      .eq("id", activeProject.id);
+
+    if (error) {
+      console.error("Error updating project details:", error);
+      alert("Failed to save project details: " + error.message);
+      return;
+    }
+
+    Object.assign(activeProject, updatePayload);
+    renderProjectDetails(activeProject);
+    closeModal("modal-edit-details");
+  });
+
+  // Color Bubbles Click Handlers
+  document.querySelectorAll("#color-bubbles-row .color-bubble").forEach(bubble => {
+    bubble.addEventListener("click", (e) => {
+      editingBubbleIndex = parseInt(e.currentTarget.dataset.index, 10);
+      const currentHex = e.currentTarget.dataset.hex || "#FFFFFF";
+      
+      const shadePicker = document.getElementById("shade-picker-input");
+      const hexInput = document.getElementById("hex-code-input");
+      
+      if (shadePicker) shadePicker.value = currentHex.length === 7 ? currentHex : "#FFFFFF";
+      if (hexInput) hexInput.value = currentHex;
+
+      openModal("modal-color-picker");
+    });
+  });
+
+  // Sync Color Inputs in Color Picker Modal
+  document.getElementById("shade-picker-input")?.addEventListener("input", (e) => {
+    const hexInput = document.getElementById("hex-code-input");
+    if (hexInput) hexInput.value = e.target.value.toUpperCase();
+  });
+
+  document.getElementById("hex-code-input")?.addEventListener("input", (e) => {
+    const shadePicker = document.getElementById("shade-picker-input");
+    const val = e.target.value.trim();
+    if (/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(val) && shadePicker) {
+      shadePicker.value = val;
+    }
+  });
+
+  // Apply Single Color Bubble Edit
+  document.getElementById("btn-save-color-bubble")?.addEventListener("click", async () => {
+    if (editingBubbleIndex === null || !activeProject) return;
+
+    let newHex = document.getElementById("hex-code-input").value.trim();
+    if (!newHex.startsWith("#")) newHex = "#" + newHex;
+
+    const bubbles = document.querySelectorAll("#color-bubbles-row .color-bubble");
+    const hexes = [];
+    bubbles.forEach((b, idx) => {
+      if (idx === editingBubbleIndex) {
+        hexes.push(newHex);
+      } else {
+        hexes.push(b.dataset.hex || "#FFFFFF");
+      }
+    });
+
+    // Preserve any existing extra non-hex notes
+    const colorDetailsStr = activeProject.color_details || "";
+    const hexRegex = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
+    let extraNotes = colorDetailsStr.replace(hexRegex, "").replace(/[,;]/g, " ").trim();
+
+    const updatedColorDetails = hexes.join(", ") + (extraNotes ? ` (${extraNotes})` : "");
+
+    const db = getDb();
+    const { error } = await db
+      .from("projects")
+      .update({ color_details: updatedColorDetails })
+      .eq("id", activeProject.id);
+
+    if (error) {
+      console.error("Error updating color details:", error);
+      alert("Failed to update color bubble: " + error.message);
+      return;
+    }
+
+    activeProject.color_details = updatedColorDetails;
+    renderColorBubbles(updatedColorDetails);
+    closeModal("modal-color-picker");
   });
 
   // Chat Form Send
@@ -510,6 +646,19 @@ function setupEventListeners() {
       openModal("modal-status-select");
     }
   });
+}
+
+function populateEditDetailsModal(proj) {
+  document.getElementById("edit-company-name").value = proj.company_name || proj.client_name || "";
+  document.getElementById("edit-custom-domain").value = proj.custom_domain || "";
+  document.getElementById("edit-site-type").value = proj.site_type || "";
+  document.getElementById("edit-selected-features").value = Array.isArray(proj.selected_features) ? proj.selected_features.join(", ") : (proj.selected_features || "");
+  document.getElementById("edit-project-description").value = proj.project_description || "";
+
+  document.getElementById("edit-color-mode").value = proj.color_mode || "";
+  document.getElementById("edit-color-details").value = proj.color_details || "";
+  document.getElementById("edit-target-audience").value = proj.target_audience || "";
+  document.getElementById("edit-extra-notes").value = proj.extra_notes || proj.custom_specifications || "";
 }
 
 // Modal Helpers
