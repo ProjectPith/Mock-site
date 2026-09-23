@@ -249,9 +249,17 @@ async function fetchProjectChatRooms(projectId) {
     return;
   }
 
+  // Render rooms dropdown
   roomSelect.innerHTML = rooms.map(r => `<option value="${r.id}">${escapeHtml(r.name || 'Project Chat')}</option>`).join("");
   
-  // Connect to first room
+  // Attach change listener to switch chat rooms when selected
+  roomSelect.onchange = (e) => {
+    if (e.target.value) {
+      connectChatRoom(e.target.value);
+    }
+  };
+
+  // Connect to first room by default
   connectChatRoom(rooms[0].id);
 }
 
@@ -388,23 +396,23 @@ function setupEventListeners() {
     const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
-    // 1. Collect selected member emails from checkboxes
+    // 1. Collect selected member emails
     const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
     const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-    // 2. Append external email if provided and not already included
+    // 2. Append external email if provided
     if (externalEmail && !memberEmails.includes(externalEmail)) {
       memberEmails.push(externalEmail);
     }
 
-    // 3. Fallback: if nothing was selected, use the active project's primary email
+    // 3. Fallback to active project email if empty
     if (memberEmails.length === 0 && activeProject.client_email) {
       memberEmails.push(activeProject.client_email);
     }
 
     const db = getDb();
 
-    // 4. Query profiles for all collected emails to retrieve their full names
+    // 4. Look up full names in profiles for all emails
     const { data: profiles } = await db
       .from("profiles")
       .select("email, full_name")
@@ -417,58 +425,17 @@ function setupEventListeners() {
       });
     }
 
-    // 5. Format each entry as "Full Name (email)" or fall back to just "email" if no profile exists
+    // 5. Format as "Name (email)" or fallback to "email"
     const formattedParticipants = memberEmails.map(email => {
       const fullName = profileMap[email.toLowerCase()];
       return fullName ? `${fullName} (${email})` : email;
     });
 
-    // 6. Save formatted names & emails into client_email
+    // 6. Save formatted participants to client_email
     const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
       client_email: formattedParticipants.join(", ")
-    }).select().single();
-
-    if (error) {
-      console.error("Error creating chat room:", error);
-      alert("Failed to create chat room: " + error.message);
-      return;
-    }
-
-    closeModal("modal-chat-manage");
-    e.target.reset();
-    if (newRoom) fetchProjectChatRooms(activeProject.id);
-  });
-
-  // Form: Create Chat
-  document.getElementById("form-create-chat")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("new-chat-name").value;
-    const externalEmail = document.getElementById("chat-external-email")?.value.trim();
-    if (!name || !activeProject) return;
-
-    // 1. Collect selected member emails from checkboxes
-    const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
-    const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
-
-    // 2. Append external email if provided and not already included
-    if (externalEmail && !memberEmails.includes(externalEmail)) {
-      memberEmails.push(externalEmail);
-    }
-
-    // 3. Fallback: if nothing was selected, use the primary project client email
-    if (memberEmails.length === 0 && activeProject.client_email) {
-      memberEmails.push(activeProject.client_email);
-    }
-
-    const db = getDb();
-    
-    // 4. Save as a comma-separated string in client_email without changing DB schema
-    const { data: newRoom, error } = await db.from("chat_rooms").insert({
-      name: name,
-      project_id: activeProject.id,
-      client_email: memberEmails.join(", ")
     }).select().single();
 
     if (error) {
