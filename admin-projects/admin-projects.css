@@ -1,9 +1,62 @@
-/* MAIN DASHBOARD GRID (1/3 Left Column, 2/3 Right Area) */
+/* ==========================================
+   ADMIN PROJECTS DASHBOARD CSS
+   ========================================== */
+
+.admin-projects-body {
+  margin: 0;
+  background-color: #181c20;
+  color: #e6edf3;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAVIGATION HEADER */
+.admin-nav-header {
+  height: 55px;
+  background-color: #22272e;
+  border-bottom: 1px solid #373e47;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-weight: 700;
+  color: #88c0d0;
+  letter-spacing: 1px;
+}
+
+.brand-subtitle {
+  color: #919ba1;
+  font-size: 0.9rem;
+}
+
+.project-dropdown {
+  background: #181c20;
+  color: #88c0d0;
+  border: 1px solid #373e47;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 600;
+  min-width: 220px;
+}
+
+.project-dropdown:focus {
+  outline: 1px solid #88c0d0;
+}
+
+/* MAIN DASHBOARD GRID (1/3 Left, 2/3 Right | 1/3 Top, 2/3 Bottom) */
 .dashboard-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 2fr; /* 1/3 Left, 2/3 Right */
-  grid-template-rows: 1fr 2fr;    /* 1/3 Top, 2/3 Bottom */
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 1fr 2fr;
   gap: 1rem;
   padding: 1rem;
   overflow: hidden;
@@ -32,39 +85,77 @@
   grid-column: 2 / 3;
   grid-row: 2 / 3;
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Split the 2/3 horizontal space into Center & Right */
+  grid-template-columns: 1fr 1fr; /* Split 2/3 area 50/50 for Center & Right */
   gap: 1rem;
   height: 100%;
   overflow: hidden;
 }
 
-/* MEMBERS (Center Column: 1/3 Horizontal, 2/3 Vertical) */
-.members-widget {
-  height: 100%;
+/* CARD CONTAINER SCAFFOLDING */
+.widget-card {
+  background: #22272e;
+  border: 1px solid #373e47;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* MESSAGES (Bottom Right: 1/3 Horizontal, 2/3 Vertical) */
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #373e47;
+  padding-bottom: 0.5rem;
+}
+
+.widget-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #88c0d0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* WIDGET PROPORTIONS & FLEX */
+.tools-widget {
+  flex: 1;
+}
+
+.financial-widget {
+  flex-shrink: 0;
+  padding-bottom: 0.75rem; /* Snug bottom padding */
+  background: linear-gradient(135deg, #22272e 0%, #1f252d 100%);
+}
+
+.members-widget,
 .messages-widget {
   height: 100%;
 }
 
-/* LEFT COLUMN ADJUSTMENTS */
-.tools-widget {
-  flex: 1; /* Expands to fill available vertical space */
-}
-
-/* FINANCIAL OVERVIEW FIX: Tighten bottom gap */
-.financial-widget {
-  flex-shrink: 0;
-  min-height: auto;
-  padding-bottom: 0.75rem; /* Reduces bottom padding gap */
-  background: linear-gradient(135deg, #161b22 0%, #1c232e 100%);
-}
-
+/* FINANCIAL OVERVIEW */
 .financial-content {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem; /* Tightens internal spacing */
+  gap: 0.4rem;
+}
+
+.status-badge-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 0.2rem 0.6rem;
+  background: #1f2d3a;
+  border: 1px solid #88c0d0;
+  color: #88c0d0;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .fin-stat-box {
@@ -74,8 +165,307 @@
   margin-top: 0.25rem;
 }
 
+.fin-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e6edf3;
+}
+
+.fin-amount.highlight {
+  color: #4ed1a0;
+}
+
 .divider {
   border: 0;
-  border-top: 1px solid #30363d;
-  margin: 0.4rem 0; /* Reduced from 0.75rem */
+  border-top: 1px solid #373e47;
+  margin: 0.4rem 0;
+}
+
+/* SCROLLABLE LISTS (Bookmarks, Members, Details, Messages) */
+.bookmarks-list,
+.members-list,
+.details-scroll,
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bookmark-card,
+.member-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #181c20;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #373e47;
+  font-size: 0.85rem;
+  color: #e6edf3;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.bookmark-card:hover {
+  border-color: #88c0d0;
+  background: #2d333b;
+}
+
+.visibility-tag {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.visibility-tag.private {
+  background: #36252b;
+  color: #f85149;
+  border: 1px solid #8b2825;
+}
+
+.visibility-tag.public {
+  background: #1c3326;
+  color: #3fb950;
+  border: 1px solid #235e36;
+}
+
+/* DETAILS & SPECS */
+.details-scroll {
+  font-size: 0.82rem;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.info-label {
+  color: #919ba1;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.info-val {
+  color: #e6edf3;
+}
+
+.info-val-text {
+  margin: 0;
+  color: #e6edf3;
+  background: #181c20;
+  padding: 0.4rem;
+  border-radius: 4px;
+  border: 1px solid #373e47;
+  white-space: pre-wrap;
+}
+
+/* MEMBERS */
+.member-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-weight: 600;
+  color: #e6edf3;
+}
+
+.member-role {
+  color: #919ba1;
+  font-size: 0.75rem;
+}
+
+/* MESSAGES & CHAT */
+.chat-title-group,
+.chat-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dash-msg-bubble {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  max-width: 85%;
+}
+
+.dash-msg-bubble.admin {
+  align-self: flex-end;
+  background: #88c0d0;
+  color: #101216;
+}
+
+.dash-msg-bubble.client {
+  align-self: flex-start;
+  background: #181c20;
+  color: #e6edf3;
+  border: 1px solid #373e47;
+}
+
+.dash-chat-form {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #373e47;
+}
+
+.dash-chat-form input {
+  flex: 1;
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+}
+
+.dash-chat-form input:focus {
+  outline: 1px solid #88c0d0;
+}
+
+/* BUTTONS & CONTROLS */
+.btn-sm {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #373e47;
+  background: #181c20;
+  color: #e6edf3;
+  transition: all 0.2s ease;
+}
+
+.btn-accent {
+  background: #88c0d0;
+  color: #101216;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-accent:hover {
+  background: #a3d4e0;
+}
+
+.btn-outline:hover {
+  background: #2d333b;
+}
+
+.btn-danger {
+  background: #36252b;
+  color: #f85149;
+  border: 1px solid #8b2825;
+}
+
+.btn-icon {
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.btn-icon:hover {
+  background: #2d333b;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* MODALS */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #22272e;
+  border: 1px solid #373e47;
+  padding: 1.25rem;
+  border-radius: 8px;
+  width: 350px;
+  position: relative;
+  color: #e6edf3;
+}
+
+.modal-wide {
+  width: 550px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+  color: #919ba1;
+}
+
+.close-btn:hover {
+  color: #e6edf3;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: #919ba1;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.4rem;
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: 1px solid #88c0d0;
+}
+
+.tab-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.4rem;
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.tab-btn.active {
+  background: #88c0d0;
+  color: #101216;
+  font-weight: 600;
+  border-color: #88c0d0;
+}
+
+.modal-actions-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
