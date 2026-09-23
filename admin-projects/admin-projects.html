@@ -47,9 +47,10 @@
           <h3>Financial & Status Overview</h3>
         </div>
         <div id="financial-overview-content" class="financial-content">
+          <!-- Inside the Financial & Status Overview widget card -->
           <div class="status-badge-container">
             <span class="info-label">Project Status</span>
-            <span id="display-project-status" class="status-badge">Active</span>
+            <button id="display-project-status" class="status-badge status-btn" type="button">Active</button>
           </div>
 
           <div class="fin-stat-box">
@@ -290,6 +291,21 @@
           <button type="submit" class="btn-sm btn-accent" style="width:100%;">Add Member</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- STATUS OVERLAY MODAL -->
+  <div id="modal-status-select" class="modal hidden">
+    <div class="modal-content status-modal-content">
+      <span class="close-btn" onclick="closeModal('modal-status-select')">&times;</span>
+      <div class="status-options-grid">
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting contract')">Awaiting Contract</button>
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting deposit')">Awaiting Deposit</button>
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('building')">Building</button>
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting final payment')">Awaiting Final Payment</button>
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('live')">Live</button>
+        <button type="button" class="btn-status-option" onclick="updateProjectStatus('suspended')">Suspended</button>
+      </div>
     </div>
   </div>
 
