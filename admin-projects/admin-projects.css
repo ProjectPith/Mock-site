@@ -158,6 +158,51 @@
   font-weight: 600;
 }
 
+/* Interactive Status Button */
+.status-badge.status-btn {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #88c0d0;
+  text-transform: capitalize;
+}
+
+.status-badge.status-btn:hover {
+  background: #283b4d;
+  box-shadow: 0 0 6px rgba(136, 192, 208, 0.4);
+}
+
+/* Minimal Title-less Status Modal */
+.status-modal-content {
+  width: 280px;
+  padding: 2rem 1.25rem 1.25rem 1.25rem;
+}
+
+.status-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-status-option {
+  padding: 0.6rem;
+  background: #181c20;
+  border: 1px solid #373e47;
+  color: #e6edf3;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+}
+
+.btn-status-option:hover {
+  background: #1f2d3a;
+  border-color: #88c0d0;
+  color: #88c0d0;
+}
+
 .fin-stat-box {
   display: flex;
   flex-direction: column;
