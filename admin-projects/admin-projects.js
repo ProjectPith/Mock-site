@@ -400,28 +400,27 @@ function setupEventListeners() {
     const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
-    // 1. Collect all checked member emails from the checkboxes
+    // 1. Collect selected member emails
     const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
     const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-    // 2. Append external email if provided and not already included
+    // 2. Append external email if provided
     if (externalEmail && !memberEmails.includes(externalEmail)) {
       memberEmails.push(externalEmail);
     }
 
     const db = getDb();
     
-    // 3. Create the chat room storing all associated client emails
+    // 3. Fallback insert using standard schema columns
     const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
-      client_email: activeProject.client_email || null,
-      member_emails: memberEmails // Saves array containing selected members + external email
+      client_email: externalEmail || activeProject.client_email || null
     }).select().single();
 
     if (error) {
       console.error("Error creating chat room:", error);
-      alert("Failed to create chat room.");
+      alert("Failed to create chat room: " + error.message);
       return;
     }
 
