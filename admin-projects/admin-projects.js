@@ -1,312 +1,649 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Project Dashboard | LunarCraft</title>
-  <link rel="stylesheet" href="admin-projects.css">
-  <link rel="stylesheet" href="/global.css">
-  <!-- Supabase JS Client & ChatEngine dependency -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="admin-projects-body">
+// Global State
+let currentProjects = [];
+let activeProject = null;
+let activeChatRoomId = null;
+let activeChatChannel = null;
 
-  <div id="site-header-container"></div>
+if (!window.supabaseClient && window.supabase) {
+  const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_bT739cvrORLIrJYQmUVO2Q_9qe25hOU";
+  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
-  <!-- TOP HEADER / NAV BAR -->
-  <header class="admin-nav-header">
-    <div class="nav-brand">
-      <span class="brand-title">LUNARCRAFT</span>
-      <span class="brand-subtitle">/ Admin Project Dashboard</span>
-    </div>
-    <div class="nav-controls">
-      <select id="project-selector" class="project-dropdown">
-        <option value="">Loading Projects...</option>
-      </select>
-    </div>
-  </header>
+const getDb = () => window.supabaseClient;
 
-  <!-- MAIN DASHBOARD GRID -->
-  <main class="dashboard-grid">
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchProjects();
+  setupEventListeners();
+});
 
-    <!-- LEFT COLUMN (1/3 Horizontal, Full Height) -->
-    <aside class="col-left">
+// ==========================================
+// 1. PROJECT INITIALIZATION & SELECTOR
+// ==========================================
+async function fetchProjects() {
+  const db = getDb();
+  if (!db) return;
 
-      <!-- TOP: Tool Bookmarks -->
-      <section class="widget-card tools-widget">
-        <div class="widget-header">
-          <h3>Tools & Bookmarks</h3>
-          <button id="btn-add-bookmark" class="btn-icon" title="Add Bookmark">+</button>
-        </div>
-        <div id="bookmarks-list" class="bookmarks-list"></div>
-      </section>
+  const { data: projects, error } = await db
+    .from("projects")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-      <!-- BOTTOM: Financial Status (Tightened bottom padding) -->
-      <section class="widget-card financial-widget">
-        <div class="widget-header">
-          <h3>Financial & Status Overview</h3>
-        </div>
-        <div id="financial-overview-content" class="financial-content">
-          <div class="status-badge-container">
-            <span class="info-label">Project Status</span>
-            <button id="display-project-status" class="status-badge status-btn" type="button">Active</button>
-          </div>
+  const selector = document.getElementById("project-selector");
+  if (!selector) return;
 
-          <div class="fin-stat-box">
-            <span class="info-label">Current Balance Due</span>
-            <span id="display-balance-due" class="fin-amount highlight">$0.00</span>
-          </div>
+  if (error || !projects || projects.length === 0) {
+    selector.innerHTML = `<option value="">No Active Projects Found</option>`;
+    return;
+  }
 
-          <div id="payment-plan-section" class="payment-plan-box hidden">
-            <hr class="divider">
-            <div class="fin-stat-box">
-              <span class="info-label">Total Left on Build</span>
-              <span id="display-build-remaining" class="fin-amount">$0.00</span>
-            </div>
-          </div>
-        </div>
-      </section>
+  currentProjects = projects;
+  selector.innerHTML = projects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
 
-    </aside>
+  selector.addEventListener("change", (e) => {
+    if (e.target.value) loadProjectDetails(e.target.value);
+  });
 
-    <!-- TOP RIGHT: Details Box (2/3 Horizontal, 1/3 Vertical) -->
-    <section class="widget-card details-widget">
-      <div class="widget-header">
-        <h3 id="display-project-title">Select a Project</h3>
-        <button id="btn-open-docs" class="btn-sm btn-accent">Docs / Attachments</button>
-      </div>
+  // Check URL params for project ID or default to first project
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramProjectId = urlParams.get("id");
+
+  if (paramProjectId && currentProjects.some(p => p.id === paramProjectId)) {
+    selector.value = paramProjectId;
+    loadProjectDetails(paramProjectId);
+  } else if (currentProjects[0]) {
+    selector.value = currentProjects[0].id;
+    loadProjectDetails(currentProjects[0].id);
+  }
+}
+
+async function loadProjectDetails(projectId) {
+  activeProject = currentProjects.find(p => p.id === projectId);
+  if (!activeProject) return;
+
+  // Render Project Specifications Top-Right
+  renderProjectDetails(activeProject);
+
+  // Render Financial Overview Bottom-Left
+  renderFinancialOverview(activeProject);
+
+  // Fetch & Render Members Center
+  fetchProjectMembers(activeProject);
+
+  // Fetch & Render Bookmarks Top-Left
+  fetchProjectBookmarks(activeProject.id);
+
+  // Load Associated Chat Streams Bottom-Right
+  fetchProjectChatRooms(activeProject.id);
+}
+
+// ==========================================
+// 2. RIGHT-TOP: PROJECT SPECS & DETAILS
+// ==========================================
+function renderProjectDetails(proj) {
+  document.getElementById("display-project-title").textContent = proj.name || "Untitled Project";
   
-      <!-- Split view container -->
-      <div id="project-info-scroll" class="details-split-container">
+  // Format client names / emails nicely
+  const clientNames = Array.isArray(proj.client_names) ? proj.client_names.join(", ") : proj.client_names;
+  const clientEmails = Array.isArray(proj.client_emails) ? proj.client_emails.join(", ") : proj.client_emails;
+  document.getElementById("info-client-name").textContent = clientNames || clientEmails || proj.client_name || proj.client_email || "N/A";
+  
+  document.getElementById("info-site-type").textContent = proj.site_type || "N/A";
+  document.getElementById("info-color-specs").textContent = proj.color_details || "N/A";
+  document.getElementById("info-features").textContent = Array.isArray(proj.selected_features) ? proj.selected_features.join(", ") : (proj.selected_features || "N/A");
+  document.getElementById("info-audience").textContent = proj.target_audience || "N/A";
+  document.getElementById("info-description").textContent = proj.project_description || "No description provided.";
+  document.getElementById("info-custom-specs").textContent = proj.custom_specifications || "None";
+}
+
+// ==========================================
+// 3. LEFT-BOTTOM: FINANCIAL OVERVIEW
+// ==========================================
+function renderFinancialOverview(proj) {
+  const statusEl = document.getElementById("display-project-status");
+  const balanceEl = document.getElementById("display-balance-due");
+  const buildPlanBox = document.getElementById("payment-plan-section");
+  const buildRemainingEl = document.getElementById("display-build-remaining");
+
+  if (statusEl) statusEl.textContent = proj.status || "Active";
+
+  // Current Balance Due linked to 'current_balance' column (fallback to 'balance_due')
+  const currentBalance = proj.current_balance !== undefined && proj.current_balance !== null 
+    ? proj.current_balance 
+    : (proj.balance_due !== undefined && proj.balance_due !== null ? proj.balance_due : 0);
     
-        <!-- LEFT SECTION: Overview & Text Details -->
-        <div class="details-col details-col-left">
-          <div class="info-row">
-            <span class="info-label">Client / Company:</span>
-            <span id="info-client-name" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Site Type:</span>
-            <span id="info-site-type" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Target Audience:</span>
-            <span id="info-audience" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Description:</span>
-            <p id="info-description" class="info-val-text">No project selected.</p>
-          </div>
-        </div>
+  if (balanceEl) balanceEl.textContent = `$${parseFloat(currentBalance).toFixed(2)}`;
 
-        <!-- CENTER DIVIDER LINE -->
-        <div class="details-divider"></div>
+  // Payment plan evaluation
+  if (proj.has_payment_plan || proj.total_build_remaining !== undefined) {
+    if (buildPlanBox) buildPlanBox.classList.remove("hidden");
+    const remaining = proj.total_build_remaining || 0;
+    if (buildRemainingEl) buildRemainingEl.textContent = `$${parseFloat(remaining).toFixed(2)}`;
+  } else {
+    if (buildPlanBox) buildPlanBox.classList.add("hidden");
+  }
+}
 
-        <!-- RIGHT SECTION: Specs & Visuals -->
-        <div class="details-col details-col-right">
-          <div class="info-row">
-            <span class="info-label">Color Specs:</span>
-            <span id="info-color-specs" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Features:</span>
-            <span id="info-features" class="info-val">N/A</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Custom Specs:</span>
-            <p id="info-custom-specs" class="info-val-text">N/A</p>
-          </div>
-        </div>
+// ==========================================
+// 4. CENTER: PROJECT MEMBERS
+// ==========================================
+async function fetchProjectMembers(proj) {
+  const db = getDb();
+  if (!db || !proj) return;
 
+  const rawEmails = proj.client_emails || (proj.client_email ? [proj.client_email] : []);
+
+  if (rawEmails.length === 0) {
+    renderProjectMembers([]);
+    return;
+  }
+
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("*")
+    .in("email", rawEmails);
+
+  const profileMap = {};
+  if (profiles) {
+    profiles.forEach(p => {
+      if (p.email) profileMap[p.email.toLowerCase()] = p;
+    });
+  }
+
+  const members = rawEmails.map(email => {
+    const prof = profileMap[email.toLowerCase()] || {};
+    return {
+      email: email,
+      full_name: prof.full_name || email,
+      role: prof.project_role || "Client"
+    };
+  });
+
+  renderProjectMembers(members);
+}
+
+function renderProjectMembers(members) {
+  const container = document.getElementById("members-list") || document.getElementById("project-members-list");
+  if (!container) return;
+
+  if (!members || members.length === 0) {
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members assigned.</p>`;
+    return;
+  }
+
+  container.innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-info">
+        <span class="member-name">${escapeHtml(m.full_name)}</span>
+        <span class="member-role">${escapeHtml(m.role)}</span>
       </div>
-    </section>
+      <button class="btn-sm btn-outline" onclick="openEditMemberModal('${escapeHtml(m.email)}', '${escapeHtml(m.full_name)}', '${escapeHtml(m.role)}')">Edit</button>
+    </div>
+  `).join("");
+}
+
+// ==========================================
+// 5. LEFT-TOP: BOOKMARKS & TOOLS WIDGET
+// ==========================================
+async function fetchProjectBookmarks(projectId) {
+  const container = document.getElementById("bookmarks-list");
+  if (!container) return;
+
+  const db = getDb();
+
+  // Query bookmarks table filtered exclusively by project_id
+  const { data: bookmarks, error } = await db
+    .from("bookmarks")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+
+  if (error || !bookmarks || bookmarks.length === 0) {
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No bookmarks linked to this project.</p>`;
+    return;
+  }
+
+  container.innerHTML = bookmarks.map(bm => `
+    <a href="${escapeHtml(bm.url)}" target="_blank" rel="noopener noreferrer" class="bookmark-card">
+      <span>${escapeHtml(bm.name)} ↗</span>
+      <span class="visibility-tag ${bm.visibility}">${escapeHtml(bm.visibility)}</span>
+    </a>
+  `).join("");
+}
+
+async function saveBookmark(name, url, visibility) {
+  if (!activeProject) return;
+  const db = getDb();
+
+  const { error } = await db.from("bookmarks").insert({
+    project_id: activeProject.id,
+    name: name,
+    url: url,
+    visibility: visibility
+  });
+
+  if (error) {
+    console.error("Error saving bookmark:", error);
+    alert("Failed to save bookmark.");
+    return;
+  }
+
+  // Refresh bookmarks list for active project
+  fetchProjectBookmarks(activeProject.id);
+}
+
+// ==========================================
+// 6. RIGHT-BOTTOM: PROJECT CHAT MESSAGES WIDGET
+// ==========================================
+async function fetchProjectChatRooms(projectId) {
+  const roomSelect = document.getElementById("chat-room-select");
+  if (!roomSelect) return;
+
+  const db = getDb();
+  
+  const { data: rooms } = await db
+    .from("chat_rooms")
+    .select("*")
+    .eq("project_id", projectId);
+
+  if (!rooms || rooms.length === 0) {
+    roomSelect.innerHTML = `<option value="">No Active Project Chat</option>`;
+    clearChatMessages();
+    return;
+  }
+
+  // Render rooms dropdown
+  roomSelect.innerHTML = rooms.map(r => `<option value="${r.id}">${escapeHtml(r.name || 'Project Chat')}</option>`).join("");
+  
+  // Attach change listener to switch chat rooms when selected
+  roomSelect.onchange = (e) => {
+    if (e.target.value) {
+      connectChatRoom(e.target.value);
+    }
+  };
+
+  // Connect to first room by default
+  connectChatRoom(rooms[0].id);
+}
+
+function connectChatRoom(roomId) {
+  activeChatRoomId = roomId;
+  const chatInput = document.getElementById("dash-chat-input");
+  const chatSend = document.getElementById("dash-chat-send");
+  if (chatInput) chatInput.disabled = false;
+  if (chatSend) chatSend.disabled = false;
+
+  const db = getDb();
+
+  if (activeChatChannel) {
+    db.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+
+  // Subscribe to real-time chat messages
+  activeChatChannel = db.channel(`room_${roomId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `room_id=eq.${roomId}`
+    }, (payload) => {
+      appendMessageBubble(payload.new);
+    })
+    .subscribe();
+
+  // Load existing messages
+  db.from("messages")
+    .select("*")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: true })
+    .then(({ data: messages }) => {
+      const container = document.getElementById("messages-list");
+      if (!container) return;
+      container.innerHTML = "";
+      if (!messages || messages.length === 0) {
+        container.innerHTML = `<div class="message-placeholder"><p>No messages in room.</p></div>`;
+        return;
+      }
+      messages.forEach(appendMessageBubble);
+    });
+}
+
+function clearChatMessages() {
+  activeChatRoomId = null;
+  const container = document.getElementById("messages-list");
+  if (container) container.innerHTML = `<div class="message-placeholder"><p>No chat attached to this project.</p></div>`;
+  
+  const chatInput = document.getElementById("dash-chat-input");
+  const chatSend = document.getElementById("dash-chat-send");
+  if (chatInput) chatInput.disabled = true;
+  if (chatSend) chatSend.disabled = true;
+}
+
+function appendMessageBubble(msg) {
+  const container = document.getElementById("messages-list");
+  if (!container) return;
+
+  container.querySelector(".message-placeholder")?.remove();
+
+  const bubble = document.createElement("div");
+  const isAdmin = msg.sender_type === "admin";
+  bubble.className = `dash-msg-bubble ${isAdmin ? 'admin' : 'client'}`;
+  bubble.innerHTML = `<div>${escapeHtml(msg.content)}</div>`;
+
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ==========================================
+// 7. EVENT LISTENERS & MODAL CONTROLS
+// ==========================================
+function setupEventListeners() {
+  // Bookmark Modal
+  document.getElementById("btn-add-bookmark")?.addEventListener("click", () => openModal("modal-bookmark"));
+  document.getElementById("form-add-bookmark")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("bm-name").value;
+    const url = document.getElementById("bm-url").value;
+    const vis = document.getElementById("bm-visibility").value;
+    saveBookmark(name, url, vis);
+    closeModal("modal-bookmark");
+    e.target.reset();
+  });
+
+  // Docs Modal
+  document.getElementById("btn-open-docs")?.addEventListener("click", () => {
+    openModal("modal-docs");
+    renderDocsList();
+  });
+
+  // Chat Form Send
+  document.getElementById("dash-chat-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("dash-chat-input");
+    if (!activeChatRoomId || !input.value.trim()) return;
+
+    const msg = input.value.trim();
+    input.value = "";
+
+    const db = getDb();
+    await db.from("messages").insert({
+      room_id: activeChatRoomId,
+      sender_type: "admin",
+      sender_name: "Admin",
+      content: msg
+    });
+  });
+
+  // Attach / Create Chat Modal Controls
+  document.getElementById("btn-chat-attach-create")?.addEventListener("click", () => {
+    openModal("modal-chat-manage");
+    populateUnattachedChats();
+    populateModalMembers();
+  });
+
+  // Add Member Modal Listener
+  document.getElementById("btn-add-member")?.addEventListener("click", () => {
+    openModal("modal-member-add");
+  });
+
+  // Detach Chat Button
+  document.getElementById("btn-chat-detach")?.addEventListener("click", async () => {
+    if (!activeChatRoomId || !activeProject) return;
+    if (!confirm("Remove open chat room from this project?")) return;
+
+    const db = getDb();
+    await db.from("chat_rooms").update({ project_id: null }).eq("id", activeChatRoomId);
+    fetchProjectChatRooms(activeProject.id);
+  });
+
+  // Form: Create Chat
+  document.getElementById("form-create-chat")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("new-chat-name").value;
+    const externalEmail = document.getElementById("chat-external-email")?.value.trim();
+    if (!name || !activeProject) return;
+
+    const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
+    const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    if (externalEmail && !memberEmails.includes(externalEmail)) {
+      memberEmails.push(externalEmail);
+    }
+
+    if (memberEmails.length === 0 && activeProject.client_email) {
+      memberEmails.push(activeProject.client_email);
+    }
+
+    const db = getDb();
+
+    const { data: profiles } = await db
+      .from("profiles")
+      .select("email, full_name")
+      .in("email", memberEmails);
+
+    const profileMap = {};
+    if (profiles) {
+      profiles.forEach(p => {
+        if (p.email) profileMap[p.email.toLowerCase()] = p.full_name;
+      });
+    }
+
+    const namesList = [];
+    const emailsList = [];
+
+    memberEmails.forEach(email => {
+      const fullName = profileMap[email.toLowerCase()];
+      emailsList.push(email);
+      namesList.push(fullName || email);
+    });
+
+    const { data: newRoom, error } = await db.from("chat_rooms").insert({
+      name: name,
+      project_id: activeProject.id,
+      client_email: emailsList.join(", "),
+      client_name: namesList.join(", ")
+    }).select().single();
+
+    if (error) {
+      console.error("Error creating chat room:", error);
+      alert("Failed to create chat room: " + error.message);
+      return;
+    }
+
+    closeModal("modal-chat-manage");
+    e.target.reset();
+    if (newRoom) fetchProjectChatRooms(activeProject.id);
+  });
+
+  // Form: Add Member Submit
+  document.getElementById("form-add-member")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("add-member-email").value.trim();
+    if (!email || !activeProject) return;
+
+    const db = getDb();
+
+    const currentEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
+    const currentNames = activeProject.client_names || (activeProject.client_name ? [activeProject.client_name] : []);
+
+    const { data: profile } = await db
+      .from("profiles")
+      .select("full_name")
+      .ilike("email", email)
+      .maybeSingle();
+
+    const memberName = profile?.full_name || email;
+
+    if (!currentEmails.map(e => e.toLowerCase()).includes(email.toLowerCase())) {
+      currentEmails.push(email);
+      currentNames.push(memberName);
+    }
+
+    const { error } = await db
+      .from("projects")
+      .update({ 
+        client_emails: currentEmails,
+        client_names: currentNames
+      })
+      .eq("id", activeProject.id);
+
+    if (error) {
+      console.error("Error adding member:", error);
+      alert("Failed to add member: " + error.message);
+      return;
+    }
+
+    activeProject.client_emails = currentEmails;
+    activeProject.client_names = currentNames;
     
-    <!-- BOTTOM ROW (2/3 Vertical Space Split 50/50 Between Center and Right) -->
-    <div class="bottom-right-row">
+    fetchProjectMembers(activeProject);
+    renderProjectDetails(activeProject);
 
-      <!-- MEMBERS (Center 1/3 Horizontal) -->
-      <section class="widget-card members-widget">
-        <div class="widget-header">
-          <h3>Project Members</h3>
-          <button id="btn-add-member" class="btn-sm btn-outline">+ Add Member</button>
-        </div>
-        <div id="members-list" class="members-list"></div>
-      </section>
+    closeModal("modal-member-add");
+    e.target.reset();
+  });
 
-      <!-- MESSAGES (Right 1/3 Horizontal) -->
-      <section class="widget-card messages-widget">
-        <div class="widget-header chat-header">
-          <div class="chat-title-group">
-            <h3>Messages</h3>
-            <select id="chat-room-select" class="dash-room-select">
-              <option value="">Select Chat...</option>
-            </select>
-          </div>
-          <div class="chat-action-buttons">
-            <button id="btn-chat-attach-create" class="btn-sm btn-outline" title="Attach / Create Chat">+ Attach / Create</button>
-          </div>
-        </div>
+  // Open Status Selection Overlay
+  document.getElementById("display-project-status")?.addEventListener("click", () => {
+    if (activeProject) {
+      openModal("modal-status-select");
+    }
+  });
+}
 
-        <div id="messages-list" class="messages-list">
-          <div class="message-placeholder"><p>Select or attach a chat room to begin.</p></div>
-        </div>
+// Modal Helpers
+window.openModal = function(modalId) {
+  document.getElementById(modalId)?.classList.remove("hidden");
+};
 
-        <form id="dash-chat-form" class="dash-chat-form">
-          <input type="text" id="dash-chat-input" placeholder="Type message..." disabled>
-          <button type="submit" id="dash-chat-send" class="btn-sm btn-accent" disabled>Send</button>
-        </form>
-      </section>
-      
+window.closeModal = function(modalId) {
+  document.getElementById(modalId)?.classList.add("hidden");
+};
+
+window.toggleChatTab = function(tab) {
+  if (tab === 'attach') {
+    document.getElementById("tab-btn-attach").classList.add("active");
+    document.getElementById("tab-btn-create").classList.remove("active");
+    document.getElementById("form-attach-chat").classList.remove("hidden");
+    document.getElementById("form-create-chat").classList.add("hidden");
+  } else {
+    document.getElementById("tab-btn-create").classList.add("active");
+    document.getElementById("tab-btn-attach").classList.remove("active");
+    document.getElementById("form-create-chat").classList.remove("hidden");
+    document.getElementById("form-attach-chat").classList.add("hidden");
+  }
+};
+
+window.openEditMemberModal = function(email, name, role) {
+  document.getElementById("edit-member-id").value = email;
+  document.getElementById("edit-member-label").textContent = `${name} (${email})`;
+  document.getElementById("edit-member-role").value = role;
+  openModal("modal-member-edit");
+};
+
+window.updateProjectStatus = async function(newStatus) {
+  if (!activeProject) return;
+
+  const db = getDb();
+  
+  const { error } = await db
+    .from("projects")
+    .update({ status: newStatus })
+    .eq("id", activeProject.id);
+
+  if (error) {
+    console.error("Error updating project status:", error);
+    alert("Failed to update status: " + error.message);
+    return;
+  }
+
+  activeProject.status = newStatus;
+  const statusEl = document.getElementById("display-project-status");
+  if (statusEl) {
+    statusEl.textContent = newStatus;
+  }
+
+  const proj = currentProjects.find(p => p.id === activeProject.id);
+  if (proj) proj.status = newStatus;
+
+  closeModal("modal-status-select");
+};
+
+async function populateUnattachedChats() {
+  const select = document.getElementById("attach-chat-select");
+  if (!select) return;
+
+  const db = getDb();
+  const { data: rooms } = await db.from("chat_rooms").select("*").is("project_id", null);
+
+  if (!rooms || rooms.length === 0) {
+    select.innerHTML = `<option value="">No unattached chat rooms found.</option>`;
+    return;
+  }
+
+  select.innerHTML = rooms.map(r => `<option value="${r.id}">${escapeHtml(r.name || r.client_email || 'Chat Room')}</option>`).join("");
+}
+
+function renderDocsList() {
+  const container = document.getElementById("docs-modal-body");
+  if (!container || !activeProject) return;
+
+  const docs = [];
+  if (activeProject.intake_pdf_url) docs.push({ name: "Intake Specification PDF", url: activeProject.intake_pdf_url });
+  if (activeProject.contract_pdf_url) docs.push({ name: "Signed Service Contract PDF", url: activeProject.contract_pdf_url });
+
+  if (docs.length === 0) {
+    container.innerHTML = `<p style="font-size:0.85rem; color:#8b949e;">No PDF documents attached to this project.</p>`;
+    return;
+  }
+
+  container.innerHTML = docs.map(d => `
+    <div class="bookmark-card" style="margin-bottom:0.5rem;">
+      <span>📄 ${escapeHtml(d.name)}</span>
+      <a href="${d.url}" target="_blank" class="btn-sm btn-accent" style="text-decoration:none;">View PDF ↗</a>
     </div>
+  `).join("");
+}
 
-  </main>
+function escapeHtml(str) {
+  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
-  <!-- ========================================== -->
-  <!-- MODALS & OVERLAYS                          -->
-  <!-- ========================================== -->
+async function populateModalMembers() {
+  const container = document.getElementById("modal-chat-members-select");
+  if (!container || !activeProject) return;
 
-  <!-- BOOKMARK MODAL -->
-  <div id="modal-bookmark" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-bookmark')">&times;</span>
-      <h3>Add Project Bookmark</h3>
-      <form id="form-add-bookmark">
-        <div class="form-group">
-          <label for="bm-name">Bookmark Name</label>
-          <input type="text" id="bm-name" required placeholder="e.g. Figma Specs">
-        </div>
-        <div class="form-group">
-          <label for="bm-url">URL</label>
-          <input type="url" id="bm-url" required placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label for="bm-visibility">Visibility</label>
-          <select id="bm-visibility" class="doc-input">
-            <option value="private">Private (Admin Only)</option>
-            <option value="public">Public (Visible to Client)</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%; margin-top: 10px;">Save Bookmark</button>
-      </form>
-    </div>
-  </div>
+  const db = getDb();
+  const rawEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
 
-  <!-- DOCUMENTS & ATTACHMENTS MODAL -->
-  <div id="modal-docs" class="modal hidden">
-    <div class="modal-content modal-wide">
-      <span class="close-btn" onclick="closeModal('modal-docs')">&times;</span>
-      <h3>Project Documents & Attachments</h3>
-      <div id="docs-modal-body" class="docs-list">
-        <!-- Dynamically rendered document links -->
-      </div>
-    </div>
-  </div>
+  if (rawEmails.length === 0) {
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members available.</p>`;
+    return;
+  }
 
-  <!-- EDIT / MANAGE MEMBER OVERLAY -->
-  <div id="modal-member-edit" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-member-edit')">&times;</span>
-      <h3>Manage Member</h3>
-      <input type="hidden" id="edit-member-id">
-      <div class="form-group">
-        <label>Member Name / Email</label>
-        <p id="edit-member-label" style="font-weight: bold; color: #87ceeb;"></p>
-      </div>
-      <div class="form-group">
-        <label for="edit-member-role">Project Role</label>
-        <input type="text" id="edit-member-role" placeholder="e.g. Lead Developer, Client Representative">
-      </div>
-      <div class="modal-actions-row">
-        <button type="button" id="btn-save-member-role" class="btn-sm btn-accent">Save Role</button>
-        <button type="button" id="btn-remove-member" class="btn-sm btn-danger">Remove From Project</button>
-      </div>
-    </div>
-  </div>
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("*")
+    .in("email", rawEmails);
 
-  <!-- CHAT ATTACH / CREATE MODAL -->
-  <div id="modal-chat-manage" class="modal hidden">
-    <div class="modal-content modal-wide">
-      <span class="close-btn" onclick="closeModal('modal-chat-manage')">&times;</span>
-      <h3>Manage Project Chat</h3>
-      
-      <div class="tab-controls">
-        <button id="tab-btn-attach" class="tab-btn active" type="button" onclick="toggleChatTab('attach')">Attach Existing</button>
-        <button id="tab-btn-create" class="tab-btn" type="button" onclick="toggleChatTab('create')">Create New</button>
-      </div>
+  const profileMap = {};
+  if (profiles) {
+    profiles.forEach(p => {
+      profileMap[p.email.toLowerCase()] = p;
+    });
+  }
 
-      <!-- TAB 1: ATTACH EXISTING CHAT FORM -->
-      <form id="form-attach-chat" class="tab-pane">
-        <div class="form-group">
-          <label for="attach-chat-select">Select Existing Chat Room</label>
-          <select id="attach-chat-select" class="doc-input">
-            <option value="">Loading unattached chats...</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
-      </form>
+  container.innerHTML = rawEmails.map((email) => {
+    const prof = profileMap[email.toLowerCase()] || {};
+    const displayName = prof.full_name || email;
+    const role = prof.project_role || "Client";
 
-      <!-- TAB 2: CREATE NEW CHAT FORM -->
-      <form id="form-create-chat" class="tab-pane hidden">
-        <div class="form-group">
-          <label for="new-chat-name">Chat Room Title</label>
-          <input type="text" id="new-chat-name" required placeholder="e.g., Design Sync">
-        </div>
-
-        <div class="form-group">
-          <label>Select Project Members</label>
-          <div id="modal-chat-members-select" class="members-multiselect-box">
-            <!-- Dynamic project members check-list -->
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="chat-external-email">Add Non-Project Member (Email)</label>
-          <input type="email" id="chat-external-email" placeholder="client@example.com">
-        </div>
-
-        <button type="submit" class="btn-sm btn-accent" style="width: 100%; margin-top: 1rem;">Create Chat</button>
-      </form>
-
-    </div>
-  </div>
-
-  <!-- ADD MEMBER OVERLAY -->
-  <div id="modal-member-add" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-member-add')">&times;</span>
-      <h3>Add Project Member</h3>
-      <form id="form-add-member">
-        <div class="form-group">
-          <label for="add-member-email">Member Email</label>
-          <input type="email" id="add-member-email" required placeholder="member@example.com">
-        </div>
-        <div class="form-group">
-          <label for="add-member-role">Project Role</label>
-          <input type="text" id="add-member-role" placeholder="e.g. Lead Developer, Client">
-        </div>
-        <div class="modal-actions-row">
-          <button type="submit" class="btn-sm btn-accent" style="width:100%;">Add Member</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- STATUS OVERLAY MODAL -->
-  <div id="modal-status-select" class="modal hidden">
-    <div class="modal-content status-modal-content">
-      <span class="close-btn" onclick="closeModal('modal-status-select')">&times;</span>
-      <div class="status-options-grid">
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting contract')">Awaiting Contract</button>
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting deposit')">Awaiting Deposit</button>
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('building')">Building</button>
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('awaiting final payment')">Awaiting Final Payment</button>
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('live')">Live</button>
-        <button type="button" class="btn-status-option" onclick="updateProjectStatus('suspended')">Suspended</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="admin-projects.js"></script>
-  <script src="/nav.js"></script>
-</body>
-</html>
+    return `
+      <label class="checkbox-item">
+        <input type="checkbox" name="chat-members" value="${escapeHtml(email)}" checked>
+        ${escapeHtml(displayName)} (${escapeHtml(role)})
+      </label>
+    `;
+  }).join("");
+}
