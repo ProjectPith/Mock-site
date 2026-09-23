@@ -155,7 +155,7 @@ async function fetchProjectMembers(proj) {
 }
 
 function renderProjectMembers(members) {
-  const container = document.getElementById("project-members-list");
+  const container = document.getElementById("members-list") || document.getElementById("project-members-list");
   if (!container) return;
 
   if (!members || members.length === 0) {
@@ -452,6 +452,39 @@ function setupEventListeners() {
     closeModal("modal-chat-manage");
     e.target.reset();
     if (newRoom) fetchProjectChatRooms(activeProject.id);
+  });
+
+  // Form: Add Member Submit
+  document.getElementById("form-add-member")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("add-member-email").value.trim();
+    if (!email || !activeProject) return;
+
+    const db = getDb();
+    
+    // 1. Append new member email to project's client_emails list
+    const currentEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
+    if (!currentEmails.includes(email)) {
+      currentEmails.push(email);
+    }
+
+    // 2. Persist to database
+    const { error } = await db
+      .from("projects")
+      .update({ client_emails: currentEmails })
+      .eq("id", activeProject.id);
+
+    if (error) {
+      console.error("Error adding member:", error);
+      alert("Failed to add member: " + error.message);
+      return;
+    }
+
+    // 3. Update active state and refresh rendering
+    activeProject.client_emails = currentEmails;
+    fetchProjectMembers(activeProject);
+    closeModal("modal-member-add");
+    e.target.reset();
   });
 }
 
