@@ -82,7 +82,12 @@ async function loadProjectDetails(projectId) {
 // ==========================================
 function renderProjectDetails(proj) {
   document.getElementById("display-project-title").textContent = proj.name || "Untitled Project";
-  document.getElementById("info-client-name").textContent = proj.client_name || proj.client_email || "N/A";
+  
+  // Format client names / emails nicely
+  const clientNames = Array.isArray(proj.client_names) ? proj.client_names.join(", ") : proj.client_names;
+  const clientEmails = Array.isArray(proj.client_emails) ? proj.client_emails.join(", ") : proj.client_emails;
+  document.getElementById("info-client-name").textContent = clientNames || clientEmails || proj.client_name || proj.client_email || "N/A";
+  
   document.getElementById("info-site-type").textContent = proj.site_type || "N/A";
   document.getElementById("info-color-specs").textContent = proj.color_details || "N/A";
   document.getElementById("info-features").textContent = Array.isArray(proj.selected_features) ? proj.selected_features.join(", ") : (proj.selected_features || "N/A");
@@ -96,14 +101,19 @@ function renderProjectDetails(proj) {
 // ==========================================
 function renderFinancialOverview(proj) {
   const statusEl = document.getElementById("display-project-status");
+  const totalCostEl = document.getElementById("display-total-cost");
   const balanceEl = document.getElementById("display-balance-due");
   const buildPlanBox = document.getElementById("payment-plan-section");
   const buildRemainingEl = document.getElementById("display-build-remaining");
 
   if (statusEl) statusEl.textContent = proj.status || "Active";
-  
-  // Current due balance on project
-  const currentDue = proj.balance_due !== undefined ? proj.balance_due : 0;
+
+  // Total Project Cost
+  const totalCost = proj.total_cost !== undefined && proj.total_cost !== null ? proj.total_cost : 0;
+  if (totalCostEl) totalCostEl.textContent = `$${parseFloat(totalCost).toFixed(2)}`;
+
+  // Current balance due on project
+  const currentDue = proj.balance_due !== undefined && proj.balance_due !== null ? proj.balance_due : 0;
   if (balanceEl) balanceEl.textContent = `$${parseFloat(currentDue).toFixed(2)}`;
 
   // Payment plan evaluation
@@ -130,7 +140,7 @@ async function fetchProjectMembers(proj) {
     return;
   }
 
-  const { data: profiles, error } = await db
+  const { data: profiles } = await db
     .from("profiles")
     .select("*")
     .in("email", rawEmails);
@@ -138,7 +148,7 @@ async function fetchProjectMembers(proj) {
   const profileMap = {};
   if (profiles) {
     profiles.forEach(p => {
-      profileMap[p.email.toLowerCase()] = p;
+      if (p.email) profileMap[p.email.toLowerCase()] = p;
     });
   }
 
@@ -173,11 +183,6 @@ function renderProjectMembers(members) {
     </div>
   `).join("");
 }
-
-// Add Member Modal Listener
-  document.getElementById("btn-add-member")?.addEventListener("click", () => {
-    openModal("modal-member-add");
-  });
 
 // ==========================================
 // 5. LEFT-TOP: BOOKMARKS & TOOLS WIDGET
@@ -376,7 +381,12 @@ function setupEventListeners() {
   document.getElementById("btn-chat-attach-create")?.addEventListener("click", () => {
     openModal("modal-chat-manage");
     populateUnattachedChats();
-    populateModalMembers(); // <-- Ensures actual project members are rendered
+    populateModalMembers();
+  });
+
+  // Add Member Modal Listener
+  document.getElementById("btn-add-member")?.addEventListener("click", () => {
+    openModal("modal-member-add");
   });
 
   // Detach Chat Button
@@ -396,23 +406,19 @@ function setupEventListeners() {
     const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
-    // 1. Collect selected member emails from checkboxes
     const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
     const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-    // 2. Append external email if provided and not already included
     if (externalEmail && !memberEmails.includes(externalEmail)) {
       memberEmails.push(externalEmail);
     }
 
-    // 3. Fallback: if nothing selected, use active project email
     if (memberEmails.length === 0 && activeProject.client_email) {
       memberEmails.push(activeProject.client_email);
     }
 
     const db = getDb();
 
-    // 4. Query profiles for all emails to pull full names
     const { data: profiles } = await db
       .from("profiles")
       .select("email, full_name")
@@ -425,17 +431,15 @@ function setupEventListeners() {
       });
     }
 
-    // 5. Separate names and emails into two clean lists
     const namesList = [];
     const emailsList = [];
 
     memberEmails.forEach(email => {
       const fullName = profileMap[email.toLowerCase()];
       emailsList.push(email);
-      namesList.push(fullName || email); // Uses profile full_name if found, otherwise email
+      namesList.push(fullName || email);
     });
 
-    // 6. Insert with names in client_name and emails in client_email
     const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
@@ -462,11 +466,9 @@ function setupEventListeners() {
 
     const db = getDb();
 
-    // 1. Get existing emails & names arrays/strings from activeProject
     const currentEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
     const currentNames = activeProject.client_names || (activeProject.client_name ? [activeProject.client_name] : []);
 
-    // 2. Look up the new member's full name in profiles
     const { data: profile } = await db
       .from("profiles")
       .select("full_name")
@@ -475,13 +477,11 @@ function setupEventListeners() {
 
     const memberName = profile?.full_name || email;
 
-    // 3. Append email and resolved name if not already present
     if (!currentEmails.map(e => e.toLowerCase()).includes(email.toLowerCase())) {
       currentEmails.push(email);
       currentNames.push(memberName);
     }
 
-    // 4. Update the projects table with both lists
     const { error } = await db
       .from("projects")
       .update({ 
@@ -496,11 +496,9 @@ function setupEventListeners() {
       return;
     }
 
-    // 5. Update local state & refresh project details + members UI
     activeProject.client_emails = currentEmails;
     activeProject.client_names = currentNames;
     
-    // Refresh members list and header info
     fetchProjectMembers(activeProject);
     renderProjectDetails(activeProject);
 
@@ -551,7 +549,6 @@ window.updateProjectStatus = async function(newStatus) {
 
   const db = getDb();
   
-  // Update status in Supabase
   const { error } = await db
     .from("projects")
     .update({ status: newStatus })
@@ -563,14 +560,12 @@ window.updateProjectStatus = async function(newStatus) {
     return;
   }
 
-  // Update active state & UI
   activeProject.status = newStatus;
   const statusEl = document.getElementById("display-project-status");
   if (statusEl) {
     statusEl.textContent = newStatus;
   }
 
-  // Also sync the project in currentProjects list
   const proj = currentProjects.find(p => p.id === activeProject.id);
   if (proj) proj.status = newStatus;
 
