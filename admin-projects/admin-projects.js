@@ -368,6 +368,7 @@ function setupEventListeners() {
   document.getElementById("btn-chat-attach-create")?.addEventListener("click", () => {
     openModal("modal-chat-manage");
     populateUnattachedChats();
+    populateModalMembers(); // <-- Ensures actual project members are rendered
   });
 
   // Detach Chat Button
@@ -396,16 +397,36 @@ function setupEventListeners() {
   document.getElementById("form-create-chat")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("new-chat-name").value;
+    const externalEmail = document.getElementById("chat-external-email")?.value.trim();
     if (!name || !activeProject) return;
 
+    // 1. Collect all checked member emails from the checkboxes
+    const selectedCheckboxes = document.querySelectorAll('input[name="chat-members"]:checked');
+    const memberEmails = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    // 2. Append external email if provided and not already included
+    if (externalEmail && !memberEmails.includes(externalEmail)) {
+      memberEmails.push(externalEmail);
+    }
+
     const db = getDb();
-    const { data: newRoom } = await db.from("chat_rooms").insert({
+    
+    // 3. Create the chat room storing all associated client emails
+    const { data: newRoom, error } = await db.from("chat_rooms").insert({
       name: name,
       project_id: activeProject.id,
-      client_email: activeProject.client_email || null
+      client_email: activeProject.client_email || null,
+      member_emails: memberEmails // Saves array containing selected members + external email
     }).select().single();
 
+    if (error) {
+      console.error("Error creating chat room:", error);
+      alert("Failed to create chat room.");
+      return;
+    }
+
     closeModal("modal-chat-manage");
+    e.target.reset();
     if (newRoom) fetchProjectChatRooms(activeProject.id);
   });
 }
@@ -478,4 +499,42 @@ function renderDocsList() {
 
 function escapeHtml(str) {
   return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+async function populateModalMembers() {
+  const container = document.getElementById("modal-chat-members-select");
+  if (!container || !activeProject) return;
+
+  const db = getDb();
+  const rawEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
+
+  if (rawEmails.length === 0) {
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members available.</p>`;
+    return;
+  }
+
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("*")
+    .in("email", rawEmails);
+
+  const profileMap = {};
+  if (profiles) {
+    profiles.forEach(p => {
+      profileMap[p.email.toLowerCase()] = p;
+    });
+  }
+
+  container.innerHTML = rawEmails.map((email) => {
+    const prof = profileMap[email.toLowerCase()] || {};
+    const displayName = prof.full_name || email;
+    const role = prof.project_role || "Client";
+
+    return `
+      <label class="checkbox-item">
+        <input type="checkbox" name="chat-members" value="${escapeHtml(email)}" checked>
+        ${escapeHtml(displayName)} (${escapeHtml(role)})
+      </label>
+    `;
+  }).join("");
 }
