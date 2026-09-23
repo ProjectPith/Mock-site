@@ -293,22 +293,17 @@
   </div>
 
   <!-- EDIT / MANAGE MEMBER OVERLAY -->
-  <div id="modal-member-edit" class="modal hidden">
+  <!-- REMOVE MEMBER CONFIRMATION OVERLAY -->
+  <div id="modal-member-remove" class="modal hidden">
     <div class="modal-content">
-      <span class="close-btn" onclick="closeModal('modal-member-edit')">&times;</span>
-      <h3>Manage Member</h3>
-      <input type="hidden" id="edit-member-id">
-      <div class="form-group">
-        <label>Member Name / Email</label>
-        <p id="edit-member-label" style="font-weight: bold; color: #87ceeb;"></p>
-      </div>
-      <div class="form-group">
-        <label for="edit-member-role">Project Role</label>
-        <input type="text" id="edit-member-role" placeholder="e.g. Lead Developer, Client Representative">
-      </div>
-      <div class="modal-actions-row">
-        <button type="button" id="btn-save-member-role" class="btn-sm btn-accent">Save Role</button>
-        <button type="button" id="btn-remove-member" class="btn-sm btn-danger">Remove From Project</button>
+      <span class="close-btn" onclick="closeModal('modal-member-remove')">&times;</span>
+      <h3>Remove Member</h3>
+      <p style="font-size: 0.9rem; color: #e6edf3; margin-top: 0.5rem;">
+        Are you sure you want to remove <strong id="remove-member-label" style="color: #87ceeb;"></strong> from this project?
+      </p>
+      <div class="modal-actions-row" style="margin-top: 1.25rem;">
+        <button type="button" class="btn-sm btn-outline" onclick="closeModal('modal-member-remove')" style="flex: 1;">Cancel</button>
+        <button type="button" id="btn-confirm-remove-member" class="btn-sm btn-danger" style="flex: 1;">Remove</button>
       </div>
     </div>
   </div>
