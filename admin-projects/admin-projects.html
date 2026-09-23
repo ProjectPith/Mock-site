@@ -226,15 +226,16 @@
 
   <!-- CHAT ATTACH / CREATE MODAL -->
   <div id="modal-chat-manage" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content modal-wide">
       <span class="close-btn" onclick="closeModal('modal-chat-manage')">&times;</span>
       <h3>Manage Project Chat</h3>
+      
       <div class="tab-controls">
-        <button id="tab-btn-attach" class="tab-btn active" onclick="toggleChatTab('attach')">Attach Existing</button>
-        <button id="tab-btn-create" class="tab-btn" onclick="toggleChatTab('create')">Create New</button>
+        <button id="tab-btn-attach" class="tab-btn active" type="button" onclick="toggleChatTab('attach')">Attach Existing</button>
+        <button id="tab-btn-create" class="tab-btn" type="button" onclick="toggleChatTab('create')">Create New</button>
       </div>
 
-      <!-- ATTACH EXISTING CHAT FORM -->
+      <!-- TAB 1: ATTACH EXISTING CHAT FORM -->
       <form id="form-attach-chat" class="tab-pane">
         <div class="form-group">
           <label for="attach-chat-select">Select Existing Chat Room</label>
@@ -245,54 +246,30 @@
         <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
       </form>
 
-      <!-- CHAT ATTACH / CREATE MODAL -->
-      <div id="modal-chat-manage" class="modal hidden">
-        <div class="modal-content modal-wide">
-          <span class="close-btn" onclick="closeModal('modal-chat-manage')">&times;</span>
-          <h3>Manage Project Chat</h3>
-      
-          <div class="tab-controls">
-            <button id="tab-btn-attach" class="tab-btn active" onclick="toggleChatTab('attach')">Attach Existing</button>
-            <button id="tab-btn-create" class="tab-btn" onclick="toggleChatTab('create')">Create New</button>
-          </div>
-
-          <!-- ATTACH EXISTING CHAT FORM -->
-          <form id="form-attach-chat" class="tab-pane">
-            <div class="form-group">
-              <label for="attach-chat-select">Select Existing Chat Room</label>
-              <select id="attach-chat-select" class="doc-input">
-                <option value="">Loading unattached chats...</option>
-              </select>
-            </div>
-            <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Attach Chat</button>
-          </form>
-
-          <!-- CREATE NEW CHAT FORM -->
-          <form id="form-create-chat" class="tab-pane hidden">
-            <div class="form-group">
-              <label for="new-chat-name">Chat Room Title</label>
-              <input type="text" id="new-chat-name" required placeholder="e.g., Design Sync">
-            </div>
-
-            <div class="form-group">
-              <label>Select Project Members</label>
-              <div id="modal-chat-members-select" class="members-multiselect-box">
-                <!-- Dynamic project members check-list -->
-                <label class="checkbox-item"><input type="checkbox" value="user_1"> John Doe (Admin)</label>
-                <label class="checkbox-item"><input type="checkbox" value="user_2"> Jane Smith (Client)</label>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="chat-external-email">Add Non-Project Member (Email)</label>
-              <input type="email" id="chat-external-email" placeholder="client@example.com">
-            </div>
-
-            <button type="submit" class="btn-sm btn-accent" style="width: 100%;">Create Chat</button>
-          </form>
-
+      <!-- TAB 2: CREATE NEW CHAT FORM -->
+      <form id="form-create-chat" class="tab-pane hidden">
+        <div class="form-group">
+          <label for="new-chat-name">Chat Room Title</label>
+          <input type="text" id="new-chat-name" required placeholder="e.g., Design Sync">
         </div>
-      </div>
+
+        <div class="form-group">
+          <label>Select Project Members</label>
+          <div id="modal-chat-members-select" class="members-multiselect-box">
+            <!-- Dynamic project members check-list -->
+            <label class="checkbox-item"><input type="checkbox" value="user_1"> John Doe (Admin)</label>
+            <label class="checkbox-item"><input type="checkbox" value="user_2"> Jane Smith (Client)</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="chat-external-email">Add Non-Project Member (Email)</label>
+          <input type="email" id="chat-external-email" placeholder="client@example.com">
+        </div>
+
+        <button type="submit" class="btn-sm btn-accent" style="width: 100%; margin-top: 1rem;">Create Chat</button>
+      </form>
+
     </div>
   </div>
 
