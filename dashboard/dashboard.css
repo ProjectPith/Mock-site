@@ -1,149 +1,23 @@
-.dashboard-body {
-  margin: 0;
-  background-color: #0d1117;
-  color: #c9d1d9;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
+/* ==========================================
+   UPDATED 3-COLUMN LAYOUT & GRID ALLOCATION
+   ========================================== */
 
-.dashboard-layout {
-  display: flex;
-  height: calc(100vh - 60px);
-  overflow: hidden;
-}
-
-/* LEFT SIDEBAR */
-.sidebar-tools {
-  width: 240px;
-  background-color: #161b22;
-  border-right: 1px solid #30363d;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.sidebar-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: #87ceeb;
-}
-
-.btn-icon {
-  background: #21262d;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
-  border-radius: 6px;
-  cursor: pointer;
-  padding: 2px 8px;
-  font-size: 1.2rem;
-}
-
-.tools-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  overflow-y: auto;
-}
-
-.tool-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #21262d;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  border: 1px solid #30363d;
-  color: #f0f6fc;
-  text-decoration: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.tool-card:hover {
-  border-color: #87ceeb;
-  background: #2d333b;
-}
-
-/* MAIN SPLIT (DESKTOP) */
-.dashboard-main {
+.dashboard-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.25rem;
-  padding: 1.25rem;
+  /* 
+    Column 1 (Left): 1/3 width -> Tools & Financial 
+    Column 2 (Center/Right): 2/3 width spanned across details, members, & messages 
+  */
+  grid-template-columns: 1fr 1fr 1fr; 
+  gap: 1rem;
+  padding: 1rem;
   overflow: hidden;
+  height: calc(100vh - 55px);
+  box-sizing: border-box;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.section-header h2, .section-header h3 {
-  margin: 0;
-}
-
-/* PROJECTS TABLE */
-.projects-container {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.table-wrapper {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.dashboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.dashboard-table th, .dashboard-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #30363d;
-}
-
-.dashboard-table th {
-  color: #8b949e;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-
-.project-row {
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.project-row:hover {
-  background: #21262d;
-}
-
-.badge {
-  padding: 0.2rem 0.5rem;
-  background: #21262d;
-  border: 1px solid #30363d;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: #87ceeb;
-}
-
-/* RIGHT COLUMN VERTICAL LAYOUT */
-.right-column {
+.col-left {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -151,240 +25,74 @@
   overflow: hidden;
 }
 
-/* FINANCIAL PAYOUT CARD */
-.payout-container {
-  background: linear-gradient(135deg, #1f293d 0%, #161b22 100%);
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 1.25rem;
-  cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+/* CENTER & RIGHT COLUMNS CONTAINER / GRID OVERRIDES */
+.col-center, .col-right {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.payout-container:hover {
-  border-color: #87ceeb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(135, 206, 235, 0.1);
-}
-
-.payout-header {
-  display: flex;
-  justify-content: space-between;
-  color: #8b949e;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.payout-header .arrow-icon {
-  color: #87ceeb;
-  font-size: 1rem;
-}
-
-.payout-amount {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #87ceeb;
-  margin: 0.5rem 0;
-}
-
-.payout-breakdown {
-  display: flex;
-  justify-content: space-between;
-  color: #8b949e;
-  font-size: 0.75rem;
-  border-top: 1px solid #21262d;
-  padding-top: 0.5rem;
-}
-
-.payout-container-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
-/* INTERACTIVE MESSAGES WIDGET */
-.messages-container {
-  flex: 1;
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
   overflow: hidden;
 }
 
-.messages-widget-header {
-  gap: 0.5rem;
+/* ==========================================
+   LEFT COLUMN: TOOLS & FINANCIAL
+   ========================================== */
+
+.tools-widget {
+  flex: 1; /* Takes all available vertical space above Financial */
+  overflow: hidden;
 }
 
-.dash-room-select {
-  background: #0d1117;
-  color: #c9d1d9;
-  border: 1px solid #30363d;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-  max-width: 140px;
+/* FINANCIAL WIDGET - Trimmed bottom gap */
+.financial-widget {
+  flex-shrink: 0;
+  min-height: 0; /* Allows tight sizing */
+  height: auto;  /* Fit content strictly */
+  padding-bottom: 0.85rem; /* Reduced padding */
+  background: linear-gradient(135deg, #161b22 0%, #1c232e 100%);
 }
 
-.messages-list {
-  flex: 1;
-  overflow-y: auto;
+.financial-content {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding-right: 0.25rem;
-  margin-bottom: 0.75rem;
-  min-height: 120px;
+  gap: 0.5rem; /* Tightened internal gap */
 }
 
-.dash-msg-bubble {
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  max-width: 85%;
-  line-height: 1.35;
-}
-
-.dash-msg-bubble.admin {
-  align-self: flex-end;
-  background: #87ceeb;
-  color: #101216;
-}
-
-.dash-msg-bubble.client {
-  align-self: flex-start;
-  background: #21262d;
-  color: #c9d1d9;
-  border: 1px solid #30363d;
-}
-
-.dash-msg-meta {
-  display: block;
-  font-size: 0.65rem;
-  opacity: 0.75;
-  margin-top: 0.25rem;
-}
-
-.dash-chat-form {
+.fin-stat-box {
   display: flex;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0; /* Removed extra top margin */
+}
+
+.divider {
+  border: 0;
   border-top: 1px solid #30363d;
-  margin-top: auto;
+  margin: 0.5rem 0; /* Reduced divider margin */
 }
 
-.dash-chat-form input {
+/* ==========================================
+   PROPORTIONAL LAYOUT CORRECTIONS
+   ========================================== */
+
+/* 1. DETAILS BOX: 2/3 Horizontal Width, 1/3 Vertical Height (Top Right) */
+.col-right-top-span {
+  grid-column: span 2;
+}
+
+.details-widget {
+  height: calc(33.33vh - 30px); /* 1/3 Vertical space */
+  flex-shrink: 0;
+}
+
+/* 2. MEMBERS BOX: 1/3 Horizontal Width, 2/3 Vertical Height (Center Bottom) */
+.members-widget {
+  height: calc(66.66vh - 45px); /* 2/3 Vertical space */
   flex: 1;
-  background: #0d1117;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
-  border-radius: 4px;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
 }
 
-.dash-chat-form input:focus {
-  border-color: #87ceeb;
-  outline: none;
-}
-
-/* MODAL STYLES */
-.modal {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-}
-.modal.hidden { display: none; }
-.modal-content {
-  background: #161b22; border: 1px solid #30363d;
-  padding: 1.5rem; border-radius: 8px; width: 320px;
-  position: relative;
-}
-.close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.5rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; }
-.form-group input { width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 4px; }
-
-/* MOBILE RESPONSIVE LAYOUT (SINGLE COLUMN STACK: Payout -> Messages -> Projects) */
-@media (max-width: 768px) {
-  .dashboard-layout {
-    height: auto;
-    overflow-y: auto;
-  }
-
-  .sidebar-tools {
-    display: none;
-  }
-
-  /* Single full-width vertical stack */
-  .dashboard-main {
-    display: flex;
-    flex-direction: column;
-    padding: 0.75rem;
-    gap: 1rem;
-    overflow: visible;
-  }
-
-  .right-column {
-    display: contents; /* Allows children (Payout & Messages) to re-order independently alongside Projects */
-  }
-
-  /* Explicit Mobile Order */
-  .payout-container-link {
-    order: 1;
-  }
-
-  .messages-container {
-    order: 2;
-    height: 320px; /* Fixed height for usable chat card on mobile */
-  }
-
-  .projects-container {
-    order: 3;
-  }
-
-  .hide-mobile {
-    display: none !important;
-  }
-
-  .payout-amount {
-    font-size: 1.6rem;
-  }
-
-  .payout-breakdown {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  /* DISABLE BOOKING TAB */
-
-  /* DISABLE CLICKING / NAVIGATION ON MOBILE ONLY */
-  .payout-container-link {
-    pointer-events: none;
-    cursor: default;
-  }
-
-  /* REMOVE HOVER / INTERACTIVE VISUAL CUES ON MOBILE */
-  .payout-container {
-    cursor: default;
-  }
-
-  .payout-container:hover {
-    transform: none;
-    border-color: #30363d;
-    box-shadow: none;
-  }
-
-  /* HIDE NAVIGATION ARROW ON MOBILE */
-  .payout-header .arrow-icon {
-    display: none;
-  }
+/* 3. MESSAGES BOX: 1/3 Horizontal Width, 2/3 Vertical Height (Bottom Right) */
+.messages-widget {
+  height: calc(66.66vh - 45px); /* 2/3 Vertical space */
+  flex: 1;
 }
