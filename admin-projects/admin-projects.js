@@ -174,12 +174,10 @@ function renderProjectMembers(members) {
   `).join("");
 }
 
-// Update the event listener in setupEventListeners():
-document.getElementById("btn-chat-attach-create")?.addEventListener("click", () => {
-  openModal("modal-chat-manage");
-  populateUnattachedChats();
-  populateModalMembers();
-});
+// Add Member Modal Listener
+  document.getElementById("btn-add-member")?.addEventListener("click", () => {
+    openModal("modal-member-add");
+  });
 
 // ==========================================
 // 5. LEFT-TOP: BOOKMARKS & TOOLS WIDGET
