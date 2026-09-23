@@ -212,6 +212,11 @@
   letter-spacing: 0.5px;
 }
 
+.member-email-sub {
+  color: #919ba1;
+  font-size: 0.75rem;
+}
+
 /* WIDGET PROPORTIONS & FLEX */
 .tools-widget {
   flex: 1;
