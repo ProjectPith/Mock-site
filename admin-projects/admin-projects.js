@@ -119,19 +119,18 @@ function renderFinancialOverview(proj) {
 // ==========================================
 // 4. CENTER: PROJECT MEMBERS
 // ==========================================
-async function populateModalMembers() {
-  const container = document.getElementById("modal-chat-members-select");
-  if (!container || !activeProject) return;
-
+async function fetchProjectMembers(proj) {
   const db = getDb();
-  const rawEmails = activeProject.client_emails || (activeProject.client_email ? [activeProject.client_email] : []);
+  if (!db || !proj) return;
+
+  const rawEmails = proj.client_emails || (proj.client_email ? [proj.client_email] : []);
 
   if (rawEmails.length === 0) {
-    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members available.</p>`;
+    renderProjectMembers([]);
     return;
   }
 
-  const { data: profiles } = await db
+  const { data: profiles, error } = await db
     .from("profiles")
     .select("*")
     .in("email", rawEmails);
@@ -143,18 +142,36 @@ async function populateModalMembers() {
     });
   }
 
-  container.innerHTML = rawEmails.map((email, idx) => {
+  const members = rawEmails.map(email => {
     const prof = profileMap[email.toLowerCase()] || {};
-    const displayName = prof.full_name || email;
-    const role = prof.project_role || "Client";
+    return {
+      email: email,
+      full_name: prof.full_name || email,
+      role: prof.project_role || "Client"
+    };
+  });
 
-    return `
-      <label class="checkbox-item">
-        <input type="checkbox" name="chat-members" value="${escapeHtml(email)}" checked>
-        ${escapeHtml(displayName)} (${escapeHtml(role)})
-      </label>
-    `;
-  }).join("");
+  renderProjectMembers(members);
+}
+
+function renderProjectMembers(members) {
+  const container = document.getElementById("project-members-list");
+  if (!container) return;
+
+  if (!members || members.length === 0) {
+    container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No project members assigned.</p>`;
+    return;
+  }
+
+  container.innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-info">
+        <span class="member-name">${escapeHtml(m.full_name)}</span>
+        <span class="member-role">${escapeHtml(m.role)}</span>
+      </div>
+      <button class="btn-sm btn-outline" onclick="openEditMemberModal('${escapeHtml(m.email)}', '${escapeHtml(m.full_name)}', '${escapeHtml(m.role)}')">Edit</button>
+    </div>
+  `).join("");
 }
 
 // Update the event listener in setupEventListeners():
