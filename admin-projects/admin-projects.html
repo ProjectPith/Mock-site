@@ -47,10 +47,14 @@
           <h3>Financial & Status Overview</h3>
         </div>
         <div id="financial-overview-content" class="financial-content">
-          <!-- Inside the Financial & Status Overview widget card -->
           <div class="status-badge-container">
             <span class="info-label">Project Status</span>
             <button id="display-project-status" class="status-badge status-btn" type="button">Active</button>
+          </div>
+
+          <div class="fin-stat-box">
+            <span class="info-label">Total Cost</span>
+            <span id="display-total-cost" class="fin-amount">$0.00</span>
           </div>
 
           <div class="fin-stat-box">
@@ -257,8 +261,6 @@
           <label>Select Project Members</label>
           <div id="modal-chat-members-select" class="members-multiselect-box">
             <!-- Dynamic project members check-list -->
-            <label class="checkbox-item"><input type="checkbox" value="user_1"> John Doe (Admin)</label>
-            <label class="checkbox-item"><input type="checkbox" value="user_2"> Jane Smith (Client)</label>
           </div>
         </div>
 
