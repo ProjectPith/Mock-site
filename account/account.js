@@ -107,9 +107,7 @@
           ${isAdmin ? `
             <button class="nav-btn" style="border-color: #238636; color: #3fb950;">⚙️ Developer Dashboard</button>
             <button class="nav-btn">📦 Printify Orders Queue</button>
-            <button class="nav-btn">🛠️ Ongoing Builds</button>
             <button class="nav-btn">💳 Client Invoicing</button>
-            <button class="nav-btn">🗓️ Maintenance Schedule</button>
             <button class="nav-btn">📄 Contract Vault & Search</button>
             <button class="nav-btn">💬 Project Communications</button>
 
@@ -122,9 +120,8 @@
             </div>
           ` : `
             <button class="nav-btn">📦 Order History</button>
-            <button class="nav-btn">🚀 Project History & Status</button>
+            <button class="nav-btn">🚀 Project Dashboard</button>
             <button class="nav-btn">💳 Billing & Payments</button>
-            <button class="nav-btn">📝 Maintenance Forms</button>
             <button class="nav-btn">📄 My Contracts</button>
             <button class="nav-btn">💬 Project Communications</button>
           `}
@@ -377,6 +374,8 @@
           window.location.href = "/admin-billing/admin-billing.html";
         } else if (btnText.includes("Project Communications")) {
           window.location.href = "/messages/messages.html";
+        } else if (btnText.includes("Project Dashboard")) {
+          window.location.href = "/client-projects/client-projects.html";
         }
         // Add more route conditions here as you build out additional pages!
       }
