@@ -55,6 +55,14 @@
   gap: 1rem;
 }
 
+/* DETAILS VIEW CONTAINER */
+.project-details-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
 /* THREE FULL-WIDTH LINK BOXES */
 .project-links-fullwidth {
   display: flex;
@@ -97,6 +105,24 @@
 
 .fullwidth-link-box.disabled:hover {
   background-color: var(--bg-hover);
+}
+
+/* BUTTONS & CONTROLS */
+.btn-sm {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-main);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background: var(--bg-hover);
+  border-color: var(--sky-blue);
+  color: var(--sky-blue);
 }
 
 /* WIDGET PROPORTIONS & FLEX */
@@ -145,14 +171,9 @@
   transition: all 0.2s ease;
 }
 
-.project-card-btn:hover,
-.project-card-btn.active {
+.project-card-btn:hover {
   border-color: var(--sky-blue);
   background-color: var(--bg-hover);
-}
-
-.project-card-btn.active {
-  box-shadow: inset 3px 0 0 var(--sky-blue);
 }
 
 .project-card-title {
@@ -177,6 +198,10 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 0.5rem 0;
+}
+
+.hidden {
+  display: none !important;
 }
 
 /* 5-SECOND TOAST OVERLAY */
