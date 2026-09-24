@@ -20,10 +20,27 @@
       <div class="widget-header">
         <h3>Projects</h3>
       </div>
+
       <div class="widget-body">
+
+        <!-- THREE FULL WIDTH LINK BOXES AT TOP -->
+        <div id="project-links-header" class="project-links-fullwidth hidden">
+          <button id="btn-link-live" type="button" class="fullwidth-link-box disabled">
+            <span>LIVE LINK</span>
+          </button>
+          <button id="btn-link-test" type="button" class="fullwidth-link-box disabled">
+            <span>TEST LINK</span>
+          </button>
+          <button id="btn-link-github" type="button" class="fullwidth-link-box disabled">
+            <span>GITHUB REPOSITORY</span>
+          </button>
+        </div>
+
+        <!-- LIST OF CLIENT PROJECTS -->
         <div id="projects-list" class="projects-list">
           <!-- Dynamically populated project card buttons -->
         </div>
+
       </div>
     </section>
 
@@ -53,6 +70,11 @@
     </div>
 
   </main>
+
+  <!-- 5-SECOND TOAST OVERLAY -->
+  <div id="toast-overlay" class="toast-overlay hidden">
+    <p id="toast-message">Link has not been attached yet.</p>
+  </div>
 
   <script src="/nav.js"></script>
   <script src="client-projects.js"></script>
