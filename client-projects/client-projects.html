@@ -18,27 +18,35 @@
     <!-- LEFT COLUMN: PROJECTS (2/3 Horizontal, Full Vertical) -->
     <section class="widget-card projects-widget">
       <div class="widget-header">
-        <h3>Projects</h3>
+        <h3 id="projects-widget-title">Projects</h3>
+        <button id="btn-back-to-projects" type="button" class="btn-sm btn-outline hidden" onclick="deselectProject()">← Back to Projects</button>
       </div>
 
       <div class="widget-body">
 
-        <!-- THREE FULL WIDTH LINK BOXES AT TOP -->
-        <div id="project-links-header" class="project-links-fullwidth hidden">
-          <button id="btn-link-live" type="button" class="fullwidth-link-box disabled">
-            <span>LIVE LINK</span>
-          </button>
-          <button id="btn-link-test" type="button" class="fullwidth-link-box disabled">
-            <span>TEST LINK</span>
-          </button>
-          <button id="btn-link-github" type="button" class="fullwidth-link-box disabled">
-            <span>GITHUB REPOSITORY</span>
-          </button>
-        </div>
-
-        <!-- LIST OF CLIENT PROJECTS -->
+        <!-- VIEW 1: PROJECT SELECTOR LIST (DEFAULT) -->
         <div id="projects-list" class="projects-list">
           <!-- Dynamically populated project card buttons -->
+        </div>
+
+        <!-- VIEW 2: INDIVIDUAL PROJECT DETAILS (HIDDEN UNTIL CLICKED) -->
+        <div id="project-details-view" class="project-details-view hidden">
+          
+          <!-- THREE FULL-WIDTH LINK BOXES -->
+          <div id="project-links-header" class="project-links-fullwidth">
+            <button id="btn-link-live" type="button" class="fullwidth-link-box disabled">
+              <span>LIVE LINK</span>
+            </button>
+            <button id="btn-link-test" type="button" class="fullwidth-link-box disabled">
+              <span>TEST LINK</span>
+            </button>
+            <button id="btn-link-github" type="button" class="fullwidth-link-box disabled">
+              <span>GITHUB REPOSITORY</span>
+            </button>
+          </div>
+
+          <!-- Future project detail widgets will go here -->
+
         </div>
 
       </div>
