@@ -1,7 +1,7 @@
 // Global State
 let userProjects = [];
 let activeUserEmail = null;
-let activeProjectId = null;
+let activeProject = null;
 let projectBookmarks = [];
 let toastTimeout = null;
 
@@ -80,11 +80,6 @@ async function fetchUserProjects(email) {
   });
 
   renderProjectsList(userProjects);
-
-  // Auto-select first project if available
-  if (userProjects.length > 0) {
-    selectProject(userProjects[0].id);
-  }
 }
 
 function renderProjectsList(projects) {
@@ -98,9 +93,8 @@ function renderProjectsList(projects) {
 
   container.innerHTML = projects.map(p => {
     const status = p.status || "Active";
-    const isActive = p.id === activeProjectId ? "active" : "";
     return `
-      <button type="button" class="project-card-btn ${isActive}" onclick="selectProject('${escapeHtml(p.id)}')">
+      <button type="button" class="project-card-btn" onclick="selectProject('${escapeHtml(p.id)}')">
         <div class="project-card-info">
           <span class="project-card-title">${escapeHtml(p.name || "Untitled Project")}</span>
         </div>
@@ -113,16 +107,19 @@ function renderProjectsList(projects) {
 }
 
 async function selectProject(projectId) {
-  activeProjectId = projectId;
-  
-  // Highlight active project card
-  renderProjectsList(userProjects);
+  activeProject = userProjects.find(p => p.id === projectId);
+  if (!activeProject) return;
 
-  // Unhide top full-width links section
-  const linksHeader = document.getElementById("project-links-header");
-  if (linksHeader) linksHeader.classList.remove("hidden");
+  // 1. Hide Project Selector List & Show Details View
+  document.getElementById("projects-list")?.classList.add("hidden");
+  document.getElementById("project-details-view")?.classList.remove("hidden");
 
-  // Fetch bookmarks matching active project_id
+  // 2. Update Header Title & Show Back Button
+  const titleEl = document.getElementById("projects-widget-title");
+  if (titleEl) titleEl.textContent = activeProject.name || "Project Details";
+  document.getElementById("btn-back-to-projects")?.classList.remove("hidden");
+
+  // 3. Fetch Bookmarks matching active project_id
   const db = getDb();
   const { data: bookmarks, error } = await db
     .from("bookmarks")
@@ -137,6 +134,20 @@ async function selectProject(projectId) {
   }
 
   renderLinkBoxes();
+}
+
+function deselectProject() {
+  activeProject = null;
+  projectBookmarks = [];
+
+  // Show Project List & Hide Details View
+  document.getElementById("projects-list")?.classList.remove("hidden");
+  document.getElementById("project-details-view")?.classList.add("hidden");
+
+  // Reset Header Title & Hide Back Button
+  const titleEl = document.getElementById("projects-widget-title");
+  if (titleEl) titleEl.textContent = "Projects";
+  document.getElementById("btn-back-to-projects")?.classList.add("hidden");
 }
 
 function renderLinkBoxes() {
