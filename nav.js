@@ -24,6 +24,7 @@
   loadAsset("/account/account.css", "css");
   loadAsset("/account/account.js", "js");
   loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
+  loadAsset("/ai/ai.js", "js");
 
   document.addEventListener("DOMContentLoaded", () => {
     let navContainer = document.getElementById("nav-container") || 
@@ -50,6 +51,11 @@
           </nav>
 
           <div class="nav-actions">
+            <button id="ai-assistant-btn" class="nav-btn icon-nav-btn ai-nav-btn" aria-label="Open AI assistant" type="button" hidden>
+              <span class="icon-symbol" aria-hidden="true">✦</span>
+              <span class="btn-text-label">AI</span>
+            </button>
+
             <button id="cart-btn" class="nav-btn icon-nav-btn" aria-label="Cart" type="button">
               <span class="icon-symbol">🛒</span>
               <span class="btn-text-label">Cart</span>
