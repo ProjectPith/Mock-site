@@ -60,6 +60,8 @@
       }
 
       const isAdmin = userRole === "admin";
+      window.lunarCraftIsAdmin = isAdmin;
+      window.dispatchEvent(new CustomEvent("lunarcraft:account-updated", { detail: { isAdmin } }));
       const currentFullName = user.user_metadata?.full_name || '';
       const currentPhone = user.user_metadata?.phone || user.phone || '';
       const displayName = currentFullName || user.email;
@@ -214,6 +216,8 @@
 
     // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
     } else {
+      window.lunarCraftIsAdmin = false;
+      window.dispatchEvent(new CustomEvent("lunarcraft:account-updated", { detail: { isAdmin: false } }));
       if (panelTitle) panelTitle.textContent = "Client Workspace Access";
       if (navAccountBtn) navAccountBtn.textContent = "Sign In";
 
