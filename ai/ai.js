@@ -1,5 +1,7 @@
 (function () {
-  const endpoint = window.LUNARCRAFT_AI_ENDPOINT || "";
+  const baseUrl = (window.LUNARCRAFT_HERMES_BASE_URL || "http://127.0.0.1:11434/v1").replace(/\/$/, "");
+  const endpoint = window.LUNARCRAFT_AI_ENDPOINT || `${baseUrl}/chat/completions`;
+  const model = window.LUNARCRAFT_HERMES_MODEL || "qwen2.5-coder-64k";
   let conversation = [];
 
   function initAssistant() {
@@ -106,7 +108,7 @@
 
       if (!endpoint) {
         addMessage("The AI service is not configured yet.", "assistant");
-        status.textContent = "Configure window.LUNARCRAFT_AI_ENDPOINT to connect the assistant.";
+        status.textContent = "Configure the Hermes endpoint to connect the assistant.";
         return;
       }
 
@@ -116,13 +118,15 @@
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ messages: conversation })
+          credentials: "omit",
+          body: JSON.stringify({ model, messages: conversation, stream: false })
         });
-        if (!response.ok) throw new Error(`Request failed (${response.status})`);
-
         const result = await response.json();
-        const reply = result.reply || result.message || result.content;
+        if (!response.ok) {
+          throw new Error(result.error?.message || result.error || `Request failed (${response.status})`);
+        }
+
+        const reply = result.choices?.[0]?.message?.content || result.reply || result.message || result.content;
         if (typeof reply !== "string" || !reply.trim()) throw new Error("The assistant returned an empty response.");
         conversation.push({ role: "assistant", content: reply });
         addMessage(reply, "assistant");
