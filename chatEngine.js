@@ -12,10 +12,9 @@
         const user = sessionData?.session?.user;
         if (!user) return [];
 
+        const roleInfo = await window.resolveUserRole(user);
+        const isAdmin = roleInfo.isAdmin;
         const userEmail = (user.email || "").trim().toLowerCase();
-        const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
-        const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
-        const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
 
         const { data: rooms, error } = await db
           .from('chat_rooms')

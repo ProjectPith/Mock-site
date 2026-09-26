@@ -11,19 +11,20 @@
       if (!document.querySelector(`script[src="${src}"]`)) {
         const script = document.createElement("script");
         script.src = src;
-        script.defer = true;
+        script.async = false;
         document.head.appendChild(script);
       }
     }
   }
 
   loadAsset("/nav.css", "css");
+  loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
+  loadAsset("/global.js", "js");
   loadAsset("https://js.stripe.com/v3/", "js");
   loadAsset("/cart/cart.css", "css");
   loadAsset("/cart/cart.js", "js");
   loadAsset("/account/account.css", "css");
   loadAsset("/account/account.js", "js");
-  loadAsset("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "js");
 
   document.addEventListener("DOMContentLoaded", () => {
     let navContainer = document.getElementById("nav-container") || 

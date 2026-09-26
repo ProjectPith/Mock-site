@@ -202,7 +202,7 @@ function renderProjectMembers(members) {
         <span class="member-name">${escapeHtml(m.full_name)}</span>
         <span class="member-email-sub">${escapeHtml(m.email)}</span>
       </div>
-      <button class="btn-sm btn-danger" onclick="openRemoveMemberModal('${escapeHtml(m.email)}', '${escapeHtml(m.full_name)}')">Remove</button>
+      <button class="btn-sm btn-danger" onclick="openRemoveMemberModal(${JSON.stringify(String(m.email))}, ${JSON.stringify(String(m.full_name))})">Remove</button>
     </div>
   `).join("");
 }

@@ -156,7 +156,7 @@ function getStatusBadgeHTML(status, id) {
     case 'in_printify':
       return `<span class="badge badge-progress">In Progress</span>`;
     case 'shipped':
-      return `<button class="badge badge-shipped status-action-btn" onclick="openDeliveryModal('${id}')">Shipped (Click to Confirm Delivery)</button>`;
+      return `<button class="badge badge-shipped status-action-btn" onclick="openDeliveryModal(${JSON.stringify(String(id))})">Shipped (Click to Confirm Delivery)</button>`;
     case 'delivered':
     case 'completed':
       return `<span class="badge badge-delivered">Delivered</span>`;

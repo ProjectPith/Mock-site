@@ -202,15 +202,14 @@ async function handleCheckout(event) {
   const formattedTags = cart.map(item => generateShortTag(item));
 
   try {
-    const response = await fetch('https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY', {
+    const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmNscGZpcHFzcGJkYmFub2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjMwNDMsImV4cCI6MjEwNTE5OTA0M30.I9oy9CDFsEPdPuq2hA6pgnhI79_m4JxsROTfAh4Jjf0'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         items: cart,
-        product_tags: formattedTags // Pass array like ["LC Hdy | M | C", "LC MP"]
+        product_tags: formattedTags
       }),
     });
 

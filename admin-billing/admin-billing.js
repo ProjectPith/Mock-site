@@ -61,7 +61,7 @@ function renderGlobalPaymentHistory() {
 
   historyList.innerHTML = allTransactions.map(tx => {
     const project = allProjects.find(p => p.id === tx.project_id);
-    const projTitle = project ? project.title : 'General Payment';
+    const projTitle = project ? (project.name || project.title || 'Untitled Project') : 'General Payment';
     const dateStr = new Date(tx.created_at).toLocaleDateString();
 
     return `
@@ -145,14 +145,15 @@ function renderFilteredProjects() {
     const projectTx = allTransactions.filter(t => t.project_id === project.id && t.status === 'succeeded');
     const totalCollected = projectTx.reduce((sum, t) => sum + Number(t.amount), 0);
     const remaining = Math.max(0, Number(project.total_cost) - totalCollected);
-    const isMaintenance = project.title.toLowerCase().includes("maintenance") || project.title.toLowerCase().includes("hosting");
+    const projectLabel = (project.name || project.title || 'Untitled Project');
+    const isMaintenance = String(projectLabel).toLowerCase().includes("maintenance") || String(projectLabel).toLowerCase().includes("hosting");
 
     return `
-      <div class="project-card" onclick="openAdminProjectModal('${project.id}')">
+      <div class="project-card" onclick="openAdminProjectModal(${JSON.stringify(String(project.id))})">
         <span class="card-badge ${isMaintenance ? 'badge-maintenance' : 'badge-build'}">
           ${isMaintenance ? 'Maintenance' : 'Build'}
         </span>
-        <h4>${escapeHtml(project.title)}</h4>
+        <h4>${escapeHtml(projectLabel)}</h4>
         <div class="stat-row">
           <span class="stat-label">Total Cost:</span>
           <span class="stat-val">${formatUSD(project.total_cost)}</span>
@@ -181,13 +182,15 @@ window.openAdminProjectModal = function (projectId) {
   const totalCollected = projectTx.reduce((sum, t) => sum + Number(t.amount), 0);
   const remaining = Math.max(0, Number(project.total_cost) - totalCollected);
 
-  document.getElementById("admin-modal-project-title").textContent = project.title;
+  document.getElementById("admin-modal-project-title").textContent = project.name || project.title || 'Untitled Project';
   document.getElementById("admin-modal-total").textContent = formatUSD(project.total_cost);
   document.getElementById("admin-modal-collected").textContent = formatUSD(totalCollected);
   document.getElementById("admin-modal-remaining").textContent = formatUSD(remaining);
 
   // Render client emails assigned to project
-  const emails = (project.client_email || "").split(',').map(e => e.trim()).filter(Boolean);
+  const emails = Array.isArray(project.client_emails)
+    ? project.client_emails
+    : (project.client_email ? [project.client_email] : []);
   const clientContainer = document.getElementById("admin-modal-clients");
   clientContainer.innerHTML = emails.map(e => `<span class="client-tag">${escapeHtml(e)}</span>`).join('');
 

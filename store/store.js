@@ -137,7 +137,7 @@ function renderProducts() {
       const hasColors = prod.colors && prod.colors.length > 0;
 
       html += `
-        <div class="product-card" onclick="openProductModal('${prod.id}')">
+        <div class="product-card" onclick="openProductModal(${JSON.stringify(String(prod.id))})">
           <div class="product-image-wrap">
             <img id="img-${prod.id}" src="${prod.image}" alt="${prod.title}">
           </div>
@@ -170,7 +170,7 @@ function renderProducts() {
 
             <div class="product-price">$${prod.price.toFixed(2)}</div>
             <div class="card-actions" onclick="event.stopPropagation();">
-              <button class="btn btn-secondary" onclick="addToCartFromCard('${prod.id}')">Add to Cart</button>
+              <button class="btn btn-secondary" onclick="addToCartFromCard(${JSON.stringify(String(prod.id))})">Add to Cart</button>
             </div>
           </div>
         </div>`;
@@ -362,7 +362,7 @@ function openProductModal(productId) {
       ` : ''}
 
       <div class="product-price modal-price">$${prod.price.toFixed(2)}</div>
-      <button class="btn btn-secondary modal-add-btn" onclick="addToCartFromModal('${prod.id}')">Add to Cart</button>
+      <button class="btn btn-secondary modal-add-btn" onclick="addToCartFromModal(${JSON.stringify(String(prod.id))})">Add to Cart</button>
     </div>
   `;
 

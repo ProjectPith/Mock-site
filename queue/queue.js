@@ -37,7 +37,8 @@
     const { data, error } = await query;
 
     if (error) {
-      if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" style="color: #ff6b6b;">Error loading orders: ${error.message}</td></tr>`;
+      const safeError = (window.escapeHtml || ((value) => String(value ?? ''))) (error.message || 'Unknown error');
+      if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" style="color: #ff6b6b;">Error loading orders: ${safeError}</td></tr>`;
       console.error("Fetch orders error:", error);
       return;
     }
@@ -165,7 +166,8 @@
     if (Array.isArray(tags) && tags.length > 0) {
       tags.forEach(tag => {
         const li = document.createElement("li");
-        li.innerHTML = `<span style="font-family: monospace; font-weight: 600; color: #87ceeb;">${tag}</span>`;
+        const safeTag = (window.escapeHtml || ((value) => String(value ?? '')))(tag);
+        li.innerHTML = `<span style="font-family: monospace; font-weight: 600; color: #87ceeb;">${safeTag}</span>`;
         itemsList.appendChild(li);
       });
     } else {

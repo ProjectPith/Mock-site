@@ -2,9 +2,6 @@
   let isSignUpMode = false;
   let supabaseClient = null;
 
-  // Hardcoded Primary Admin Fallback
-  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
-
   function getSupabase() {
     if (!window.supabaseClient && window.supabase) {
       const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -14,25 +11,6 @@
     return window.supabaseClient;
   }
   
-  // Get local list of promoted admin emails
-  function getPromotedAdmins() {
-    try {
-      return JSON.parse(localStorage.getItem("promoted_admins") || "[]");
-    } catch {
-      return [];
-    }
-  }
-
-  // Add an email to local admin list
-  function addPromotedAdmin(email) {
-    const list = getPromotedAdmins();
-    const cleanEmail = email.toLowerCase().trim();
-    if (!list.includes(cleanEmail)) {
-      list.push(cleanEmail);
-      localStorage.setItem("promoted_admins", JSON.stringify(list));
-    }
-  }
-
   async function updateAccountPanelUI(user = null) {
     const bodyContainer = document.querySelector(".account-overlay-body");
     const panelTitle = document.getElementById("account-panel-title");
@@ -51,25 +29,22 @@
       if (panelTitle) panelTitle.textContent = "My Account";
       if (navAccountBtn) navAccountBtn.textContent = "Account";
 
-      const userEmail = (user.email || "").toLowerCase();
-      const promotedAdmins = getPromotedAdmins();
-  
-      let userRole = "client";
-      if (user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail)) {
-        userRole = "admin";
-      }
-
-      const isAdmin = userRole === "admin";
+      const roleInfo = await window.resolveUserRole(user);
+      const userRole = roleInfo.role;
+      const isAdmin = roleInfo.isAdmin;
       window.lunarCraftIsAdmin = isAdmin;
       window.dispatchEvent(new CustomEvent("lunarcraft:account-updated", { detail: { isAdmin } }));
       const currentFullName = user.user_metadata?.full_name || '';
       const currentPhone = user.user_metadata?.phone || user.phone || '';
       const displayName = currentFullName || user.email;
+      const safeDisplayName = window.escapeHtml ? window.escapeHtml(displayName) : String(displayName || '');
+      const safeFullName = window.escapeHtml ? window.escapeHtml(currentFullName) : String(currentFullName || '');
+      const safeEmail = window.escapeHtml ? window.escapeHtml(user.email || '') : String(user.email || '');
 
       bodyContainer.innerHTML = `
         <div class="account-user-card">
           <p class="account-subtext">LOGGED IN AS</p>
-          <h4 class="account-user-name">${displayName}</h4>
+          <h4 class="account-user-name">${safeDisplayName}</h4>
           <span class="account-role-badge ${isAdmin ? 'admin' : 'client'}">
             ${userRole}
           </span>
@@ -79,15 +54,15 @@
         <div id="account-settings-view" style="display: none; flex-direction: column; gap: 0.85rem; margin-bottom: 1.5rem;">
           <div class="account-form-group">
             <label for="edit-full-name">Full Name</label>
-            <input type="text" id="edit-full-name" class="account-input" value="${currentFullName}" placeholder="Jane Doe">
+            <input type="text" id="edit-full-name" class="account-input" value="${safeFullName}" placeholder="Jane Doe">
           </div>
           <div class="account-form-group">
             <label for="edit-email">Email Address</label>
-            <input type="email" id="edit-email" class="account-input" value="${user.email || ''}" placeholder="you@company.com">
+            <input type="email" id="edit-email" class="account-input" value="${safeEmail}" placeholder="you@company.com">
           </div>
           <div class="account-form-group">
             <label for="edit-phone">Phone Number (Optional)</label>
-            <input type="tel" id="edit-phone" class="account-input" value="${currentPhone}" placeholder="(555) 000-0000">
+            <input type="tel" id="edit-phone" class="account-input" value="${window.escapeHtml ? window.escapeHtml(currentPhone) : String(currentPhone || '')}" placeholder="(555) 000-0000">
           </div>
           <div class="account-form-group">
             <label for="edit-password">New Password (Leave blank to keep current)</label>
@@ -112,14 +87,6 @@
             <button class="nav-btn">💳 Client Invoicing</button>
             <button class="nav-btn">📄 Contract Vault & Search</button>
             <button class="nav-btn">💬 Project Communications</button>
-
-            <div class="account-promotion-box">
-                <p class="account-subtext" style="margin-bottom: 0.5rem;">QUICK ROLE PROMOTION</p>
-                <div class="account-promotion-row">
-                  <input type="email" id="promote-user-email" class="account-input" placeholder="User Email" style="font-size: 0.85rem;">
-                  <button id="promote-btn" type="button" class="account-promote-btn" title="Promote to Admin">✓</button>
-                </div>
-            </div>
           ` : `
             <button class="nav-btn">📦 Order History</button>
             <button class="nav-btn">🚀 Project Dashboard</button>
@@ -194,24 +161,6 @@
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
-      });
-
-      // Role Promotion Button Handler
-      document.getElementById("promote-btn")?.addEventListener("click", () => {
-        const targetEmail = document.getElementById("promote-user-email")?.value?.trim();
-        if (!targetEmail) return alert("Please enter a user email address.");
-
-        const promoteBtn = document.getElementById("promote-btn");
-        promoteBtn.disabled = true;
-        promoteBtn.textContent = "…";
-
-        addPromotedAdmin(targetEmail);
-
-        alert(`User ${targetEmail} elevated to Admin!`);
-        document.getElementById("promote-user-email").value = "";
-      
-        promoteBtn.disabled = false;
-        promoteBtn.textContent = "✓";
       });
 
     // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
@@ -372,10 +321,10 @@
           window.location.href = "/orders/orders.html";
         } else if (btnText.includes("Developer Dashboard")) {
           window.location.href = "/dashboard/dashboard.html";
-        } else if (btnText.includes("Billing & Payments") || btnText.includes("Invoicing")) {
-          window.location.href = "/billing/billing.html";
         } else if (btnText.includes("Client Invoicing")) {
           window.location.href = "/admin-billing/admin-billing.html";
+        } else if (btnText.includes("Billing & Payments") || btnText.includes("Invoicing")) {
+          window.location.href = "/billing/billing.html";
         } else if (btnText.includes("Project Communications")) {
           window.location.href = "/messages/messages.html";
         } else if (btnText.includes("Project Dashboard")) {

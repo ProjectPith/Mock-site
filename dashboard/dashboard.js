@@ -145,17 +145,20 @@ async function fetchProjects() {
     return;
   }
 
-  tableBody.innerHTML = projects.map(proj => `
-    <tr class="project-row" onclick="navigateToProject('${proj.id}')">
-      <td><strong>${proj.name}</strong></td>
-      <td class="hide-mobile">${proj.client_name || proj.client_email || 'Client'}</td>
-      <td><span class="badge">${proj.status || 'Active'}</span></td>
-      <td class="hide-mobile">
-        ${proj.repo_url ? `<a href="${proj.repo_url}" target="_blank" onclick="event.stopPropagation();">Repo ↗</a>` : 'N/A'}
-      </td>
-      <td class="hide-mobile"><button class="btn btn-outline btn-sm">View Page</button></td>
-    </tr>
-  `).join("");
+  tableBody.innerHTML = projects.map(proj => {
+    const safeRepoUrl = window.sanitizeUrl(proj.repo_url, '#');
+    return `
+      <tr class="project-row" onclick="navigateToProject(${JSON.stringify(String(proj.id))})">
+        <td><strong>${escapeHtml(proj.name)}</strong></td>
+        <td class="hide-mobile">${escapeHtml(proj.client_name || proj.client_email || 'Client')}</td>
+        <td><span class="badge">${escapeHtml(proj.status || 'Active')}</span></td>
+        <td class="hide-mobile">
+          ${safeRepoUrl !== '#' ? `<a href="${safeRepoUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">Repo ↗</a>` : 'N/A'}
+        </td>
+        <td class="hide-mobile"><button class="btn btn-outline btn-sm">View Page</button></td>
+      </tr>
+    `;
+  }).join("");
 }
 
 window.navigateToProject = function(projectId) {

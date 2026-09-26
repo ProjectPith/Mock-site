@@ -94,7 +94,7 @@ function renderProjectsList(projects) {
   container.innerHTML = projects.map(p => {
     const status = p.status || "Active";
     return `
-      <button type="button" class="project-card-btn" onclick="selectProject('${escapeHtml(p.id)}')">
+      <button type="button" class="project-card-btn" onclick="selectProject(${JSON.stringify(String(p.id))})">
         <div class="project-card-info">
           <span class="project-card-title">${escapeHtml(p.name || "Untitled Project")}</span>
         </div>
@@ -171,9 +171,16 @@ function setupLinkBox(buttonId, url) {
   if (!btn) return;
 
   if (url) {
+    const safeUrl = window.sanitizeUrl ? window.sanitizeUrl(url, '#') : url;
     btn.classList.add("available");
     btn.classList.remove("disabled");
-    btn.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
+    btn.onclick = () => {
+      if (safeUrl === '#') {
+        showToast("Link has not been attached yet.");
+        return;
+      }
+      window.open(safeUrl, "_blank", "noopener,noreferrer");
+    };
   } else {
     btn.classList.add("disabled");
     btn.classList.remove("available");

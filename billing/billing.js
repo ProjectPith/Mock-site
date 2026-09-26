@@ -81,7 +81,7 @@ function renderPaymentHistory() {
 
   historyList.innerHTML = userTx.map(tx => {
     const project = loadedProjects.find(p => p.id === tx.project_id);
-    const projTitle = project ? project.title : 'General Payment';
+    const projTitle = project ? (project.name || project.title || 'Untitled Project') : 'General Payment';
     const dateStr = new Date(tx.created_at).toLocaleDateString();
     const amountStr = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tx.amount);
 
@@ -124,9 +124,11 @@ function renderProjectsAndBalance() {
     
     userTotalOutstanding += remainingGroupBalance;
 
+    const projectLabel = project.name || project.title || 'Untitled Project';
+
     return `
-      <div class="project-card" onclick="openProjectModal('${project.id}')">
-        <h4>${escapeHtml(project.title)}</h4>
+      <div class="project-card" onclick="openProjectModal(${JSON.stringify(String(project.id))})">
+        <h4>${escapeHtml(projectLabel)}</h4>
         <div class="stat-row">
           <span class="stat-label">Project Cost:</span>
           <span class="stat-val">${formatUSD(project.total_cost)}</span>
@@ -161,7 +163,7 @@ window.openProjectModal = function(projectId) {
   const userPaid = userTx.reduce((sum, t) => sum + Number(t.amount), 0);
   const remainingGroupBalance = Math.max(0, Number(project.total_cost) - totalGroupPaid);
 
-  document.getElementById("modal-project-title").textContent = project.title;
+  document.getElementById("modal-project-title").textContent = project.name || project.title || 'Untitled Project';
   document.getElementById("modal-project-total").textContent = formatUSD(project.total_cost);
   document.getElementById("modal-user-paid").textContent = formatUSD(userPaid);
   document.getElementById("modal-project-remaining").textContent = formatUSD(remainingGroupBalance);

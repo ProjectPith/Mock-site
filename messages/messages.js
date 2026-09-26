@@ -55,11 +55,9 @@ async function getCurrentUserRole() {
 
   if (!user) return { type: 'client', name: 'Guest Client', isAdmin: false, email: '' };
 
-  const PRIMARY_ADMIN_UID = "a854c1f9-292f-49ac-89c0-37dd509e683d";
-  const promotedAdmins = JSON.parse(localStorage.getItem("promoted_admins") || "[]");
+  const roleInfo = await window.resolveUserRole(user);
   const userEmail = (user.email || "").toLowerCase();
-
-  const isAdmin = user.id === PRIMARY_ADMIN_UID || promotedAdmins.includes(userEmail);
+  const isAdmin = roleInfo.isAdmin;
   const senderName = user.user_metadata?.full_name || user.email || (isAdmin ? 'Admin' : 'Client');
 
   return { type: isAdmin ? 'admin' : 'client', name: senderName, isAdmin, email: userEmail };

@@ -250,7 +250,7 @@ async function fetchPendingIntakes() {
     const submittedDate = new Date(item.created_at).toLocaleDateString();
 
     return `
-      <div class="intake-card" onclick="openIntakeDetail('${item.id}')">
+      <div class="intake-card" onclick="openIntakeDetail(${JSON.stringify(String(item.id))})">
         <div class="intake-card-row">
           <div class="intake-card-item project-title">${escapeHtml(item.project_name || "Untitled Project")}</div>
           <span class="card-divider">|</span>
