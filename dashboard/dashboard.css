@@ -52,8 +52,16 @@
   overflow-y: auto;
 }
 
+.tool-bookmark-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .tool-card {
   display: flex;
+  flex: 1;
+  min-width: 0;
   justify-content: space-between;
   align-items: center;
   background: #21262d;
@@ -68,6 +76,26 @@
 .tool-card:hover {
   border-color: #87ceeb;
   background: #2d333b;
+}
+
+.tool-bookmark-actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.tool-bookmark-actions button {
+  padding: 0.35rem 0.4rem;
+  background: transparent;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.tool-bookmark-actions button:hover {
+  border-color: #87ceeb;
+  color: #87ceeb;
 }
 
 /* MAIN SPLIT (DESKTOP) */
