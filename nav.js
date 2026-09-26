@@ -7,7 +7,7 @@
         link.href = src;
         document.head.appendChild(link);
       }
-    } else if (type === "js") {
+    } else if (type === "js") { 
       if (!document.querySelector(`script[src="${src}"]`)) {
         const script = document.createElement("script");
         script.src = src;
