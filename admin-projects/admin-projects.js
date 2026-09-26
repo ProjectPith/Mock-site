@@ -5,6 +5,8 @@ let activeChatRoomId = null;
 let activeChatChannel = null;
 let editingBubbleIndex = null;
 let memberToRemoveEmail = null;
+let projectBookmarks = [];
+let editingBookmarkId = null;
 
 if (!window.supabaseClient && window.supabase) {
   const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -267,15 +269,23 @@ async function fetchProjectBookmarks(projectId) {
     .order("created_at", { ascending: false });
 
   if (error || !bookmarks || bookmarks.length === 0) {
+    projectBookmarks = [];
     container.innerHTML = `<p style="font-size:0.8rem; color:#8b949e;">No bookmarks linked to this project.</p>`;
     return;
   }
 
-  container.innerHTML = bookmarks.map(bm => `
-    <a href="${escapeHtml(bm.url)}" target="_blank" rel="noopener noreferrer" class="bookmark-card">
-      <span>${escapeHtml(bm.name)} ↗</span>
-      <span class="visibility-tag ${bm.visibility}">${escapeHtml(bm.visibility)}</span>
-    </a>
+  projectBookmarks = bookmarks;
+  container.innerHTML = projectBookmarks.map(bm => `
+    <div class="project-bookmark-item">
+      <a href="${escapeHtml(bm.url)}" target="_blank" rel="noopener noreferrer" class="bookmark-card">
+        <span>${escapeHtml(bm.name)} ↗</span>
+        <span class="visibility-tag ${escapeHtml(bm.visibility)}">${escapeHtml(bm.visibility)}</span>
+      </a>
+      <div class="project-bookmark-actions">
+        <button type="button" data-bookmark-action="edit" data-bookmark-id="${escapeHtml(bm.id)}">Edit</button>
+        <button type="button" data-bookmark-action="delete" data-bookmark-id="${escapeHtml(bm.id)}">Delete</button>
+      </div>
+    </div>
   `).join("");
 }
 
@@ -283,20 +293,57 @@ async function saveBookmark(name, url, visibility) {
   if (!activeProject) return;
   const db = getDb();
 
-  const { error } = await db.from("bookmarks").insert({
-    project_id: activeProject.id,
-    name: name,
-    url: url,
-    visibility: visibility
-  });
+  const changes = { name, url, visibility };
+  const result = editingBookmarkId
+    ? await db.from("bookmarks").update(changes).eq("id", editingBookmarkId).eq("project_id", activeProject.id)
+    : await db.from("bookmarks").insert({ ...changes, project_id: activeProject.id });
+
+  if (result.error) {
+    console.error("Error saving bookmark:", result.error);
+    alert("Failed to save bookmark.");
+    return false;
+  }
+
+  editingBookmarkId = null;
+  await fetchProjectBookmarks(activeProject.id);
+  return true;
+}
+
+function openProjectBookmarkEditor(bookmark) {
+  editingBookmarkId = bookmark.id;
+  document.getElementById("bm-name").value = bookmark.name || "";
+  document.getElementById("bm-url").value = bookmark.url || "";
+  document.getElementById("bm-visibility").value = bookmark.visibility || "private";
+  document.querySelector("#modal-bookmark h3").textContent = "Edit Project Bookmark";
+  document.querySelector("#form-add-bookmark button[type='submit']").textContent = "Save Changes";
+  openModal("modal-bookmark");
+}
+
+function resetProjectBookmarkForm() {
+  editingBookmarkId = null;
+  document.getElementById("form-add-bookmark")?.reset();
+  document.querySelector("#modal-bookmark h3").textContent = "Add Project Bookmark";
+  document.querySelector("#form-add-bookmark button[type='submit']").textContent = "Save Bookmark";
+}
+
+async function deleteProjectBookmark(bookmarkId) {
+  const bookmark = projectBookmarks.find(item => item.id === bookmarkId);
+  if (!activeProject || !bookmark || !window.confirm(`Delete the bookmark "${bookmark.name}"?`)) return;
+
+  const db = getDb();
+  const { error } = await db
+    .from("bookmarks")
+    .delete()
+    .eq("id", bookmarkId)
+    .eq("project_id", activeProject.id);
 
   if (error) {
-    console.error("Error saving bookmark:", error);
-    alert("Failed to save bookmark.");
+    console.error("Error deleting bookmark:", error);
+    alert("Failed to delete bookmark.");
     return;
   }
 
-  fetchProjectBookmarks(activeProject.id);
+  await fetchProjectBookmarks(activeProject.id);
 }
 
 // ==========================================
@@ -405,15 +452,31 @@ function setupEventListeners() {
   document.getElementById("btn-confirm-remove-member")?.addEventListener("click", confirmRemoveMember);
 
   // Bookmark Modal
-  document.getElementById("btn-add-bookmark")?.addEventListener("click", () => openModal("modal-bookmark"));
-  document.getElementById("form-add-bookmark")?.addEventListener("submit", (e) => {
+  document.getElementById("btn-add-bookmark")?.addEventListener("click", () => {
+    resetProjectBookmarkForm();
+    openModal("modal-bookmark");
+  });
+  document.getElementById("form-add-bookmark")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("bm-name").value;
     const url = document.getElementById("bm-url").value;
     const vis = document.getElementById("bm-visibility").value;
-    saveBookmark(name, url, vis);
+    const saved = await saveBookmark(name, url, vis);
+    if (!saved) return;
+
     closeModal("modal-bookmark");
-    e.target.reset();
+    resetProjectBookmarkForm();
+  });
+
+  document.getElementById("bookmarks-list")?.addEventListener("click", (e) => {
+    const button = e.target.closest("button[data-bookmark-action]");
+    if (!button) return;
+
+    const bookmark = projectBookmarks.find(item => item.id === button.dataset.bookmarkId);
+    if (!bookmark) return;
+
+    if (button.dataset.bookmarkAction === "edit") openProjectBookmarkEditor(bookmark);
+    if (button.dataset.bookmarkAction === "delete") deleteProjectBookmark(bookmark.id);
   });
 
   // Docs Modal
