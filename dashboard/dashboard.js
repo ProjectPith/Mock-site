@@ -20,30 +20,62 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 // 1. TOOL BOOKMARKS LOGIC
 // ==========================================
-function loadToolBookmarks() {
-  const tools = JSON.parse(localStorage.getItem("dev_tools") || "[]");
+async function loadToolBookmarks() {
   const container = document.getElementById("tools-list");
-  
   if (!container) return;
 
-  if (tools.length === 0) {
+  const db = getDb();
+  if (!db) {
+    container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">Bookmarks are unavailable.</p>`;
+    return;
+  }
+
+  const { data: bookmarks, error } = await db
+    .from("bookmarks")
+    .select("*")
+    .is("project_id", null)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching tool bookmarks:", error);
+    container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">Unable to load bookmarks.</p>`;
+    return;
+  }
+
+  if (!bookmarks || bookmarks.length === 0) {
     container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">No tools bookmarked yet.</p>`;
     return;
   }
 
-  container.innerHTML = tools.map((tool) => `
-    <a href="${tool.url}" target="_blank" class="tool-card">
-      <span>${tool.name}</span>
+  container.innerHTML = bookmarks.map((bookmark) => `
+    <a href="${escapeHtml(bookmark.url)}" target="_blank" rel="noopener noreferrer" class="tool-card">
+      <span>${escapeHtml(bookmark.name)}</span>
       <span style="font-size: 0.75rem; color: #8b949e;">↗</span>
     </a>
   `).join("");
 }
 
-function saveToolBookmark(name, url) {
-  const tools = JSON.parse(localStorage.getItem("dev_tools") || "[]");
-  tools.push({ name, url });
-  localStorage.setItem("dev_tools", JSON.stringify(tools));
-  loadToolBookmarks();
+async function saveToolBookmark(name, url) {
+  const db = getDb();
+  if (!db) {
+    alert("Unable to save bookmark.");
+    return false;
+  }
+
+  const { error } = await db.from("bookmarks").insert({
+    name,
+    url,
+    visibility: "private"
+  });
+
+  if (error) {
+    console.error("Error saving tool bookmark:", error);
+    alert("Unable to save bookmark.");
+    return false;
+  }
+
+  await loadToolBookmarks();
+  return true;
 }
 
 // ==========================================
@@ -234,12 +266,14 @@ function setupEventListeners() {
   }
 
   if (form && toolModal) {
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById("tool-name").value;
-      const url = document.getElementById("tool-url").value;
+      const name = document.getElementById("tool-name").value.trim();
+      const url = document.getElementById("tool-url").value.trim();
       
-      saveToolBookmark(name, url);
+      const saved = await saveToolBookmark(name, url);
+      if (!saved) return;
+
       form.reset();
       toolModal.classList.add("hidden");
     });
