@@ -356,6 +356,37 @@
   background: #2d333b;
 }
 
+.project-bookmark-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.project-bookmark-item .bookmark-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-bookmark-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.project-bookmark-actions button {
+  padding: 0.35rem 0.45rem;
+  background: #181c20;
+  border: 1px solid #373e47;
+  border-radius: 4px;
+  color: #e6edf3;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.project-bookmark-actions button:hover {
+  border-color: #88c0d0;
+  color: #88c0d0;
+}
+
 .visibility-tag {
   font-size: 0.7rem;
   padding: 2px 6px;
