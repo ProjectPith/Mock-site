@@ -1,5 +1,7 @@
 // Global State
 let activeDashRoomId = null;
+let toolBookmarks = [];
+let editingToolBookmarkId = null;
 
 if (!window.supabaseClient && window.supabase) {
   const SUPABASE_URL = "https://rpfclpfipqspbdbanobj.supabase.co";
@@ -38,20 +40,28 @@ async function loadToolBookmarks() {
 
   if (error) {
     console.error("Error fetching tool bookmarks:", error);
+    toolBookmarks = [];
     container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">Unable to load bookmarks.</p>`;
     return;
   }
 
-  if (!bookmarks || bookmarks.length === 0) {
+  toolBookmarks = bookmarks || [];
+  if (toolBookmarks.length === 0) {
     container.innerHTML = `<p style="font-size: 0.8rem; color: #8b949e;">No tools bookmarked yet.</p>`;
     return;
   }
 
-  container.innerHTML = bookmarks.map((bookmark) => `
-    <a href="${escapeHtml(bookmark.url)}" target="_blank" rel="noopener noreferrer" class="tool-card">
-      <span>${escapeHtml(bookmark.name)}</span>
-      <span style="font-size: 0.75rem; color: #8b949e;">↗</span>
-    </a>
+  container.innerHTML = toolBookmarks.map((bookmark) => `
+    <div class="tool-bookmark-item">
+      <a href="${escapeHtml(bookmark.url)}" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <span>${escapeHtml(bookmark.name)}</span>
+        <span style="font-size: 0.75rem; color: #8b949e;">↗</span>
+      </a>
+      <div class="tool-bookmark-actions">
+        <button type="button" data-bookmark-action="edit" data-bookmark-id="${escapeHtml(bookmark.id)}">Edit</button>
+        <button type="button" data-bookmark-action="delete" data-bookmark-id="${escapeHtml(bookmark.id)}">Delete</button>
+      </div>
+    </div>
   `).join("");
 }
 
@@ -62,20 +72,57 @@ async function saveToolBookmark(name, url) {
     return false;
   }
 
-  const { error } = await db.from("bookmarks").insert({
-    name,
-    url,
-    visibility: "private"
-  });
+  const changes = { name, url };
+  const result = editingToolBookmarkId
+    ? await db.from("bookmarks").update(changes).eq("id", editingToolBookmarkId).is("project_id", null)
+    : await db.from("bookmarks").insert({ ...changes, visibility: "private" });
 
-  if (error) {
-    console.error("Error saving tool bookmark:", error);
+  if (result.error) {
+    console.error("Error saving tool bookmark:", result.error);
     alert("Unable to save bookmark.");
     return false;
   }
 
+  editingToolBookmarkId = null;
   await loadToolBookmarks();
   return true;
+}
+
+async function deleteToolBookmark(bookmarkId) {
+  const bookmark = toolBookmarks.find(item => item.id === bookmarkId);
+  if (!bookmark || !window.confirm(`Delete the bookmark "${bookmark.name}"?`)) return;
+
+  const db = getDb();
+  const { error } = await db
+    .from("bookmarks")
+    .delete()
+    .eq("id", bookmarkId)
+    .is("project_id", null);
+
+  if (error) {
+    console.error("Error deleting tool bookmark:", error);
+    alert("Unable to delete bookmark.");
+    return;
+  }
+
+  await loadToolBookmarks();
+}
+
+function openToolBookmarkEditor(bookmark) {
+  editingToolBookmarkId = bookmark.id;
+  document.getElementById("tool-name").value = bookmark.name || "";
+  document.getElementById("tool-url").value = bookmark.url || "";
+  document.querySelector("#tool-modal h3").textContent = "Edit Tool Bookmark";
+  document.querySelector("#add-tool-form button[type='submit']").textContent = "Save Changes";
+  document.getElementById("tool-modal").classList.remove("hidden");
+}
+
+function resetToolBookmarkForm() {
+  editingToolBookmarkId = null;
+  const form = document.getElementById("add-tool-form");
+  form?.reset();
+  document.querySelector("#tool-modal h3").textContent = "Add Tool Bookmark";
+  document.querySelector("#add-tool-form button[type='submit']").textContent = "Save Bookmark";
 }
 
 // ==========================================
@@ -258,7 +305,10 @@ function setupEventListeners() {
   const startContractBtn = document.getElementById("start-contract-btn");
 
   if (addBtn && toolModal) {
-    addBtn.addEventListener("click", () => toolModal.classList.remove("hidden"));
+    addBtn.addEventListener("click", () => {
+      resetToolBookmarkForm();
+      toolModal.classList.remove("hidden");
+    });
   }
 
   if (closeBtn && toolModal) {
@@ -275,9 +325,22 @@ function setupEventListeners() {
       if (!saved) return;
 
       form.reset();
+      document.querySelector("#tool-modal h3").textContent = "Add Tool Bookmark";
+      document.querySelector("#add-tool-form button[type='submit']").textContent = "Save Bookmark";
       toolModal.classList.add("hidden");
     });
   }
+
+  document.getElementById("tools-list")?.addEventListener("click", (e) => {
+    const button = e.target.closest("button[data-bookmark-action]");
+    if (!button) return;
+
+    const bookmark = toolBookmarks.find(item => item.id === button.dataset.bookmarkId);
+    if (!bookmark) return;
+
+    if (button.dataset.bookmarkAction === "edit") openToolBookmarkEditor(bookmark);
+    if (button.dataset.bookmarkAction === "delete") deleteToolBookmark(bookmark.id);
+  });
 
   if (startContractBtn) {
     startContractBtn.addEventListener("click", () => {
