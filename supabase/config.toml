@@ -13,6 +13,12 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = true
 
+[functions.request-account-action]
+verify_jwt = true
+
+[functions.confirm-account-action]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.

@@ -66,16 +66,18 @@
             <input type="tel" id="edit-phone" class="account-input" value="${window.escapeHtml ? window.escapeHtml(currentPhone) : String(currentPhone || '')}" placeholder="(555) 000-0000">
           </div>
           <div class="account-form-group">
-            <label for="edit-password">New Password (Leave blank to keep current)</label>
-            <input type="password" id="edit-password" class="account-input" placeholder="••••••••" autocomplete="new-password">
+            <label for="edit-password">New Password (Enter again after email confirmation)</label>
+            <input type="password" id="edit-password" class="account-input" placeholder="Leave blank to keep current" autocomplete="new-password">
           </div>
-
           <!-- Scaled-Up Action Buttons matching the Sign-In UI -->
           <button type="button" id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Save Changes
           </button>
           <button type="button" id="cancel-profile-btn" class="nav-btn" style="width: 100%; justify-content: center; opacity: 0.8; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Cancel
+          </button>
+          <button type="button" id="account-delete-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 0.25rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600; color: #f85149; border: 1px solid #f85149;">
+            Delete My Account
           </button>
         </form>
 
@@ -100,9 +102,6 @@
         <button id="account-logout-btn" class="nav-btn account-logout-btn">
           Sign Out
         </button>
-        <button type="button" id="account-delete-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 0.75rem; color: #f85149; border: 1px solid #f85149;">
-          Delete My Account
-        </button>
       `;
 
       // Toggle View Listeners
@@ -124,57 +123,34 @@
         const newName = document.getElementById("edit-full-name")?.value.trim();
         const newEmail = document.getElementById("edit-email")?.value.trim();
         const newPhone = document.getElementById("edit-phone")?.value.trim();
-        const newPassword = document.getElementById("edit-password")?.value.trim();
+        const wantsPasswordChange = Boolean(document.getElementById("edit-password")?.value.trim());
 
         const saveBtn = document.getElementById("save-profile-btn");
         saveBtn.disabled = true;
-        saveBtn.textContent = "Saving...";
+        saveBtn.textContent = "Sending Confirmation...";
 
-        const updatePayload = {
-          data: { 
-            full_name: newName,
-            phone: newPhone
+        const { error } = await supabase.functions.invoke("request-account-action", {
+          body: {
+            action: "update",
+            changes: { full_name: newName, phone: newPhone, email: newEmail },
+            password_change: wantsPasswordChange
           }
-        };
-
-        if (newEmail && newEmail !== user.email) {
-          updatePayload.email = newEmail;
-        }
-
-        if (newPassword) {
-          updatePayload.password = newPassword;
-        }
-
-        const { data: updatedData, error } = await supabase.auth.updateUser(updatePayload);
+        });
 
         if (error) {
-          alert(`Update failed: ${error.message}`);
-          saveBtn.disabled = false;
-          saveBtn.textContent = "Save Changes";
+          console.error("Account change request failed:", error);
+          alert(`Could not request account changes: ${error.message}`);
         } else {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .update({
-              full_name: newName,
-              email: newEmail || user.email
-            })
-            .eq("id", user.id);
-
-          if (profileError) {
-            console.error("Profile update failed:", profileError);
-            alert(`Account updated, but profile table update failed: ${profileError.message}`);
-            saveBtn.disabled = false;
-            saveBtn.textContent = "Save Changes";
-            return;
-          }
-
-          let message = "Account details updated successfully!";
-          if (newEmail && newEmail !== user.email) {
-            message += "\n\nNote: If email confirmation is enabled on Supabase, please check your new inbox to confirm the change.";
-          }
-          alert(message);
-          await updateAccountPanelUI(updatedData.user);
+          const passwordNote = wantsPasswordChange
+            ? " A new password can be entered after confirming the email link."
+            : "";
+          alert(`We sent a confirmation link to ${newEmail || user.email}. Your changes will apply only after you open it.${passwordNote}`);
+          const passwordInput = document.getElementById("edit-password");
+          if (passwordInput) passwordInput.value = "";
         }
+
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
       });
 
       // Logout Event Listener
@@ -191,20 +167,20 @@
         if (!confirmed) return;
 
         deleteButton.disabled = true;
-        deleteButton.textContent = "Deleting Account...";
+        deleteButton.textContent = "Sending Confirmation...";
 
-        const { error: deleteError } = await supabase.functions.invoke("delete-account");
-        if (deleteError) {
-          console.error("Account deletion failed:", deleteError);
-          alert(`Account deletion failed: ${deleteError.message}`);
-          deleteButton.disabled = false;
-          deleteButton.textContent = "Delete My Account";
-          return;
+        const { error: requestError } = await supabase.functions.invoke("request-account-action", {
+          body: { action: "delete" }
+        });
+        if (requestError) {
+          console.error("Account deletion request failed:", requestError);
+          alert(`Could not request account deletion: ${requestError.message}`);
+        } else {
+          alert(`We sent a confirmation link to ${user.email}. Your account will be deleted only after you open that link.`);
         }
 
-        await supabase.auth.signOut({ scope: "local" });
-        alert("Your account has been deleted. You can now register again with this email.");
-        window.location.href = "/index.html";
+        deleteButton.disabled = false;
+        deleteButton.textContent = "Delete My Account";
       });
 
     // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
