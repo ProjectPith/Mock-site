@@ -66,7 +66,7 @@
           </div>
           <div class="account-form-group">
             <label for="edit-password">New Password (Leave blank to keep current)</label>
-            <input type="password" id="edit-password" class="account-input" placeholder="••••••••">
+            <input type="password" id="edit-password" class="account-input" placeholder="••••••••" autocomplete="new-password">
           </div>
 
           <!-- Scaled-Up Action Buttons matching the Sign-In UI -->
@@ -183,11 +183,11 @@
           </div>
           <div class="account-form-group">
             <label for="client-email">Email Address</label>
-            <input type="email" id="client-email" class="account-input" placeholder="you@company.com" required>
+            <input type="email" id="client-email" class="account-input" placeholder="you@company.com" autocomplete="email" required>
           </div>
           <div class="account-form-group">
             <label for="client-pass">Password / Passcode</label>
-            <input type="password" id="client-pass" class="account-input" placeholder="••••••••" required>
+            <input type="password" id="client-pass" class="account-input" placeholder="••••••••" autocomplete="${isSignUpMode ? 'new-password' : 'current-password'}" required>
           </div>
             
           <button type="submit" id="auth-submit-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 1rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
