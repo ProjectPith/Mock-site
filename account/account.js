@@ -51,7 +51,7 @@
         </div>
 
         <!-- Edit Profile Form (Hidden by default) -->
-        <div id="account-settings-view" style="display: none; flex-direction: column; gap: 0.85rem; margin-bottom: 1.5rem;">
+        <form id="account-profile-form" style="display: none; flex-direction: column; gap: 0.85rem; margin-bottom: 1.5rem;">
           <div class="account-form-group">
             <label for="edit-full-name">Full Name</label>
             <input type="text" id="edit-full-name" class="account-input" value="${safeFullName}" placeholder="Jane Doe">
@@ -70,13 +70,13 @@
           </div>
 
           <!-- Scaled-Up Action Buttons matching the Sign-In UI -->
-          <button id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
+          <button type="button" id="save-profile-btn" class="nav-btn" style="background-color: var(--accent-blue, #87ceeb); color: #000; width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Save Changes
           </button>
-          <button id="cancel-profile-btn" class="nav-btn" style="width: 100%; justify-content: center; opacity: 0.8; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
+          <button type="button" id="cancel-profile-btn" class="nav-btn" style="width: 100%; justify-content: center; opacity: 0.8; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;">
             Cancel
           </button>
-        </div>
+        </form>
 
         <!-- Navigation Stack -->
         <div id="account-menu-stack" class="account-tab-stack">
