@@ -210,6 +210,9 @@
             ${isSignUpMode ? 'Create Account' : 'Access Workspace'}
           </button>
         </form>
+        <button type="button" id="password-reset-btn" class="nav-btn" style="display: ${isSignUpMode ? 'none' : 'flex'}; width: 100%; justify-content: center; margin-top: 0.75rem;">
+          Send Password Reset Email
+        </button>
       `;
 
       bindAuthFormEvents();
@@ -221,6 +224,7 @@
     const tabSignUp = document.getElementById("tab-signup");
     const nameGroup = document.getElementById("name-group");
     const submitBtn = document.getElementById("auth-submit-btn");
+    const passwordResetBtn = document.getElementById("password-reset-btn");
 
     if (tabSignIn && tabSignUp) {
       tabSignIn.addEventListener("click", () => {
@@ -229,6 +233,7 @@
         tabSignUp.style.opacity = "0.6";
         if (nameGroup) nameGroup.style.display = "none";
         if (submitBtn) submitBtn.textContent = "Access Workspace";
+        if (passwordResetBtn) passwordResetBtn.style.display = "flex";
       });
 
       tabSignUp.addEventListener("click", () => {
@@ -237,8 +242,35 @@
         tabSignIn.style.opacity = "0.6";
         if (nameGroup) nameGroup.style.display = "flex";
         if (submitBtn) submitBtn.textContent = "Create Account";
+        if (passwordResetBtn) passwordResetBtn.style.display = "none";
       });
     }
+
+    passwordResetBtn?.addEventListener("click", async () => {
+      const email = document.getElementById("client-email")?.value.trim();
+      if (!email) {
+        alert("Enter your email address first.");
+        document.getElementById("client-email")?.focus();
+        return;
+      }
+
+      const supabase = getSupabase();
+      if (!supabase) {
+        alert("Account services are unavailable. Please try again later.");
+        return;
+      }
+
+      passwordResetBtn.disabled = true;
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        alert("If an account exists for that email, Supabase will send a password reset message.");
+      } catch (error) {
+        alert(`Could not send password reset: ${error.message}`);
+      } finally {
+        passwordResetBtn.disabled = false;
+      }
+    });
 
     const form = document.getElementById("account-auth-form");
     if (form) {
