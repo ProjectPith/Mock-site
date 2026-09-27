@@ -94,7 +94,7 @@ function renderProjectsList(projects) {
   container.innerHTML = projects.map(p => {
     const status = p.status || "Active";
     return `
-      <button type="button" class="project-card-btn" onclick="selectProject(${JSON.stringify(String(p.id))})">
+      <button type="button" class="project-card-btn" onclick="selectProject('${p.id}')">
         <div class="project-card-info">
           <span class="project-card-title">${escapeHtml(p.name || "Untitled Project")}</span>
         </div>
