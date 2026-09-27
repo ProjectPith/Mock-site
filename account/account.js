@@ -266,6 +266,10 @@
             alert(`Registration failed: ${error.message}`);
             submitBtn.disabled = false;
             submitBtn.textContent = "Create Account";
+          } else if (data.user && !data.session && (!data.user.identities || data.user.identities.length === 0)) {
+            alert("An account with that email already exists. Sign in instead or use the password reset flow.");
+            isSignUpMode = false;
+            await updateAccountPanelUI(null);
           } else {
             const confirmationRequired = !data.session;
             alert(confirmationRequired
