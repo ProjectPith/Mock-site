@@ -9,6 +9,13 @@
 let currentIntakeId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const { data: { user } } = await window.supabaseClient.auth.getUser();
+  if (!user) {
+    const message = document.getElementById("contract-msg");
+    if (message) message.textContent = "Sign in with an involved-party account to view this contract preview.";
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   currentIntakeId = urlParams.get("intake_id");
   const mode = urlParams.get("mode");

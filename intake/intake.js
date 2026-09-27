@@ -123,11 +123,25 @@ function setupFormSubmission() {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    msgEl.textContent = "Saving intake specifications...";
-    msgEl.style.color = "#87ceeb";
-
     const emailInputs = document.querySelectorAll(".party-email");
     const emails = Array.from(emailInputs).map(i => i.value.trim()).filter(Boolean);
+    const db = window.supabaseClient;
+    const { data: { user }, error: authError } = await db.auth.getUser();
+
+    if (authError || !user?.email) {
+      msgEl.textContent = "Sign in before submitting project intake details.";
+      msgEl.style.color = "#ff6b6b";
+      return;
+    }
+
+    if (!emails.some(email => email.toLowerCase() === user.email.toLowerCase())) {
+      msgEl.textContent = "Add the email address for your signed-in account to the involved parties.";
+      msgEl.style.color = "#ff6b6b";
+      return;
+    }
+
+    msgEl.textContent = "Saving intake specifications...";
+    msgEl.style.color = "#87ceeb";
 
     const colorMethod = document.querySelector("input[name='color_method']:checked").value;
     let colorDetails = {};
@@ -174,7 +188,6 @@ function setupFormSubmission() {
       status: 'awaiting_admin_review'
     };
 
-    const db = window.supabaseClient;
     let recordId = existingIntakeId;
 
     if (existingIntakeId) {
