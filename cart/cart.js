@@ -9,8 +9,12 @@ let cart = (typeof state !== 'undefined' && state.cart)
   ? state.cart 
   : (JSON.parse(localStorage.getItem('cart')) || []);
 
-const stripeKey = 'pk_test_51UFYfXC73VlwIj7JYrP3KUOFJL4S32D2PHrHmZAfjCByTz9z999jGdfZv2ea6AkMHnLmzDrghpXB4iGikUL8oKOm00KdYIxacV'; 
+const stripeKey = 'pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe';
 let stripeInstance = null;
+const checkoutEndpoint = window.location.protocol === 'file:'
+  ? 'https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY'
+  : '/api/create-checkout-session';
+const supabasePublishableKey = 'sb_publishable_bT739cvrORLIrJYQmUVO2Q_9qe25hOU';
 
 // Helper to convert cart items into short codes
 function generateShortTag(item) {
@@ -202,11 +206,18 @@ async function handleCheckout(event) {
   const formattedTags = cart.map(item => generateShortTag(item));
 
   try {
-    const response = await fetch('/api/create-checkout-session', {
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+    };
+
+    if (checkoutEndpoint.startsWith('https://')) {
+      requestHeaders.apikey = supabasePublishableKey;
+      requestHeaders.Authorization = `Bearer ${supabasePublishableKey}`;
+    }
+
+    const response = await fetch(checkoutEndpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: requestHeaders,
       body: JSON.stringify({
         items: cart,
         product_tags: formattedTags

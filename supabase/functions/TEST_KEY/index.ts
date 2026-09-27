@@ -13,7 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const stripe = new Stripe(Deno.env.get("TEST_KEY") || "", {
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY")
+      || Deno.env.get("TEST_KEY")
+      || Deno.env.get("STRIPE_KEY")
+      || ""
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2022-11-15',
       httpClient: Stripe.createFetchHttpClient(),
     })
