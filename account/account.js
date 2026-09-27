@@ -59,7 +59,7 @@
           </div>
           <div class="account-form-group">
             <label for="edit-email">Email Address</label>
-            <input type="email" id="edit-email" class="account-input" value="${safeEmail}" placeholder="you@company.com">
+            <input type="email" id="edit-email" class="account-input" value="${safeEmail}" placeholder="you@company.com" autocomplete="username">
           </div>
           <div class="account-form-group">
             <label for="edit-phone">Phone Number (Optional)</label>

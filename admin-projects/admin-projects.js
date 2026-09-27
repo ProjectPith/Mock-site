@@ -97,14 +97,19 @@ function renderProjectDetails(proj) {
   renderColorBubbles(proj.color_details || "");
 }
 
-function renderColorBubbles(colorDetailsStr) {
+function renderColorBubbles(colorDetails) {
   const bubbles = document.querySelectorAll("#color-bubbles-row .color-bubble");
   const extraTextEl = document.getElementById("info-color-details-extra");
 
   const hexRegex = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
-  const foundHexes = colorDetailsStr.match(hexRegex) || [];
+  const colorDetailsText = typeof colorDetails === "string"
+    ? colorDetails
+    : colorDetails && typeof colorDetails === "object"
+      ? Object.entries(colorDetails).map(([key, value]) => `${key}: ${value}`).join(" | ")
+      : "";
+  const foundHexes = colorDetailsText.match(hexRegex) || [];
 
-  let remainingText = colorDetailsStr;
+  let remainingText = colorDetailsText;
   foundHexes.forEach(hex => {
     remainingText = remainingText.replace(hex, "");
   });

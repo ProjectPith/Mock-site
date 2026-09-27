@@ -148,7 +148,7 @@ async function fetchProjects() {
   tableBody.innerHTML = projects.map(proj => {
     const safeRepoUrl = window.sanitizeUrl(proj.repo_url, '#');
     return `
-      <tr class="project-row" onclick="navigateToProject(${JSON.stringify(String(proj.id))})">
+      <tr class="project-row" onclick="navigateToProject('${proj.id}')">
         <td><strong>${escapeHtml(proj.name)}</strong></td>
         <td class="hide-mobile">${escapeHtml(proj.client_name || proj.client_email || 'Client')}</td>
         <td><span class="badge">${escapeHtml(proj.status || 'Active')}</span></td>
