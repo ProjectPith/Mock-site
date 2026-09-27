@@ -147,6 +147,10 @@ function appendMessageBubble(msg) {
 async function handleCreateOrOpenChat() {
   if (!activeIntake) return;
   const db = getDb();
+  if (!db) {
+    setFeedback("Chat is unavailable until an authenticated session is active.", "#e74c3c");
+    return;
+  }
   const projName = activeIntake.project_name || 'Untitled Project';
 
   const rawEmails = activeIntake.client_emails || [];
@@ -163,15 +167,27 @@ async function handleCreateOrOpenChat() {
     .select("*")
     .ilike("name", `%${projName}%`);
 
-  if (!searchErr && existingRooms && existingRooms.length > 0) {
+  if (searchErr) {
+    console.error("Error finding chat room:", searchErr);
+    setFeedback("Unable to find chat rooms: " + searchErr.message, "#e74c3c");
+    return;
+  }
+
+  if (existingRooms && existingRooms.length > 0) {
     const room = existingRooms[0];
-    await db
+    const { error: updateErr } = await db
       .from("chat_rooms")
       .update({ 
         client_name: primaryName,
         client_email: allEmailsCombined || primaryEmail
       })
       .eq("id", room.id);
+
+    if (updateErr) {
+      console.error("Error updating chat room:", updateErr);
+      setFeedback("Unable to update chat room: " + updateErr.message, "#e74c3c");
+      return;
+    }
 
     const roomSelect = document.getElementById("dash-room-select");
     if (roomSelect) roomSelect.value = room.id;
@@ -201,6 +217,7 @@ async function handleCreateOrOpenChat() {
       connectChatRoom(newRoom.id);
     } else {
       console.error("Error creating chat room:", createErr);
+      setFeedback("Unable to create chat room: " + (createErr?.message || "Unknown error"), "#e74c3c");
     }
   }
 }
@@ -634,36 +651,32 @@ async function executeProjectSequence() {
     const { data: urlData } = db.storage.from("project-files").getPublicUrl(filePath);
     const intakePdfUrl = urlData?.publicUrl || "";
 
-    const { data: newProject, error: projErr } = await db
-      .from("projects")
-      .insert({
-        name: projName,
-        client_email: primaryEmail,
-        client_emails: clientEmails,
-        client_names: clientNames,
-        status: "Active",
-        total_cost: parseFloat(totalCost),
-        intake_pdf_url: intakePdfUrl,
-        contract_pdf_url: null
-      })
-      .select()
-      .single();
+    const { data: finalizedProject, error: finalizeErr } = await db.rpc(
+      "finalize_project_from_intake",
+      {
+        p_intake_id: activeIntake.id,
+        p_intake_pdf_url: intakePdfUrl,
+        p_total_cost: parseFloat(totalCost),
+        p_client_names: clientNames,
+        p_contract_terms: activeIntake.contract_terms || {}
+      }
+    );
 
-    if (projErr) {
-      console.error("Project Creation Error:", projErr);
-      throw new Error("Failed to create project row: " + projErr.message);
+    if (finalizeErr) {
+      console.error("Project Finalization Error:", finalizeErr);
+      throw new Error("Failed to finalize project: " + finalizeErr.message);
     }
 
-    await handleCreateOrOpenChat();
-
-    const { error: deleteErr } = await db
-      .from("project_intakes")
-      .delete()
-      .eq("id", activeIntake.id);
-
-    if (deleteErr) {
-      console.error("Delete Record Error:", deleteErr);
-      throw new Error("Project created, but deletion blocked by DB policies: " + deleteErr.message);
+    const finalizedRoomId = finalizedProject?.chat_room_id;
+    const finalizedProjectRow = finalizedProject?.project;
+    const roomSelect = document.getElementById("dash-room-select");
+    if (finalizedRoomId && roomSelect) {
+      const roomOption = document.createElement("option");
+      roomOption.value = finalizedRoomId;
+      roomOption.textContent = `${finalizedProjectRow?.name || projName} Chat`;
+      roomSelect.appendChild(roomOption);
+      roomSelect.value = finalizedRoomId;
+      connectChatRoom(finalizedRoomId);
     }
 
     setFeedback("Success! Project created, all clients attached, PDF stored, and intake record removed.", "#4ed1a0");
