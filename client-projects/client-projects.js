@@ -306,25 +306,23 @@ function renderProjectDetails(details = {}, maintenance = {}) {
     const description = document.createElement("dd");
     description.textContent = formatProjectDetail(detail);
     item.append(term, description);
+
+    if (label === "Color Theme") {
+      const palette = document.createElement("div");
+      palette.className = "project-color-swatches";
+      getProjectColorSwatches(details).forEach((color, index) => {
+        const swatch = document.createElement("span");
+        swatch.className = "project-color-swatch";
+        swatch.style.backgroundColor = color;
+        swatch.title = `Color ${index + 1}: ${color}`;
+        swatch.setAttribute("aria-label", `Color ${index + 1}: ${color}`);
+        palette.appendChild(swatch);
+      });
+      item.appendChild(palette);
+    }
+
     container.appendChild(item);
   });
-
-  const paletteItem = document.createElement("div");
-  paletteItem.className = "project-detail-item project-color-palette-item";
-  const paletteLabel = document.createElement("dt");
-  paletteLabel.textContent = "Color Details";
-  const palette = document.createElement("dd");
-  palette.className = "project-color-swatches";
-  getProjectColorSwatches(details).forEach((color, index) => {
-    const swatch = document.createElement("span");
-    swatch.className = "project-color-swatch";
-    swatch.style.backgroundColor = color;
-    swatch.title = `Color ${index + 1}: ${color}`;
-    swatch.setAttribute("aria-label", `Color ${index + 1}: ${color}`);
-    palette.appendChild(swatch);
-  });
-  paletteItem.append(paletteLabel, palette);
-  container.appendChild(paletteItem);
 }
 
 function setupLinkBox(buttonId, url) {

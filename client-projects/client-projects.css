@@ -235,6 +235,7 @@
   align-items: center;
   gap: 0.55rem;
   min-height: 28px;
+  margin-top: 0.55rem;
 }
 
 .project-color-swatch {
