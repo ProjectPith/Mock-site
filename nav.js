@@ -1,16 +1,26 @@
 (function () {
+  const localAssetRoot = window.location.protocol === "file:"
+    ? new URL(".", document.currentScript.src).href
+    : "/";
+
+  function resolveAsset(src) {
+    if (/^https?:\/\//i.test(src)) return src;
+    return `${localAssetRoot}${src.replace(/^\//, "")}`;
+  }
+
   function loadAsset(src, type) {
+    const resolvedSrc = resolveAsset(src);
     if (type === "css") {
-      if (!document.querySelector(`link[href="${src}"]`)) {
+      if (!document.querySelector(`link[href="${resolvedSrc}"], link[href$="/${src.replace(/^\//, "")}"]`)) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = src;
+        link.href = resolvedSrc;
         document.head.appendChild(link);
       }
     } else if (type === "js") { 
-      if (!document.querySelector(`script[src="${src}"]`)) {
+      if (!document.querySelector(`script[src="${resolvedSrc}"], script[src$="/${src.replace(/^\//, "")}"]`)) {
         const script = document.createElement("script");
-        script.src = src;
+        script.src = resolvedSrc;
         script.async = false;
         document.head.appendChild(script);
       }

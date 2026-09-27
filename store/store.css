@@ -266,7 +266,7 @@
   .modal-info-wrap {
     overflow-y: visible;
     height: auto;
-    padding: 1..75rem 1.25rem 1.25rem 1.25rem;
+    padding: 1.75rem 1.25rem 1.25rem 1.25rem;
     max-height: none;
   }
 }
