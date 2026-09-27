@@ -71,8 +71,37 @@
         <div class="widget-header">
           <h3>Messages</h3>
         </div>
-        <div class="widget-body">
-          <!-- MESSAGES WIDGET CONTENT GOES HERE -->
+        <div class="widget-body messages-widget-body">
+          <div class="chat-toolbar">
+            <select id="client-chat-room-select" class="dash-room-select" aria-label="Project chat room">
+              <option value="">Select a project first</option>
+            </select>
+            <button id="btn-client-chat-create" type="button" class="btn-sm btn-outline" disabled>+ Create Chat</button>
+          </div>
+
+          <form id="client-chat-create-form" class="client-chat-create-form hidden">
+            <label for="client-chat-name">Chat name</label>
+            <input type="text" id="client-chat-name" required maxlength="100">
+            <fieldset>
+              <legend>Project members</legend>
+              <div id="client-chat-members" class="client-chat-members"></div>
+            </fieldset>
+            <label for="client-chat-extra-email">Add someone outside the project</label>
+            <input type="email" id="client-chat-extra-email" autocomplete="email" placeholder="person@example.com">
+            <div class="chat-create-actions">
+              <button type="submit" class="btn-sm btn-accent">Create Chat</button>
+              <button type="button" id="btn-client-chat-cancel" class="btn-sm btn-outline">Cancel</button>
+            </div>
+          </form>
+
+          <p id="client-chat-feedback" class="chat-feedback" role="status"></p>
+          <div id="client-messages-list" class="client-messages-list">
+            <div class="message-placeholder"><p>Select a project to view its chats.</p></div>
+          </div>
+          <form id="client-chat-form" class="client-chat-form">
+            <input type="text" id="client-chat-input" placeholder="Type a message..." disabled required autocomplete="off">
+            <button type="submit" id="client-chat-send" class="btn-sm btn-accent" disabled>Send</button>
+          </form>
         </div>
       </section>
 
@@ -81,8 +110,18 @@
         <div class="widget-header">
           <h3>Finance</h3>
         </div>
-        <div class="widget-body">
-          <!-- FINANCE WIDGET CONTENT GOES HERE -->
+        <div class="widget-body finance-widget-body">
+          <p id="finance-placeholder" class="loading-text">Select a project to view its balance.</p>
+          <div id="finance-summary" class="finance-summary hidden">
+            <div class="finance-stat">
+              <span>Current Balance</span>
+              <strong id="finance-current-balance">$0.00</strong>
+            </div>
+            <div id="finance-build-row" class="finance-stat hidden">
+              <span>Build Remaining</span>
+              <strong id="finance-build-remaining">$0.00</strong>
+            </div>
+          </div>
         </div>
       </section>
 

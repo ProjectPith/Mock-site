@@ -224,3 +224,190 @@
 .toast-overlay.hidden {
   display: none !important;
 }
+
+.messages-widget-body {
+  min-height: 0;
+  gap: 0.65rem;
+  overflow: hidden;
+}
+
+.chat-toolbar,
+.client-chat-form,
+.chat-create-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-toolbar .dash-room-select {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-main);
+  padding: 0.45rem 0.55rem;
+}
+
+.client-chat-create-form {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  max-height: 48%;
+  overflow-y: auto;
+}
+
+.client-chat-create-form label,
+.client-chat-create-form legend {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.client-chat-create-form > input,
+.client-chat-form input {
+  min-width: 0;
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-main);
+  padding: 0.55rem 0.65rem;
+}
+
+.client-chat-create-form fieldset {
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.client-chat-members {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.client-chat-member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-main) !important;
+  overflow-wrap: anywhere;
+}
+
+.client-chat-member input {
+  flex: 0 0 auto;
+}
+
+.chat-create-actions {
+  justify-content: flex-end;
+}
+
+.chat-feedback {
+  display: none;
+  margin: 0;
+  color: #ff8a80;
+  font-size: 0.8rem;
+}
+
+.chat-feedback.visible {
+  display: block;
+}
+
+.client-messages-list {
+  flex: 1;
+  min-height: 70px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.client-chat-form input {
+  flex: 1;
+}
+
+.dash-msg-bubble {
+  max-width: 88%;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  color: var(--text-main);
+  background: var(--bg-main);
+  overflow-wrap: anywhere;
+}
+
+.dash-msg-bubble.admin {
+  align-self: flex-start;
+  border: 1px solid var(--border-subtle);
+}
+
+.dash-msg-bubble.client {
+  align-self: flex-end;
+  background: rgba(135, 206, 235, 0.12);
+  border: 1px solid var(--sky-blue);
+}
+
+.finance-widget-body {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.finance-summary {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.finance-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.finance-stat:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.finance-stat span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.finance-stat strong {
+  color: var(--text-main);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+  .client-projects-body {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .client-dashboard-grid {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .projects-widget,
+  .col-right-stack {
+    height: auto;
+    overflow: visible;
+  }
+
+  .projects-widget {
+    min-height: 320px;
+  }
+
+  .messages-widget {
+    min-height: 390px;
+  }
+}
