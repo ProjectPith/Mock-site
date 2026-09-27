@@ -230,6 +230,23 @@
   overflow-wrap: anywhere;
 }
 
+.project-color-swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 28px;
+}
+
+.project-color-swatch {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
 /* WIDGET PROPORTIONS & FLEX */
 .projects-widget {
   height: 100%;

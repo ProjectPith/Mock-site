@@ -239,6 +239,45 @@ function formatProjectDetail(value) {
   return String(value);
 }
 
+function parseColorDetails(value) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed : { text: value };
+    } catch {
+      return { text: value };
+    }
+  }
+  return {};
+}
+
+function getColorTheme(details) {
+  const mode = String(details?.color_mode ?? activeProject?.color_mode ?? "").toLowerCase();
+  const colorDetails = parseColorDetails(details?.color_details ?? activeProject?.color_details);
+
+  if (mode === "vibe") {
+    return details?.vibe_text || colorDetails.vibe || colorDetails.vibe_text || "Not provided";
+  }
+  if (mode === "preset") {
+    return colorDetails.preset || colorDetails.preset_theme || "Not provided";
+  }
+  if (mode === "hex") return "Custom HEX colors";
+  return "Not provided";
+}
+
+function getProjectColorSwatches(details) {
+  const colorDetails = parseColorDetails(details?.color_details ?? activeProject?.color_details);
+  const orderedColors = [colorDetails.background, colorDetails.primary, colorDetails.accent1, colorDetails.accent2];
+  const textColors = Object.values(colorDetails).join(" ").match(/#(?:[\da-f]{3}|[\da-f]{6})\b/gi) || [];
+  const colors = orderedColors.filter(color => typeof color === "string" && /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color));
+  textColors.forEach(color => {
+    if (colors.length < 4 && !colors.includes(color)) colors.push(color);
+  });
+  return Array.from({ length: 4 }, (_, index) => colors[index] || "#FFFFFF");
+}
+
 function renderProjectDetails(details = {}, maintenance = {}) {
   const container = document.getElementById("project-details-content");
   if (!container || !activeProject) return;
@@ -251,11 +290,9 @@ function renderProjectDetails(details = {}, maintenance = {}) {
     ["Custom Domain", value("custom_domain")],
     ["Site Type", value("site_type")],
     ["Selected Features", value("selected_features")],
-    ["Color Mode", value("color_mode")],
-    ["Color Details", value("color_details")],
+    ["Color Theme", getColorTheme(details)],
     ["Custom Specifications", value("custom_specifications")],
     ["Extra Notes", value("extra_notes")],
-    ["Design Vibe", value("vibe_text")],
     ["Maintenance Frequency", maintenance?.recurrence],
     ["Maintenance Needs", maintenance?.needs]
   ];
@@ -271,6 +308,23 @@ function renderProjectDetails(details = {}, maintenance = {}) {
     item.append(term, description);
     container.appendChild(item);
   });
+
+  const paletteItem = document.createElement("div");
+  paletteItem.className = "project-detail-item project-color-palette-item";
+  const paletteLabel = document.createElement("dt");
+  paletteLabel.textContent = "Color Details";
+  const palette = document.createElement("dd");
+  palette.className = "project-color-swatches";
+  getProjectColorSwatches(details).forEach((color, index) => {
+    const swatch = document.createElement("span");
+    swatch.className = "project-color-swatch";
+    swatch.style.backgroundColor = color;
+    swatch.title = `Color ${index + 1}: ${color}`;
+    swatch.setAttribute("aria-label", `Color ${index + 1}: ${color}`);
+    palette.appendChild(swatch);
+  });
+  paletteItem.append(paletteLabel, palette);
+  container.appendChild(paletteItem);
 }
 
 function setupLinkBox(buttonId, url) {
