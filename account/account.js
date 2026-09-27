@@ -103,7 +103,7 @@
 
       // Toggle View Listeners
       const menuStack = document.getElementById("account-menu-stack");
-      const settingsView = document.getElementById("account-settings-view");
+      const settingsView = document.getElementById("account-profile-form");
 
       document.getElementById("account-settings-btn")?.addEventListener("click", () => {
         menuStack.style.display = "none";
@@ -148,6 +148,22 @@
           saveBtn.disabled = false;
           saveBtn.textContent = "Save Changes";
         } else {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({
+              full_name: newName,
+              email: newEmail || user.email
+            })
+            .eq("id", user.id);
+
+          if (profileError) {
+            console.error("Profile update failed:", profileError);
+            alert(`Account updated, but profile table update failed: ${profileError.message}`);
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Changes";
+            return;
+          }
+
           let message = "Account details updated successfully!";
           if (newEmail && newEmail !== user.email) {
             message += "\n\nNote: If email confirmation is enabled on Supabase, please check your new inbox to confirm the change.";
@@ -240,7 +256,7 @@
         submitBtn.textContent = isSignUpMode ? "Creating..." : "Authenticating...";
 
         if (isSignUpMode) {
-          const { error } = await supabase.auth.signUp({
+          const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: { data: { full_name: fullName || '' } }
@@ -251,7 +267,10 @@
             submitBtn.disabled = false;
             submitBtn.textContent = "Create Account";
           } else {
-            alert("Account created! Check your email to confirm.");
+            const confirmationRequired = !data.session;
+            alert(confirmationRequired
+              ? "Account created! Check your email to confirm your account before signing in."
+              : "Account created and signed in.");
             document.getElementById("account-overlay")?.classList.add("hidden");
             document.body.style.overflow = "";
           }
