@@ -100,6 +100,9 @@
         <button id="account-logout-btn" class="nav-btn account-logout-btn">
           Sign Out
         </button>
+        <button type="button" id="account-delete-btn" class="nav-btn" style="width: 100%; justify-content: center; margin-top: 0.75rem; color: #f85149; border: 1px solid #f85149;">
+          Delete My Account
+        </button>
       `;
 
       // Toggle View Listeners
@@ -178,6 +181,30 @@
       document.getElementById("account-logout-btn")?.addEventListener("click", async () => {
         if (supabase) await supabase.auth.signOut();
         location.reload();
+      });
+
+      document.getElementById("account-delete-btn")?.addEventListener("click", async (event) => {
+        const deleteButton = event.currentTarget;
+        const confirmed = window.confirm(
+          `Permanently delete the account for ${user.email}? This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        deleteButton.disabled = true;
+        deleteButton.textContent = "Deleting Account...";
+
+        const { error: deleteError } = await supabase.functions.invoke("delete-account");
+        if (deleteError) {
+          console.error("Account deletion failed:", deleteError);
+          alert(`Account deletion failed: ${deleteError.message}`);
+          deleteButton.disabled = false;
+          deleteButton.textContent = "Delete My Account";
+          return;
+        }
+
+        await supabase.auth.signOut({ scope: "local" });
+        alert("Your account has been deleted. You can now register again with this email.");
+        window.location.href = "/index.html";
       });
 
     // --- LOGGED-OUT VIEW (SIGN IN / REGISTER FORM) ---
