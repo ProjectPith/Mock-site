@@ -1,6 +1,7 @@
 (function () {
   let isSignUpMode = false;
   let supabaseClient = null;
+  let passwordRecoveryActive = false;
 
   function getSupabase() {
     if (!window.supabaseClient && window.supabase) {
@@ -262,7 +263,13 @@
 
       passwordResetBtn.disabled = true;
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const redirectTo = ["http:", "https:"].includes(window.location.protocol)
+          ? new URL("/index.html", window.location.origin).href
+          : undefined;
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          email,
+          redirectTo ? { redirectTo } : undefined
+        );
         if (error) throw error;
         alert("If an account exists for that email, Supabase will send a password reset message.");
       } catch (error) {
@@ -342,6 +349,14 @@
     document.body.insertAdjacentHTML("beforeend", accountHTML);
     const accountOverlay = document.getElementById("account-overlay");
 
+    const supabase = getSupabase();
+    supabase?.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) {
+        passwordRecoveryActive = true;
+        showPasswordRecoveryForm();
+      }
+    });
+
     // --- Overlay Toggle & Close Handlers ---
     document.addEventListener("click", (e) => {
       // 1. Open overlay when Account nav button is clicked
@@ -389,7 +404,64 @@
       }
     });
 
-    setTimeout(() => updateAccountPanelUI(), 300);
+    setTimeout(() => {
+      if (!passwordRecoveryActive) updateAccountPanelUI();
+    }, 300);
+  }
+
+  function showPasswordRecoveryForm() {
+    const bodyContainer = document.querySelector(".account-overlay-body");
+    const accountOverlay = document.getElementById("account-overlay");
+    const panelTitle = document.getElementById("account-panel-title");
+    if (!bodyContainer || !accountOverlay) return;
+
+    if (panelTitle) panelTitle.textContent = "Choose a New Password";
+    bodyContainer.innerHTML = `
+      <form id="password-recovery-form">
+        <div class="account-form-group">
+          <label for="recovery-new-password">New Password</label>
+          <input type="password" id="recovery-new-password" class="account-input" autocomplete="new-password" minlength="6" required>
+        </div>
+        <div class="account-form-group">
+          <label for="recovery-confirm-password">Confirm New Password</label>
+          <input type="password" id="recovery-confirm-password" class="account-input" autocomplete="new-password" minlength="6" required>
+        </div>
+        <button type="submit" id="password-recovery-submit" class="nav-btn" style="width: 100%; justify-content: center;">Update Password</button>
+      </form>
+    `;
+    accountOverlay.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+
+    document.getElementById("password-recovery-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const password = document.getElementById("recovery-new-password")?.value;
+      const confirmation = document.getElementById("recovery-confirm-password")?.value;
+      const submitButton = document.getElementById("password-recovery-submit");
+
+      if (password !== confirmation) {
+        alert("The passwords do not match.");
+        return;
+      }
+
+      const supabase = getSupabase();
+      if (!supabase) return;
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Updating...";
+      const { data, error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        alert(`Password update failed: ${error.message}`);
+        submitButton.disabled = false;
+        submitButton.textContent = "Update Password";
+        return;
+      }
+
+      alert("Your password has been updated.");
+      passwordRecoveryActive = false;
+      await updateAccountPanelUI(data.user);
+      accountOverlay.classList.add("hidden");
+      document.body.style.overflow = "";
+    });
   }
 
   if (document.readyState === "loading") {
