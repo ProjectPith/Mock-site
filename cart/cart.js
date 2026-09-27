@@ -11,9 +11,7 @@ let cart = (typeof state !== 'undefined' && state.cart)
 
 const stripeKey = 'pk_live_51UFYfXC73VlwIj7JCIjgLMxcpKwxniLTYgNgJNn0mXAeuYR1dHwLPXZOGQOvywGa2VEtZ6VLuV6wQu3F4YxtrFOQ00xxL0mUMe';
 let stripeInstance = null;
-const checkoutEndpoint = window.location.protocol === 'file:'
-  ? 'https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY'
-  : '/api/create-checkout-session';
+const checkoutEndpoint = 'https://rpfclpfipqspbdbanobj.supabase.co/functions/v1/TEST_KEY';
 const supabasePublishableKey = 'sb_publishable_bT739cvrORLIrJYQmUVO2Q_9qe25hOU';
 
 // Helper to convert cart items into short codes
