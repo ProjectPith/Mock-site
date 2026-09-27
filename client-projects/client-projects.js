@@ -18,6 +18,7 @@ const getDb = () => window.supabaseClient;
 
 document.addEventListener("DOMContentLoaded", async () => {
   setupClientChatListeners();
+  setupProjectDetailListeners();
   await initClientDashboard();
 });
 
@@ -131,19 +132,24 @@ async function selectProject(projectId) {
 
   // 3. Fetch Bookmarks matching active project_id
   const db = getDb();
-  const { data: bookmarks, error } = await db
-    .from("bookmarks")
-    .select("*")
-    .eq("project_id", projectId);
+  const [bookmarkResult, detailsResult, maintenanceResult] = await Promise.all([
+    db.from("bookmarks").select("*").eq("project_id", projectId),
+    db.from("project_details").select("*").eq("project_id", projectId).maybeSingle(),
+    db.from("project_maintenance").select("*").eq("project_id", projectId).maybeSingle()
+  ]);
 
-  if (error) {
-    console.error("Error fetching bookmarks:", error);
+  if (activeProject?.id !== projectId) return;
+
+  if (bookmarkResult.error) {
+    console.error("Error fetching bookmarks:", bookmarkResult.error);
     projectBookmarks = [];
   } else {
-    projectBookmarks = bookmarks || [];
+    projectBookmarks = bookmarkResult.data || [];
   }
 
   renderLinkBoxes();
+  renderProjectDocuments(activeProject);
+  renderProjectDetails(detailsResult.data, maintenanceResult.data);
   await Promise.all([
     fetchProjectChatRooms(projectId),
     renderProjectFinance(activeProject)
@@ -171,19 +177,100 @@ function deselectProject() {
 }
 
 function renderLinkBoxes() {
-  // 1. LIVE LINK -> Look for "site"
-  const liveBookmark = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "site");
+  const liveBookmark = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "live site");
   setupLinkBox("btn-link-live", liveBookmark?.url);
 
-  // 2. TEST LINK -> Look for "test environment"
-  const testBookmark = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "test environment");
+  const testBookmark = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "test site");
   setupLinkBox("btn-link-test", testBookmark?.url);
 
-  // 3. GITHUB REPOSITORY -> "repo access" takes priority over "public repo"
-  const repoAccess = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "repo access");
   const publicRepo = projectBookmarks.find(b => b.name && b.name.toLowerCase().trim() === "public repo");
-  const githubBookmark = repoAccess || publicRepo;
-  setupLinkBox("btn-link-github", githubBookmark?.url);
+  setupLinkBox("btn-link-github", publicRepo?.url);
+}
+
+function renderProjectDocuments(project) {
+  setupDocumentLink("doc-link-intake", project?.intake_pdf_url);
+  setupDocumentLink("doc-link-contract", project?.contract_pdf_url);
+}
+
+function setupDocumentLink(linkId, url) {
+  const link = document.getElementById(linkId);
+  if (!link) return;
+
+  const safeUrl = url && window.sanitizeUrl ? window.sanitizeUrl(url, "#") : "#";
+  const disabled = safeUrl === "#";
+  link.href = safeUrl;
+  link.classList.toggle("disabled", disabled);
+  link.setAttribute("aria-disabled", String(disabled));
+  link.onclick = event => {
+    if (disabled) {
+      event.preventDefault();
+      showToast("This document has not been attached yet.");
+    }
+  };
+}
+
+function setupProjectDetailListeners() {
+  const docsButton = document.getElementById("btn-project-docs");
+  const docsMenu = document.getElementById("docs-dropdown-menu");
+  docsButton?.addEventListener("click", event => {
+    event.stopPropagation();
+    const isOpening = docsMenu.classList.contains("hidden");
+    docsMenu.classList.toggle("hidden", !isOpening);
+    docsButton.setAttribute("aria-expanded", String(isOpening));
+  });
+
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".docs-dropdown-container")) {
+      docsMenu?.classList.add("hidden");
+      docsButton?.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function formatProjectDetail(value) {
+  if (value === null || value === undefined || value === "") return "Not provided";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "Not provided";
+  if (typeof value === "object") {
+    const entries = Object.entries(value).filter(([, entryValue]) => entryValue !== null && entryValue !== "");
+    return entries.length
+      ? entries.map(([key, entryValue]) => `${key}: ${entryValue}`).join(" | ")
+      : "Not provided";
+  }
+  return String(value);
+}
+
+function renderProjectDetails(details = {}, maintenance = {}) {
+  const container = document.getElementById("project-details-content");
+  if (!container || !activeProject) return;
+
+  const value = key => details?.[key] ?? activeProject[key];
+  const entries = [
+    ["Company", value("company_name")],
+    ["Project Description", value("project_description")],
+    ["Target Audience", value("target_audience")],
+    ["Custom Domain", value("custom_domain")],
+    ["Site Type", value("site_type")],
+    ["Selected Features", value("selected_features")],
+    ["Color Mode", value("color_mode")],
+    ["Color Details", value("color_details")],
+    ["Custom Specifications", value("custom_specifications")],
+    ["Extra Notes", value("extra_notes")],
+    ["Design Vibe", value("vibe_text")],
+    ["Maintenance Frequency", maintenance?.recurrence],
+    ["Maintenance Needs", maintenance?.needs]
+  ];
+
+  container.replaceChildren();
+  entries.forEach(([label, detail]) => {
+    const item = document.createElement("div");
+    item.className = "project-detail-item";
+    const term = document.createElement("dt");
+    term.textContent = label;
+    const description = document.createElement("dd");
+    description.textContent = formatProjectDetail(detail);
+    item.append(term, description);
+    container.appendChild(item);
+  });
 }
 
 function setupLinkBox(buttonId, url) {

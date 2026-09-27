@@ -31,32 +31,37 @@
 
         <!-- VIEW 2: INDIVIDUAL PROJECT DETAILS (HIDDEN UNTIL CLICKED) -->
         <div id="project-details-view" class="project-details-view hidden">
-          
-          <!-- THREE FULL-WIDTH LINK BOXES -->
-          <div id="project-links-header" class="project-links-fullwidth">
-            <button id="btn-link-live" type="button" class="fullwidth-link-box disabled">
-              <span>LIVE LINK</span>
-            </button>
-            <button id="btn-link-test" type="button" class="fullwidth-link-box disabled">
-              <span>TEST LINK</span>
-            </button>
-            <button id="btn-link-github" type="button" class="fullwidth-link-box disabled">
-              <span>GITHUB REPOSITORY</span>
-            </button>
-          </div>
-
-          <!-- NEW: DOCS BUTTON BAR -->
           <div class="project-docs-bar">
             <div class="docs-dropdown-container">
-              <button id="btn-project-docs" type="button" class="btn-docs-trigger">
-                📄 Docs <span class="dropdown-arrow">▾</span>
+              <button id="btn-project-docs" type="button" class="btn-docs-trigger" aria-expanded="false" aria-controls="docs-dropdown-menu">
+                Docs <span class="dropdown-arrow">▾</span>
               </button>
               <div id="docs-dropdown-menu" class="docs-dropdown-menu hidden">
-                <button id="doc-link-intake" type="button" class="doc-menu-item disabled">Intake Form</button>
-                <button id="doc-link-contract" type="button" class="doc-menu-item disabled">Contract PDF</button>
+                <a id="doc-link-intake" class="doc-menu-item disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true">Intake Form</a>
+                <a id="doc-link-contract" class="doc-menu-item disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true">Contract PDF</a>
               </div>
             </div>
           </div>
+
+          <!-- THREE FULL-WIDTH LINK BOXES -->
+          <div id="project-links-header" class="project-links-fullwidth">
+            <button id="btn-link-live" type="button" class="fullwidth-link-box disabled">
+              <span>LIVE SITE</span>
+            </button>
+            <button id="btn-link-test" type="button" class="fullwidth-link-box disabled">
+              <span>TEST SITE</span>
+            </button>
+            <button id="btn-link-github" type="button" class="fullwidth-link-box disabled">
+              <span>PUBLIC REPO</span>
+            </button>
+          </div>
+
+          <section class="project-readonly-details" aria-labelledby="project-details-heading">
+            <h4 id="project-details-heading">Project Details</h4>
+            <dl id="project-details-content" class="project-details-grid">
+              <p class="loading-text">Select a project to view its details.</p>
+            </dl>
+          </section>
 
         </div>
 
