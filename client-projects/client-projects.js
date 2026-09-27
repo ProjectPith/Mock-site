@@ -291,6 +291,7 @@ function renderProjectDetails(details = {}, maintenance = {}) {
     ["Site Type", value("site_type")],
     ["Selected Features", value("selected_features")],
     ["Color Theme", getColorTheme(details)],
+    ["Color Details", null],
     ["Custom Specifications", value("custom_specifications")],
     ["Extra Notes", value("extra_notes")],
     ["Maintenance Frequency", maintenance?.recurrence],
@@ -303,11 +304,9 @@ function renderProjectDetails(details = {}, maintenance = {}) {
     item.className = "project-detail-item";
     const term = document.createElement("dt");
     term.textContent = label;
-    const description = document.createElement("dd");
-    description.textContent = formatProjectDetail(detail);
-    item.append(term, description);
+    item.appendChild(term);
 
-    if (label === "Color Theme") {
+    if (label === "Color Details") {
       const palette = document.createElement("div");
       palette.className = "project-color-swatches";
       getProjectColorSwatches(details).forEach((color, index) => {
@@ -319,6 +318,10 @@ function renderProjectDetails(details = {}, maintenance = {}) {
         palette.appendChild(swatch);
       });
       item.appendChild(palette);
+    } else {
+      const description = document.createElement("dd");
+      description.textContent = formatProjectDetail(detail);
+      item.appendChild(description);
     }
 
     container.appendChild(item);
