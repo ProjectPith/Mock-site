@@ -11,6 +11,12 @@
     }
     return window.supabaseClient;
   }
+
+  function getAuthRedirectUrl() {
+    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const baseUrl = isLocalhost ? "https://lunarcraft.dev" : window.location.origin;
+    return new URL("/index.html", baseUrl).href;
+  }
   
   async function updateAccountPanelUI(user = null) {
     const bodyContainer = document.querySelector(".account-overlay-body");
@@ -266,13 +272,9 @@
 
       passwordResetBtn.disabled = true;
       try {
-        const redirectTo = ["http:", "https:"].includes(window.location.protocol)
-          ? new URL("/index.html", window.location.origin).href
-          : undefined;
-        const { error } = await supabase.auth.resetPasswordForEmail(
-          email,
-          redirectTo ? { redirectTo } : undefined
-        );
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: getAuthRedirectUrl()
+        });
         if (error) throw error;
         alert("If an account exists for that email, Supabase will send a password reset message.");
       } catch (error) {
@@ -301,7 +303,10 @@
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName || '' } }
+            options: {
+              emailRedirectTo: getAuthRedirectUrl(),
+              data: { full_name: fullName || '' }
+            }
           });
 
           if (error) {
