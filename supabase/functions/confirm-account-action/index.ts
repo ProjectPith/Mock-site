@@ -15,28 +15,29 @@ function toHex(bytes: ArrayBuffer): string {
   return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
-function confirmationPage(title: string, message: string, form = ''): Response {
-  return new Response(`<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} | LunarCraft</title>
-<style>body{margin:0;background:#101820;color:#edf2f4;font:16px system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}.panel{width:min(440px,calc(100% - 40px));padding:28px;box-sizing:border-box;border:1px solid #39464f;border-radius:8px;background:#17212b}h1{font-size:22px;margin:0 0 12px}p{color:#c5d0d7;line-height:1.5}label{display:block;margin:16px 0 6px}input,button{box-sizing:border-box;width:100%;padding:12px;border-radius:4px;font:inherit}input{background:#101820;border:1px solid #52616b;color:#fff}button{margin-top:18px;border:0;background:#87ceeb;color:#10202a;font-weight:700;cursor:pointer}button:disabled{opacity:.6}#result{margin-top:14px}</style></head>
-<body><main class="panel"><h1>${title}</h1><p>${message}</p>${form}<div id="result" role="status"></div></main></body></html>`, {
-    headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
-  })
-}
-
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !serviceRoleKey) {
-    return confirmationPage('Unavailable', 'Account confirmation is not configured.')
+    return Response.json({ error: 'Account confirmation is not configured.' }, { status: 500, headers: corsHeaders })
   }
 
   const url = new URL(request.url)
   const token = url.searchParams.get('token') || ''
   if (!/^[a-f0-9]{64}$/.test(token)) {
-    return confirmationPage('Invalid link', 'This confirmation link is invalid or incomplete.')
+    return Response.json({ error: 'This confirmation link is invalid or incomplete.' }, { status: 400, headers: corsHeaders })
+  }
+
+  if (request.method === 'GET' && url.searchParams.get('inspect') !== '1') {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `https://lunarcraft.dev/account-confirmation.html?token=${encodeURIComponent(token)}`,
+        'Cache-Control': 'no-store',
+      },
+    })
   }
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -53,47 +54,13 @@ Deno.serve(async (request) => {
       .gt('expires_at', new Date().toISOString())
       .maybeSingle()
     if (error || !pending) {
-      return confirmationPage('Link expired', 'This confirmation link is expired or has already been used. Request a new one from Account Details.')
+      return Response.json({ error: 'This confirmation link is expired or has already been used. Request a new one from Account Details.' }, { status: 410, headers: corsHeaders })
     }
 
-    const deleting = pending.action_type === 'delete'
-    const title = deleting ? 'Confirm account deletion' : 'Confirm account changes'
-    const message = deleting
-      ? 'Confirm below to permanently delete your account. This action cannot be undone.'
-      : 'Confirm below to apply the requested changes to your LunarCraft account.'
-    const passwordInputs = pending.password_change
-      ? '<label for="new-password">New password</label><input id="new-password" type="password" minlength="8" autocomplete="new-password" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" type="password" minlength="8" autocomplete="new-password" required>'
-      : ''
-    const form = `<form id="confirm-form">${passwordInputs}<button id="confirm-button" type="submit">${deleting ? 'Permanently Delete Account' : 'Confirm Changes'}</button></form><script>
-const token = ${JSON.stringify(token)};
-const needsPassword = ${pending.password_change ? 'true' : 'false'};
-document.getElementById('confirm-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const result = document.getElementById('result');
-  const button = document.getElementById('confirm-button');
-  const password = document.getElementById('new-password')?.value;
-  if (needsPassword && password !== document.getElementById('confirm-password')?.value) {
-    result.textContent = 'The passwords do not match.';
-    return;
-  }
-  button.disabled = true;
-  result.textContent = 'Processing confirmation...';
-  try {
-    const response = await fetch(window.location.href, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, password })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Confirmation failed.');
-    document.querySelector('.panel').innerHTML = '<h1>Confirmed</h1><p>' + data.message + '</p>';
-  } catch (error) {
-    result.textContent = error.message;
-    button.disabled = false;
-  }
-});
-</script>`
-    return confirmationPage(title, message, form)
+    return Response.json({
+      action_type: pending.action_type,
+      password_change: pending.password_change,
+    }, { headers: corsHeaders })
   }
 
   if (request.method !== 'POST') {

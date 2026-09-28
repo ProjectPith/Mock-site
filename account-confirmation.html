@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>Confirm Account Action | LunarCraft</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="/account-confirmation.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/account-confirmation.js" defer></script>
+</head>
+<body class="account-confirmation-body">
+  <main class="confirmation-panel">
+    <p class="confirmation-eyebrow">LUNARCRAFT ACCOUNT</p>
+    <h1 id="confirmation-title">Checking your confirmation link</h1>
+    <p id="confirmation-description" class="confirmation-description">Please wait while we verify this request.</p>
+
+    <form id="confirmation-form" class="hidden">
+      <div id="password-fields" class="password-fields hidden">
+        <label for="new-password">New password</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="8">
+        <label for="confirm-password">Confirm new password</label>
+        <input id="confirm-password" type="password" autocomplete="new-password" minlength="8">
+      </div>
+      <button id="confirmation-submit" type="submit">Confirm</button>
+    </form>
+
+    <p id="confirmation-status" class="confirmation-status" role="status" aria-live="polite"></p>
+    <a class="confirmation-home" href="/index.html">Return to LunarCraft</a>
+  </main>
+</body>
+</html>

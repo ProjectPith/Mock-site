@@ -98,7 +98,7 @@ Deno.serve(async (request) => {
       })
     if (insertError) throw insertError
 
-    const confirmationUrl = `${supabaseUrl}/functions/v1/confirm-account-action?token=${token}`
+    const confirmationUrl = `${supabaseUrl}/functions/v1/confirm-account-action?token=${encodeURIComponent(token)}`
     const isDelete = actionType === 'delete'
     const recipient = actionType === 'update' ? changes.email : user.email
     const subject = isDelete ? 'Confirm account deletion' : 'Confirm account changes'
