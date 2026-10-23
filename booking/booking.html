@@ -19,7 +19,7 @@
         <h2>📞 Book a Custom Build Consultation</h2>
         <p>Schedule a free 15-minute call to discuss scope, timeline, and custom features.</p>
       </div>
-      <button id="book-call-btn" class="btn-schedule">
+      <button id="book-call-btn" class="btn-schedule" type="button">
         Schedule Call →
       </button>
     </div>
@@ -55,6 +55,18 @@
     </div>
 
   </main>
+
+  <dialog id="cal-custom-modal" class="calendar-modal" aria-labelledby="calendar-modal-title">
+    <div class="calendar-modal-content">
+      <h2 id="calendar-modal-title" class="visually-hidden">Schedule a consultation</h2>
+      <button id="close-calendar-modal" class="calendar-modal-close" type="button" aria-label="Close calendar">✕ Close</button>
+      <iframe
+        src="https://cal.com/lunarcraft/secret?embed=true&amp;theme=dark"
+        title="Schedule a 15-minute consultation"
+        loading="lazy">
+      </iframe>
+    </div>
+  </dialog>
 
   <!-- Interactive Price Estimator Modal -->
   <div id="estimator-modal" class="modal-overlay hidden">
